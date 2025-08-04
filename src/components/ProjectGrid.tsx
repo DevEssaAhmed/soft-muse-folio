@@ -13,7 +13,10 @@ const dummyProjects = [
     tags: ["Tableau", "SQL", "Python", "Statistics"],
     category: "Visualization",
     demoUrl: "#",
-    githubUrl: "#"
+    githubUrl: "#",
+    views: 1245,
+    likes: 89,
+    comments: 12
   },
   {
     id: 2,
@@ -23,7 +26,10 @@ const dummyProjects = [
     tags: ["Python", "Scikit-learn", "Pandas", "ML"],
     category: "Machine Learning",
     demoUrl: "#",
-    githubUrl: "#"
+    githubUrl: "#",
+    views: 2156,
+    likes: 134,
+    comments: 23
   },
   {
     id: 3,
@@ -32,7 +38,10 @@ const dummyProjects = [
     image: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=800&h=400&fit=crop",
     tags: ["R", "Monte Carlo", "Finance", "Statistics"],
     category: "Data Analysis",
-    demoUrl: "#"
+    demoUrl: "#",
+    views: 967,
+    likes: 67,
+    comments: 8
   },
   {
     id: 4,
@@ -41,7 +50,10 @@ const dummyProjects = [
     image: "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=800&h=400&fit=crop",
     tags: ["Python", "NLP", "API", "Sentiment Analysis"],
     category: "Data Analysis",
-    githubUrl: "#"
+    githubUrl: "#",
+    views: 1578,
+    likes: 98,
+    comments: 15
   },
   {
     id: 5,
@@ -50,7 +62,10 @@ const dummyProjects = [
     image: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&h=400&fit=crop",
     tags: ["Excel", "Power BI", "Forecasting", "Operations"],
     category: "Reporting",
-    demoUrl: "#"
+    demoUrl: "#",
+    views: 834,
+    likes: 45,
+    comments: 6
   },
   {
     id: 6,
@@ -60,7 +75,10 @@ const dummyProjects = [
     tags: ["R", "ggplot2", "Healthcare", "Statistics"],
     category: "Visualization",
     demoUrl: "#",
-    githubUrl: "#"
+    githubUrl: "#",
+    views: 1423,
+    likes: 112,
+    comments: 19
   }
 ];
 
