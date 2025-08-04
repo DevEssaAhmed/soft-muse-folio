@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ExternalLink, Github } from "lucide-react";
+import { ExternalLink, Github, Heart, MessageCircle, Eye } from "lucide-react";
 
 interface ProjectCardProps {
   title: string;
@@ -11,64 +11,77 @@ interface ProjectCardProps {
   category: string;
   demoUrl?: string;
   githubUrl?: string;
+  views: number;
+  likes: number;
+  comments: number;
 }
 
-const ProjectCard = ({ title, description, image, tags, category, demoUrl, githubUrl }: ProjectCardProps) => {
+const ProjectCard = ({ title, description, image, tags, category, demoUrl, githubUrl, views, likes, comments }: ProjectCardProps) => {
   return (
-    <Card className="group overflow-hidden hover:shadow-glow transition-all duration-300 hover:scale-[1.02] bg-white border-0 shadow-card">
-      <div className="relative overflow-hidden">
+    <Card className="group overflow-hidden bg-card shadow-card hover:shadow-glow transition-all duration-300 aspect-square relative">
+      <div className="relative h-full">
         <img
           src={image}
           alt={title}
-          className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-110"
+          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
         />
-        <div className="absolute inset-0 bg-gradient-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         
-        {/* Category badge */}
-        <Badge 
-          variant="secondary" 
-          className="absolute top-3 left-3 bg-white/90 text-secondary-foreground hover:bg-white"
-        >
-          {category}
-        </Badge>
+        {/* Instagram-style overlay */}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-all duration-300 flex items-center justify-center">
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-white text-center p-4">
+            <h3 className="font-bold text-lg mb-2">{title}</h3>
+            <p className="text-sm text-white/90 mb-4 line-clamp-3">{description}</p>
+            
+            {/* Instagram-style engagement metrics */}
+            <div className="flex justify-center gap-6 mb-4">
+              <div className="flex items-center gap-1">
+                <Heart className="w-5 h-5 fill-white" />
+                <span className="text-sm font-medium">{likes}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <MessageCircle className="w-5 h-5" />
+                <span className="text-sm font-medium">{comments}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Eye className="w-5 h-5" />
+                <span className="text-sm font-medium">{views}</span>
+              </div>
+            </div>
 
-        {/* Action buttons */}
-        <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          {githubUrl && (
-            <Button size="icon" variant="secondary" className="h-8 w-8 bg-white/90 hover:bg-white">
-              <Github className="w-4 h-4" />
-            </Button>
-          )}
-          {demoUrl && (
-            <Button size="icon" variant="secondary" className="h-8 w-8 bg-white/90 hover:bg-white">
-              <ExternalLink className="w-4 h-4" />
-            </Button>
-          )}
+            {/* Action buttons */}
+            <div className="flex justify-center gap-2">
+              {githubUrl && (
+                <Button size="sm" variant="secondary" className="bg-white/20 border-white/30 text-white hover:bg-white/30">
+                  <Github className="w-4 h-4 mr-2" />
+                  Code
+                </Button>
+              )}
+              {demoUrl && (
+                <Button size="sm" variant="secondary" className="bg-white/20 border-white/30 text-white hover:bg-white/30">
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Demo
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom info bar - always visible */}
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+          <div className="flex items-center justify-between">
+            <Badge variant="secondary" className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
+              {category}
+            </Badge>
+            <div className="flex gap-2">
+              {tags.slice(0, 2).map((tag) => (
+                <Badge key={tag} variant="outline" className="text-xs bg-white/10 text-white border-white/30 backdrop-blur-sm">
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
-
-      <CardContent className="p-6 space-y-4">
-        <div>
-          <h3 className="font-semibold text-lg text-foreground mb-2 group-hover:text-primary transition-colors duration-300">
-            {title}
-          </h3>
-          <p className="text-muted-foreground text-sm leading-relaxed line-clamp-3">
-            {description}
-          </p>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          {tags.map((tag, index) => (
-            <Badge
-              key={index}
-              variant="outline"
-              className="text-xs border-primary/20 text-primary/80 hover:bg-primary/5"
-            >
-              {tag}
-            </Badge>
-          ))}
-        </div>
-      </CardContent>
     </Card>
   );
 };
