@@ -5,10 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/contexts/AuthContext";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, Lock } from "lucide-react";
 
 const LoginForm = () => {
-  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
@@ -21,10 +20,11 @@ const LoginForm = () => {
     setLoading(true);
 
     try {
-      const { error } = await signIn(email, password);
+      const { error } = await signIn(password);
       
       if (error) {
-        setError(error.message);
+        setError(error);
+        setPassword("");
       }
     } catch (err) {
       setError("An unexpected error occurred. Please try again.");
@@ -36,29 +36,21 @@ const LoginForm = () => {
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-hero">
       <Card className="w-full max-w-md shadow-glow">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl bg-gradient-primary bg-clip-text text-transparent">
-            Admin Login
-          </CardTitle>
-          <CardDescription>
-            Enter your credentials to access the admin dashboard
-          </CardDescription>
+        <CardHeader className="text-center space-y-6">
+          <div className="mx-auto w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center shadow-soft">
+            <Lock className="w-8 h-8 text-white" />
+          </div>
+          <div>
+            <CardTitle className="text-2xl bg-gradient-primary bg-clip-text text-transparent">
+              Admin Access
+            </CardTitle>
+            <CardDescription>
+              Enter your password to access the admin dashboard
+            </CardDescription>
+          </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                required
-                disabled={loading}
-              />
-            </div>
-            
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <div className="relative">
@@ -67,7 +59,7 @@ const LoginForm = () => {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
+                  placeholder="Enter admin password"
                   required
                   disabled={loading}
                   className="pr-10"
@@ -103,25 +95,18 @@ const LoginForm = () => {
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
+                  Authenticating...
                 </>
               ) : (
-                "Sign In"
+                "Access Dashboard"
               )}
             </Button>
           </form>
 
-          <div className="mt-4 text-center">
-            <Button
-              variant="link"
-              className="text-sm text-muted-foreground hover:text-primary"
-              onClick={() => {
-                // You can implement password reset functionality here
-                alert("Password reset functionality would be implemented here");
-              }}
-            >
-              Forgot your password?
-            </Button>
+          <div className="mt-6 text-center">
+            <p className="text-xs text-muted-foreground">
+              Secure admin access • Portfolio Management
+            </p>
           </div>
         </CardContent>
       </Card>
