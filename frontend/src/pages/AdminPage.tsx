@@ -132,11 +132,11 @@ const AdminPage = () => {
               </Button>
               <Button 
                 variant="outline" 
-                onClick={handleLogout}
-                className="hover:shadow-soft transition-all duration-300 hover:border-destructive/50 hover:text-destructive"
+                onClick={goHome}
+                className="hover:shadow-soft transition-all duration-300"
               >
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
+                <Home className="w-4 h-4 mr-2" />
+                Home
               </Button>
             </div>
           </div>
