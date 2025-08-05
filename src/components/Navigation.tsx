@@ -7,6 +7,14 @@ const Navigation = () => {
   const [isDark, setIsDark] = useState(false);
 
   const navItems = ["Home", "Projects", "About", "Skills", "Contact"];
+  
+  const handleAdminAccess = () => {
+    // Simple admin access - in production, you'd want proper authentication
+    const adminKey = prompt("Enter admin key:");
+    if (adminKey === "admin123") {
+      window.location.href = "/admin";
+    }
+  };
 
   useEffect(() => {
     const isDarkMode = localStorage.getItem('darkMode') === 'true';
@@ -59,6 +67,14 @@ const Navigation = () => {
               className="bg-gradient-primary hover:shadow-soft transition-all duration-300"
             >
               Hire Me
+            </Button>
+            <Button 
+              size="sm" 
+              variant="outline"
+              onClick={handleAdminAccess}
+              className="hover:shadow-soft transition-all duration-300"
+            >
+              Admin
             </Button>
           </div>
 

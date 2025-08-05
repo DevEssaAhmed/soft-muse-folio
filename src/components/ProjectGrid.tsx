@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import ProjectCard from "./ProjectCard";
+import { supabase } from "@/integrations/supabase/client";
 
 const categories = ["All", "Data Analysis", "Visualization", "Machine Learning", "Reporting"];
 
@@ -84,10 +85,27 @@ const dummyProjects = [
 
 const ProjectGrid = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [projects, setProjects] = useState([]);
+
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
+  const fetchProjects = async () => {
+    try {
+      const { data } = await supabase
+        .from("projects")
+        .select("*")
+        .order("created_at", { ascending: false });
+      setProjects(data || []);
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+    }
+  };
 
   const filteredProjects = selectedCategory === "All" 
-    ? dummyProjects 
-    : dummyProjects.filter(project => project.category === selectedCategory);
+    ? projects 
+    : projects.filter(project => project.category === selectedCategory);
 
   return (
     <section className="py-20 px-6 bg-background">
@@ -127,7 +145,18 @@ const ProjectGrid = () => {
               className="animate-scale-in"
               style={{ animationDelay: `${index * 100}ms` }}
             >
-              <ProjectCard {...project} />
+              <ProjectCard
+                title={project.title}
+                description={project.description}
+                image={project.image_url || "/placeholder.svg"}
+                tags={project.tags || []}
+                category={project.category}
+                demoUrl={project.demo_url}
+                githubUrl={project.github_url}
+                views={project.views || 0}
+                likes={project.likes || 0}
+                comments={project.comments || 0}
+              />
             </div>
           ))}
         </div>
