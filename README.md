@@ -1,6 +1,6 @@
 # Modern Portfolio & Blog Platform
 
-A full-stack personal portfolio and blog platform with a beautiful Instagram-style interface, secure admin dashboard, and content management system.
+A full-stack personal portfolio and blog platform with a beautiful Instagram-style interface, secure admin dashboard, and content management system powered by Supabase.
 
 ![Portfolio Preview](https://via.placeholder.com/800x400?text=Portfolio+Preview)
 
@@ -15,7 +15,7 @@ A full-stack personal portfolio and blog platform with a beautiful Instagram-sty
 - **Blog Articles**: Clean article layout and navigation
 
 ### 🔐 Admin Features
-- **Secure Authentication**: Password-protected admin access
+- **Simple Authentication**: Password-protected admin access (default: `admin2024!`)
 - **Admin Dashboard**: Modern analytics dashboard with key metrics
 - **Content Management**: 
   - Full-page blog editor with rich text formatting
@@ -26,13 +26,12 @@ A full-stack personal portfolio and blog platform with a beautiful Instagram-sty
 - **Session Management**: Secure logout and session handling
 
 ### 🚀 Technical Features
-- **Fast Performance**: Built with Vite for lightning-fast development and builds
-- **Type Safety**: Full TypeScript implementation
+- **Serverless Backend**: Powered by Supabase for scalability and ease of use
+- **PostgreSQL Database**: Robust relational database with JSONB support
+- **Type Safety**: Full TypeScript implementation with auto-generated types
 - **Modern React**: Hooks, Context API, and React Router v6
 - **Component Library**: shadcn/ui components with Radix UI primitives
-- **Database Integration**: MongoDB with async operations
-- **API Architecture**: RESTful API with FastAPI
-- **CORS Support**: Configured for cross-origin requests
+- **Fast Performance**: Built with Vite for lightning-fast development and builds
 
 ## 🛠️ Tech Stack
 
@@ -47,24 +46,22 @@ A full-stack personal portfolio and blog platform with a beautiful Instagram-sty
 - **Animations**: Tailwind CSS animations
 
 ### Backend
-- **Framework**: FastAPI (Python)
-- **Database**: MongoDB with Motor (async driver)
-- **Authentication**: Custom password-based auth
-- **Environment**: Python-dotenv for configuration
-- **Middleware**: CORS middleware for cross-origin requests
+- **Backend-as-a-Service**: Supabase
+- **Database**: PostgreSQL with Supabase
+- **Authentication**: Simple password-based admin authentication
+- **API**: Auto-generated REST API via PostgREST
+- **Real-time**: WebSocket connections for live updates
 
 ### Development Tools
-- **TypeScript**: Full type safety
+- **TypeScript**: Full type safety with Supabase type generation
 - **ESLint**: Code linting
-- **Prettier**: Code formatting (via shadcn)
 - **Hot Reload**: Development server with hot reload
 
 ## 📋 Prerequisites
 
 - **Node.js** (v18 or higher)
-- **Python** (v3.8 or higher)
-- **MongoDB** (local installation or cloud instance)
 - **yarn** package manager
+- **Supabase Account** (free tier available)
 
 ## 🚀 Quick Start
 
@@ -74,18 +71,11 @@ git clone <your-repository-url>
 cd portfolio-blog-platform
 ```
 
-### 2. Backend Setup
-```bash
-# Navigate to backend directory
-cd backend
-
-# Install Python dependencies
-pip install -r requirements.txt
-
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your MongoDB connection string
-```
+### 2. Setup Supabase Project
+1. Go to [Supabase Dashboard](https://supabase.com/dashboard)
+2. Create a new project
+3. Go to Settings → API to get your credentials
+4. Note down your Project URL and anon public key
 
 ### 3. Frontend Setup
 ```bash
@@ -97,30 +87,24 @@ yarn install
 
 # Set up environment variables
 cp .env.example .env
-# Edit .env with your backend URL
+# Edit .env with your Supabase credentials:
+# VITE_SUPABASE_URL=your-project-url
+# VITE_SUPABASE_ANON_KEY=your-anon-key
 ```
 
 ### 4. Database Setup
-```bash
-# Start MongoDB (if running locally)
-mongod
-
-# The application will automatically create the required database and collections
-```
+The application uses these Supabase tables (automatically created if they don't exist):
+- `profile` - User profile information
+- `projects` - Portfolio projects
+- `blog_posts` - Blog articles and posts
 
 ### 5. Run the Application
 ```bash
-# Terminal 1: Start backend (from backend directory)
-uvicorn server:app --host 0.0.0.0 --port 8001 --reload
-
-# Terminal 2: Start frontend (from frontend directory)
+# Start frontend (from frontend directory)
 yarn dev
 ```
 
-The application will be available at:
-- **Frontend**: http://localhost:5173
-- **Backend API**: http://localhost:8001
-- **API Documentation**: http://localhost:8001/docs
+The application will be available at http://localhost:5173
 
 ## 🔑 Authentication
 
@@ -135,64 +119,80 @@ The application will be available at:
 - Protected route wrapper for admin pages
 - Automatic logout functionality
 
-## 📡 API Documentation
+## 📡 Database Schema
 
-### Base URL
-```
-http://localhost:8001/api
-```
+### Tables
 
-### Endpoints
-
-#### Health Check
-```http
-GET /api/
-```
-Returns a simple "Hello World" message.
-
-#### Status Checks
-```http
-POST /api/status
-Content-Type: application/json
-
-{
-  "client_name": "string"
-}
+#### `profile`
+```sql
+- id (uuid, primary key)
+- name (text, required)
+- username (text, required)
+- title (text)
+- bio (text)
+- location (text)
+- avatar_url (text)
+- email (text)
+- github_url (text)
+- linkedin_url (text)
+- website_url (text)
+- skills (text[])
+- stats (jsonb)
+- created_at (timestamp)
+- updated_at (timestamp)
 ```
 
-```http
-GET /api/status
+#### `projects`
+```sql
+- id (uuid, primary key)
+- title (text, required)
+- description (text, required)
+- image_url (text)
+- category (text, required)
+- tags (text[])
+- demo_url (text)
+- github_url (text)
+- views (integer, default: 0)
+- likes (integer, default: 0)
+- comments (integer, default: 0)
+- featured (boolean, default: false)
+- created_at (timestamp)
+- updated_at (timestamp)
 ```
-Returns all status check records.
 
-### Response Format
-```json
-{
-  "id": "uuid-string",
-  "client_name": "string",
-  "timestamp": "2024-01-01T00:00:00Z"
-}
+#### `blog_posts`
+```sql
+- id (uuid, primary key)
+- title (text, required)
+- slug (text, required)
+- excerpt (text)
+- content (text, required)
+- image_url (text)
+- tags (text[])
+- published (boolean, default: false)
+- views (integer, default: 0)
+- likes (integer, default: 0)
+- reading_time (integer, default: 5)
+- created_at (timestamp)
+- updated_at (timestamp)
 ```
 
 ## 🏗️ Project Structure
 
 ```
 portfolio-blog-platform/
-├── backend/
-│   ├── server.py              # FastAPI application
-│   ├── requirements.txt       # Python dependencies
-│   └── .env                   # Environment variables
 ├── frontend/
 │   ├── src/
 │   │   ├── components/        # React components
 │   │   │   ├── ui/           # shadcn/ui components
 │   │   │   └── admin/        # Admin-specific components
 │   │   ├── pages/            # Page components
-│   │   ├── contexts/         # React contexts
+│   │   ├── contexts/         # React contexts (Auth)
 │   │   ├── hooks/            # Custom hooks
-│   │   └── lib/              # Utilities
-│   ├── public/               # Static assets
-│   ├── package.json          # Node dependencies
+│   │   ├── lib/              # Utilities & Supabase client
+│   │   └── assets/           # Static assets
+│   ├── public/               # Public assets
+│   ├── package.json          # Dependencies
 │   └── .env                  # Environment variables
 └── README.md                 # This file
 ```
@@ -207,39 +207,23 @@ portfolio-blog-platform/
 ### Content
 - **Profile Info**: Edit `HeroSection.tsx` component
 - **Navigation**: Modify `Navigation.tsx` for menu items
-- **Admin Password**: Change in `AuthContext.tsx`
+- **Admin Password**: Change `ADMIN_PASSWORD` in `AuthContext.tsx`
 
-### Features
-- **Analytics**: Add custom metrics in `AdminPage.tsx`
-- **Blog Features**: Extend `BlogEditor.tsx` for additional functionality
-- **Project Features**: Enhance `ProjectEditor.tsx` with custom fields
+### Database
+- **Schema**: Modify tables through Supabase Dashboard
+- **Data**: Add/edit content through admin dashboard
+- **Types**: Regenerate types with `supabase gen types typescript --project-id your-project-id`
 
 ## 🔧 Environment Variables
 
-### Backend (.env)
-```env
-MONGO_URL="mongodb://localhost:27017"
-DB_NAME="your_database_name"
-```
-
 ### Frontend (.env)
 ```env
-REACT_APP_BACKEND_URL=http://localhost:8001
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key-here
 WDS_SOCKET_PORT=443
 ```
 
 ## 🧪 Development
-
-### Running Tests
-```bash
-# Backend tests
-cd backend
-python -m pytest
-
-# Frontend tests (if configured)
-cd frontend
-yarn test
-```
 
 ### Code Quality
 ```bash
@@ -248,7 +232,7 @@ cd frontend
 yarn lint
 
 # Type checking
-yarn type-check
+npx tsc --noEmit
 ```
 
 ### Building for Production
@@ -256,28 +240,29 @@ yarn type-check
 # Frontend build
 cd frontend
 yarn build
-
-# Backend is production-ready as-is
 ```
 
 ## 📦 Deployment
 
-### Frontend Deployment
+### Frontend Deployment (Vercel/Netlify)
 1. Build the application: `yarn build`
 2. Deploy the `dist` folder to your hosting service
-3. Configure environment variables for production
+3. Configure environment variables in your hosting platform
+4. Set up custom domain (optional)
 
-### Backend Deployment
-1. Install dependencies: `pip install -r requirements.txt`
-2. Set production environment variables
-3. Use a production WSGI server like Gunicorn:
-   ```bash
-   gunicorn -w 4 -k uvicorn.workers.UvicornWorker server:app
-   ```
+### Supabase Configuration
+- Your Supabase project handles all backend infrastructure
+- No server deployment needed
+- Configure custom domain in Supabase if required
+- Set up database backups through Supabase Dashboard
 
-### Database
-- Use a cloud MongoDB service like MongoDB Atlas for production
-- Update the `MONGO_URL` environment variable accordingly
+## 🚀 Supabase Features Used
+
+- **Database**: PostgreSQL with real-time subscriptions
+- **Auto-generated API**: REST API with filtering and sorting
+- **Type Generation**: Automatic TypeScript types from schema
+- **Dashboard**: Built-in admin interface for data management
+- **Monitoring**: Built-in analytics and monitoring
 
 ## 🤝 Contributing
 
@@ -290,8 +275,8 @@ yarn build
 ### Development Guidelines
 - Follow TypeScript best practices
 - Use conventional commit messages
-- Ensure all tests pass before submitting PR
 - Update documentation for new features
+- Test admin functionality thoroughly
 
 ## 📝 License
 
@@ -299,11 +284,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
+- **Supabase** - For the amazing backend-as-a-service platform
 - **shadcn/ui** - For the beautiful component library
 - **Radix UI** - For accessible UI primitives
 - **Tailwind CSS** - For the utility-first CSS framework
-- **FastAPI** - For the high-performance Python web framework
-- **MongoDB** - For the flexible document database
+- **Vite** - For the fast development experience
 
 ## 🐛 Issues & Support
 
@@ -315,17 +300,17 @@ If you encounter any issues or have questions:
 
 ## 🚀 Roadmap
 
-- [ ] Email integration for contact forms
+- [ ] Real-time collaboration features
 - [ ] Advanced SEO optimization
-- [ ] Multi-language support
+- [ ] Image optimization and CDN
 - [ ] Advanced analytics dashboard
-- [ ] Social media integration
-- [ ] Newsletter subscription
 - [ ] Comment system for blog posts
-- [ ] Image upload and optimization
+- [ ] Newsletter subscription
+- [ ] Multi-language support
+- [ ] Progressive Web App (PWA) features
 
 ---
 
-**Built with ❤️ using modern web technologies**
+**Built with ❤️ using Supabase and modern web technologies**
 
-For more information about deployment and advanced configuration, check the [Wiki](your-repository-url/wiki) or [Documentation](your-repository-url/docs).
+For more information about Supabase features and advanced configuration, check the [Supabase Documentation](https://supabase.com/docs) or [Supabase Dashboard](https://supabase.com/dashboard).
