@@ -138,15 +138,18 @@ frontend:
 
   - task: "Protected Route Wrapper"
     implemented: true
-    working: "NA" 
+    working: false
     file: "/app/frontend/src/components/admin/ProtectedRoute.tsx"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Created ProtectedRoute component that shows LoginForm when not authenticated, shows loading state"
+      - working: false
+        agent: "testing"
+        comment: "Minor routing issue: Direct navigation to /admin redirects to home page instead of showing login form. However, accessing admin through navigation button works correctly and shows login form. Core protection functionality works but routing needs adjustment."
 
   - task: "App Integration with Authentication"
     implemented: true
