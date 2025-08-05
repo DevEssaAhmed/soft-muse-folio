@@ -29,7 +29,6 @@ import ProfileForm from "@/components/admin/ProfileForm";
 
 const AdminPage = () => {
   const navigate = useNavigate();
-  const { signOut } = useAuth();
   const [projects, setProjects] = useState([]);
   const [blogPosts, setBlogPosts] = useState([]);
   const [profile, setProfile] = useState(null);
