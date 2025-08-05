@@ -26,8 +26,6 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import ProjectForm from "@/components/admin/ProjectForm";
-import BlogForm from "@/components/admin/BlogForm";
 import ProfileForm from "@/components/admin/ProfileForm";
 
 const AdminPage = () => {
@@ -37,10 +35,6 @@ const AdminPage = () => {
   const [projects, setProjects] = useState([]);
   const [blogPosts, setBlogPosts] = useState([]);
   const [profile, setProfile] = useState(null);
-  const [editingProject, setEditingProject] = useState(null);
-  const [editingBlog, setEditingBlog] = useState(null);
-  const [showProjectForm, setShowProjectForm] = useState(false);
-  const [showBlogForm, setShowBlogForm] = useState(false);
   const [showProfileForm, setShowProfileForm] = useState(false);
 
   useEffect(() => {
@@ -264,7 +258,7 @@ const AdminPage = () => {
                 <p className="text-muted-foreground">Manage your portfolio projects</p>
               </div>
               <Button 
-                onClick={() => setShowProjectForm(true)}
+                onClick={() => navigate('/admin/project/new')}
                 className="bg-gradient-primary hover:shadow-glow transition-all duration-300"
               >
                 <Plus className="w-4 h-4 mr-2" />
@@ -314,10 +308,7 @@ const AdminPage = () => {
                         <Button 
                           variant="outline" 
                           size="sm"
-                          onClick={() => {
-                            setEditingProject(project);
-                            setShowProjectForm(true);
-                          }}
+                          onClick={() => navigate(`/admin/project/edit/${project.id}`)}
                           className="hover:shadow-soft transition-all duration-300"
                         >
                           <Edit className="w-4 h-4" />
@@ -342,7 +333,7 @@ const AdminPage = () => {
                     <h3 className="text-xl font-semibold text-foreground mb-2">No projects yet</h3>
                     <p className="text-muted-foreground mb-6">Create your first project to get started</p>
                     <Button 
-                      onClick={() => setShowProjectForm(true)}
+                      onClick={() => navigate('/admin/project/new')}
                       className="bg-gradient-primary hover:shadow-glow transition-all duration-300"
                     >
                       <Plus className="w-4 h-4 mr-2" />
@@ -361,7 +352,7 @@ const AdminPage = () => {
                 <p className="text-muted-foreground">Create and manage your articles</p>
               </div>
               <Button 
-                onClick={() => setShowBlogForm(true)}
+                onClick={() => navigate('/admin/blog/new')}
                 className="bg-gradient-primary hover:shadow-glow transition-all duration-300"
               >
                 <Plus className="w-4 h-4 mr-2" />
@@ -411,10 +402,7 @@ const AdminPage = () => {
                         <Button 
                           variant="outline" 
                           size="sm"
-                          onClick={() => {
-                            setEditingBlog(post);
-                            setShowBlogForm(true);
-                          }}
+                          onClick={() => navigate(`/admin/blog/edit/${post.id}`)}
                           className="hover:shadow-soft transition-all duration-300"
                         >
                           <Edit className="w-4 h-4" />
@@ -439,7 +427,7 @@ const AdminPage = () => {
                     <h3 className="text-xl font-semibold text-foreground mb-2">No blog posts yet</h3>
                     <p className="text-muted-foreground mb-6">Share your thoughts and insights with the world</p>
                     <Button 
-                      onClick={() => setShowBlogForm(true)}
+                      onClick={() => navigate('/admin/blog/new')}
                       className="bg-gradient-primary hover:shadow-glow transition-all duration-300"
                     >
                       <Plus className="w-4 h-4 mr-2" />
@@ -631,37 +619,7 @@ const AdminPage = () => {
           </TabsContent>
         </Tabs>
 
-        {/* Forms */}
-        {showProjectForm && (
-          <ProjectForm
-            project={editingProject}
-            onClose={() => {
-              setShowProjectForm(false);
-              setEditingProject(null);
-            }}
-            onSuccess={() => {
-              fetchData();
-              setShowProjectForm(false);
-              setEditingProject(null);
-            }}
-          />
-        )}
-
-        {showBlogForm && (
-          <BlogForm
-            blogPost={editingBlog}
-            onClose={() => {
-              setShowBlogForm(false);
-              setEditingBlog(null);
-            }}
-            onSuccess={() => {
-              fetchData();
-              setShowBlogForm(false);
-              setEditingBlog(null);
-            }}
-          />
-        )}
-
+        {/* Profile Form Modal */}
         {showProfileForm && (
           <ProfileForm
             profile={profile}
