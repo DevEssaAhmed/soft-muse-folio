@@ -82,7 +82,7 @@ const Navigation = () => {
             <Button 
               size="sm" 
               variant="outline"
-              onClick={() => window.location.href = "/admin"}
+              onClick={() => navigate("/admin")}
               className="hover:shadow-soft transition-all duration-300"
             >
               Admin
