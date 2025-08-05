@@ -93,14 +93,8 @@ const AdminPage = () => {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await signOut();
-      navigate("/");
-    } catch (error) {
-      console.error("Error signing out:", error);
-      toast.error("Error signing out");
-    }
+  const goHome = () => {
+    navigate("/");
   };
 
   // Calculate analytics
