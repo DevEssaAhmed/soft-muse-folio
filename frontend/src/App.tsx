@@ -8,6 +8,8 @@ import ProtectedRoute from "@/components/admin/ProtectedRoute";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AdminPage from "./pages/AdminPage";
+import BlogEditor from "./pages/BlogEditor";
+import ProjectEditor from "./pages/ProjectEditor";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +27,38 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AdminPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/blog/new" 
+              element={
+                <ProtectedRoute>
+                  <BlogEditor />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/blog/edit/:id" 
+              element={
+                <ProtectedRoute>
+                  <BlogEditor />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/project/new" 
+              element={
+                <ProtectedRoute>
+                  <ProjectEditor />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/project/edit/:id" 
+              element={
+                <ProtectedRoute>
+                  <ProjectEditor />
                 </ProtectedRoute>
               } 
             />
