@@ -1,18 +1,16 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session, AuthError } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
 
 interface AuthContextType {
-  user: User | null;
-  session: Session | null;
+  isAuthenticated: boolean;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
-  signUp: (email: string, password: string) => Promise<{ error: AuthError | null }>;
-  signOut: () => Promise<{ error: AuthError | null }>;
-  resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
+  signIn: (password: string) => Promise<{ error: string | null }>;
+  signOut: () => Promise<{ error: string | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// Simple password for single-user portfolio
+const ADMIN_PASSWORD = 'admin2024!';
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -23,93 +21,38 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial session
-    const getInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    };
-
-    getInitialSession();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-
-        // Create profile on sign up
-        if (event === 'SIGNED_UP' && session?.user) {
-          await createProfile(session.user);
-        }
-      }
-    );
-
-    return () => subscription.unsubscribe();
+    // Check if user is already authenticated
+    const authStatus = localStorage.getItem('adminAuth');
+    if (authStatus === 'true') {
+      setIsAuthenticated(true);
+    }
+    setLoading(false);
   }, []);
 
-  const createProfile = async (user: User) => {
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .insert({
-          user_id: user.id,
-          full_name: user.user_metadata?.full_name || '',
-          username: user.email?.split('@')[0] || '',
-          avatar_url: user.user_metadata?.avatar_url || null,
-        });
-
-      if (error) {
-        console.error('Error creating profile:', error);
-      }
-    } catch (error) {
-      console.error('Error creating profile:', error);
+  const signIn = async (password: string) => {
+    if (password === ADMIN_PASSWORD) {
+      setIsAuthenticated(true);
+      localStorage.setItem('adminAuth', 'true');
+      return { error: null };
     }
-  };
-
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    return { error };
-  };
-
-  const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-    return { error };
+    return { error: 'Invalid password. Please try again.' };
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    return { error };
-  };
-
-  const resetPassword = async (email: string) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-    return { error };
+    setIsAuthenticated(false);
+    localStorage.removeItem('adminAuth');
+    return { error: null };
   };
 
   const value: AuthContextType = {
-    user,
-    session,
+    isAuthenticated,
     loading,
     signIn,
-    signUp,
     signOut,
-    resetPassword,
   };
 
   return (
