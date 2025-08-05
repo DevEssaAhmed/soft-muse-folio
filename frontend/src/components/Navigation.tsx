@@ -6,6 +6,7 @@ import { Menu, X, Moon, Sun } from "lucide-react";
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isDark, setIsDark] = useState(false);
+  const navigate = useNavigate();
 
   const navItems = ["Home", "Projects", "About", "Skills", "Contact"];
 
