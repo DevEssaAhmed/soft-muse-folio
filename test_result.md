@@ -252,10 +252,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Password Protection Implementation"
     - "Protected Route Wrapper"
-    - "Admin Dashboard Redesign"
-  stuck_tasks: []
+  stuck_tasks: 
+    - "Protected Route Wrapper"
   test_all: false
   test_priority: "high_first"
 
