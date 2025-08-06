@@ -6,7 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Eye, Heart, ExternalLink, Github } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-const RecentProjects = () => {
+interface RecentProjectsProps {
+  showAll?: boolean;
+}
+
+const RecentProjects = ({ showAll = false }: RecentProjectsProps) => {
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [categories, setCategories] = useState([]);
