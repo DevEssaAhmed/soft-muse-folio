@@ -108,6 +108,56 @@ const BlogForm = ({ blogPost, onClose, onSuccess }: BlogFormProps) => {
     }
   }, [formData.title, blogPost]);
 
+  const handleImageUpload = (urls: string[]) => {
+    if (urls.length > 0) {
+      setFormData(prev => ({ ...prev, image_url: urls[0] }));
+    }
+  };
+
+  const handleAdditionalImagesUpload = (urls: string[]) => {
+    setFormData(prev => ({ ...prev, additional_images: urls }));
+  };
+
+  const handleVideoUpload = (urls: string[]) => {
+    if (urls.length > 0) {
+      setFormData(prev => ({ 
+        ...prev, 
+        video_url: urls[0],
+        video_type: urls[0].includes('youtube') || urls[0].includes('vimeo') ? 'external' : 'file'
+      }));
+    }
+  };
+
+  const createNewSeries = async () => {
+    if (!newSeries.title) return;
+    
+    try {
+      // For now, add to local state since tables don't exist
+      const mockId = (series.length + 1).toString();
+      const seriesSlug = newSeries.slug || newSeries.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      
+      const newSeriesItem = {
+        id: mockId,
+        title: newSeries.title,
+        slug: seriesSlug,
+        description: newSeries.description
+      };
+      
+      setSeries(prev => [...prev, newSeriesItem]);
+      setFormData(prev => ({ ...prev, series_id: mockId }));
+      setShowNewSeriesDialog(false);
+      setNewSeries({ title: "", slug: "", description: "" });
+      
+      toast({ title: "Series created successfully" });
+    } catch (error) {
+      toast({ 
+        title: "Error creating series", 
+        description: "Please try again",
+        variant: "destructive" 
+      });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
