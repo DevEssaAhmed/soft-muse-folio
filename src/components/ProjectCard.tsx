@@ -36,11 +36,11 @@ const ProjectCard = ({ id, title, description, image, tags, category, demoUrl, g
     }
   };
 
-  const handleCodeClick = (e: React.MouseEvent) => {
+  const handleTagClick = (e: React.MouseEvent, tag: string) => {
     e.stopPropagation();
-    if (githubUrl) {
-      window.open(githubUrl, '_blank');
-    }
+    // For now, we'll navigate to a 404 page as requested
+    // In the future, this could navigate to a tags page
+    navigate('/404-tag-not-found');
   };
 
   return (
