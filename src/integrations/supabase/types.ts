@@ -17,6 +17,7 @@ export type Database = {
       blog_posts: {
         Row: {
           additional_images: string[] | null
+          category_id: string | null
           content: string
           created_at: string
           excerpt: string | null
@@ -26,6 +27,8 @@ export type Database = {
           likes: number | null
           published: boolean | null
           reading_time: number | null
+          series_id: string | null
+          series_order: number | null
           slug: string
           tags: string[] | null
           title: string
@@ -36,6 +39,7 @@ export type Database = {
         }
         Insert: {
           additional_images?: string[] | null
+          category_id?: string | null
           content: string
           created_at?: string
           excerpt?: string | null
@@ -45,6 +49,8 @@ export type Database = {
           likes?: number | null
           published?: boolean | null
           reading_time?: number | null
+          series_id?: string | null
+          series_order?: number | null
           slug: string
           tags?: string[] | null
           title: string
@@ -55,6 +61,7 @@ export type Database = {
         }
         Update: {
           additional_images?: string[] | null
+          category_id?: string | null
           content?: string
           created_at?: string
           excerpt?: string | null
@@ -64,6 +71,8 @@ export type Database = {
           likes?: number | null
           published?: boolean | null
           reading_time?: number | null
+          series_id?: string | null
+          series_order?: number | null
           slug?: string
           tags?: string[] | null
           title?: string
@@ -71,6 +80,60 @@ export type Database = {
           video_type?: string | null
           video_url?: string | null
           views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_posts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_posts_series_id_fkey"
+            columns: ["series_id"]
+            isOneToOne: false
+            referencedRelation: "series"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      categories: {
+        Row: {
+          article_count: number | null
+          color: string | null
+          created_at: string
+          description: string | null
+          featured: boolean | null
+          icon: string | null
+          id: string
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          article_count?: number | null
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          featured?: boolean | null
+          icon?: string | null
+          id?: string
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          article_count?: number | null
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          featured?: boolean | null
+          icon?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          updated_at?: string
         }
         Relationships: []
       }
