@@ -10,8 +10,10 @@ import {
   Code,
   Database,
   BarChart3,
-  Palette
+  Palette,
+  Globe
 } from 'lucide-react';
+import { useProfile } from '@/contexts/ProfileContext';
 
 const Footer = () => {
   const scrollToTop = () => {
