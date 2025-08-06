@@ -3,89 +3,10 @@ import { Button } from "@/components/ui/button";
 import ProjectCard from "./ProjectCard";
 import { supabase } from "@/integrations/supabase/client";
 
-const categories = ["All", "Data Analysis", "Visualization", "Machine Learning", "Reporting"];
-
-const dummyProjects = [
-  {
-    id: 1,
-    title: "E-commerce Sales Dashboard",
-    description: "Interactive Tableau dashboard analyzing 3 years of sales data with predictive insights. Identified key revenue drivers and seasonal patterns, resulting in 15% increase in targeted marketing ROI.",
-    image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=400&fit=crop",
-    tags: ["Tableau", "SQL", "Python", "Statistics"],
-    category: "Visualization",
-    demoUrl: "#",
-    githubUrl: "#",
-    views: 1245,
-    likes: 89,
-    comments: 12
-  },
-  {
-    id: 2,
-    title: "Customer Churn Prediction",
-    description: "Machine learning model predicting customer churn with 89% accuracy. Built using Random Forest and XGBoost algorithms, deployed with automated reporting system.",
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=400&fit=crop",
-    tags: ["Python", "Scikit-learn", "Pandas", "ML"],
-    category: "Machine Learning",
-    demoUrl: "#",
-    githubUrl: "#",
-    views: 2156,
-    likes: 134,
-    comments: 23
-  },
-  {
-    id: 3,
-    title: "Financial Risk Assessment",
-    description: "Comprehensive risk analysis for investment portfolio using Monte Carlo simulations. Created automated reporting system with real-time market data integration.",
-    image: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=800&h=400&fit=crop",
-    tags: ["R", "Monte Carlo", "Finance", "Statistics"],
-    category: "Data Analysis",
-    demoUrl: "#",
-    views: 967,
-    likes: 67,
-    comments: 8
-  },
-  {
-    id: 4,
-    title: "Social Media Analytics",
-    description: "Real-time social media sentiment analysis tracking brand perception across platforms. Implemented NLP algorithms for automated sentiment scoring.",
-    image: "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=800&h=400&fit=crop",
-    tags: ["Python", "NLP", "API", "Sentiment Analysis"],
-    category: "Data Analysis",
-    githubUrl: "#",
-    views: 1578,
-    likes: 98,
-    comments: 15
-  },
-  {
-    id: 5,
-    title: "Supply Chain Optimization",
-    description: "Data-driven supply chain analysis reducing costs by 22%. Optimized inventory levels and supplier relationships using advanced analytics and forecasting models.",
-    image: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&h=400&fit=crop",
-    tags: ["Excel", "Power BI", "Forecasting", "Operations"],
-    category: "Reporting",
-    demoUrl: "#",
-    views: 834,
-    likes: 45,
-    comments: 6
-  },
-  {
-    id: 6,
-    title: "Healthcare Data Insights",
-    description: "Analysis of patient outcomes and treatment effectiveness. Built interactive visualizations helping healthcare providers make data-driven treatment decisions.",
-    image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=800&h=400&fit=crop",
-    tags: ["R", "ggplot2", "Healthcare", "Statistics"],
-    category: "Visualization",
-    demoUrl: "#",
-    githubUrl: "#",
-    views: 1423,
-    likes: 112,
-    comments: 19
-  }
-];
-
 const ProjectGrid = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [projects, setProjects] = useState([]);
+  const [categories, setCategories] = useState(["All"]);
 
   useEffect(() => {
     fetchProjects();
@@ -97,7 +18,14 @@ const ProjectGrid = () => {
         .from("projects")
         .select("*")
         .order("created_at", { ascending: false });
-      setProjects(data || []);
+      
+      if (data) {
+        setProjects(data);
+        
+        // Extract unique categories dynamically
+        const uniqueCategories = [...new Set(data.map(project => project.category))];
+        setCategories(["All", ...uniqueCategories]);
+      }
     } catch (error) {
       console.error("Error fetching projects:", error);
     }
