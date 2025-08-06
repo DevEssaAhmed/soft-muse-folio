@@ -110,6 +110,16 @@ const Navigation = () => {
             >
               Hire Me
             </Button>
+            {user && (
+              <Button 
+                size="sm" 
+                variant="outline"
+                className="w-full mt-2"
+                onClick={() => navigate("/admin")}
+              >
+                Admin
+              </Button>
+            )}
           </div>
         )}
       </div>
