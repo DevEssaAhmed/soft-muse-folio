@@ -422,6 +422,45 @@ Your content will be automatically saved as you type."
                     </div>
                     
                     <div>
+                      <Label htmlFor="video_url" className="text-sm font-medium">Video URL</Label>
+                      <Input
+                        id="video_url"
+                        type="url"
+                        value={formData.video_url}
+                        onChange={(e) => setFormData(prev => ({ ...prev, video_url: e.target.value }))}
+                        className="mt-1"
+                        placeholder="YouTube, Vimeo, or direct video URL"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="video_type" className="text-sm font-medium">Video Type</Label>
+                      <select
+                        id="video_type"
+                        value={formData.video_type}
+                        onChange={(e) => setFormData(prev => ({ ...prev, video_type: e.target.value }))}
+                        className="mt-1 w-full px-3 py-2 border border-border rounded-md bg-background"
+                      >
+                        <option value="youtube">YouTube</option>
+                        <option value="vimeo">Vimeo</option>
+                        <option value="upload">Direct Upload</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="additional_images" className="text-sm font-medium">Additional Images</Label>
+                      <Textarea
+                        id="additional_images"
+                        value={formData.additional_images}
+                        onChange={(e) => setFormData(prev => ({ ...prev, additional_images: e.target.value }))}
+                        rows={3}
+                        className="mt-1"
+                        placeholder="https://example.com/img1.jpg, https://example.com/img2.jpg"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">Separate URLs with commas</p>
+                    </div>
+                    
+                    <div>
                       <Label htmlFor="tags" className="text-sm font-medium">Tags</Label>
                       <Input
                         id="tags"
