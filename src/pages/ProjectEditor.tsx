@@ -297,7 +297,7 @@ You can include:
             {/* Links Section */}
             <Card className="bg-card/50 backdrop-blur-sm">
               <CardContent className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Project Links</h3>
+                <h3 className="text-lg font-semibold mb-4">Project Links & Media</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="demo_url" className="text-sm font-medium">Live Demo URL</Label>
@@ -320,6 +320,30 @@ You can include:
                       placeholder="https://github.com/username/repo"
                       className="mt-1"
                     />
+                  </div>
+                  <div>
+                    <Label htmlFor="demo_video_url" className="text-sm font-medium">Demo Video URL</Label>
+                    <Input
+                      id="demo_video_url"
+                      type="url"
+                      value={formData.demo_video_url}
+                      onChange={(e) => setFormData(prev => ({ ...prev, demo_video_url: e.target.value }))}
+                      placeholder="YouTube, Vimeo, or direct video URL"
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="demo_video_type" className="text-sm font-medium">Video Type</Label>
+                    <select
+                      id="demo_video_type"
+                      value={formData.demo_video_type}
+                      onChange={(e) => setFormData(prev => ({ ...prev, demo_video_type: e.target.value }))}
+                      className="mt-1 w-full px-3 py-2 border border-border rounded-md bg-background"
+                    >
+                      <option value="youtube">YouTube</option>
+                      <option value="vimeo">Vimeo</option>
+                      <option value="upload">Direct Upload</option>
+                    </select>
                   </div>
                 </div>
               </CardContent>
