@@ -46,8 +46,8 @@ const RecentArticles = ({ showAll = false }: RecentArticlesProps) => {
   };
 
   const filteredArticles = selectedTag === "All" 
-    ? articles.slice(0, 4)
-    : articles.filter(article => article.tags?.includes(selectedTag)).slice(0, 4);
+    ? articles.slice(0, showAll ? articles.length : 4)
+    : articles.filter(article => article.tags?.includes(selectedTag)).slice(0, showAll ? articles.length : 4);
 
   if (loading) {
     return (
