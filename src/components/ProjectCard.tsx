@@ -49,6 +49,8 @@ const ProjectCard = ({ id, title, description, image, tags, category, demoUrl, g
       window.open(githubUrl, '_blank');
     }
   };
+
+  return (
     <Card 
       className="group overflow-hidden bg-card shadow-card hover:shadow-glow transition-all duration-300 aspect-square relative cursor-pointer"
       onClick={handleProjectClick}
