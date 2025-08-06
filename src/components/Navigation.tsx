@@ -57,14 +57,16 @@ const Navigation = () => {
             >
               Hire Me
             </Button>
-            <Button 
-              size="sm" 
-              variant="outline"
-              onClick={() => navigate("/admin")}
-              className="hover:shadow-soft transition-all duration-300"
-            >
-              Admin
-            </Button>
+            {user && (
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={() => navigate("/admin")}
+                className="hover:shadow-soft transition-all duration-300"
+              >
+                Admin
+              </Button>
+            )}
           </div>
 
           {/* Mobile menu button */}
