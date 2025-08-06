@@ -28,7 +28,7 @@ const Navigation = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="font-bold text-xl bg-gradient-primary bg-clip-text text-transparent">
-            Alex Chen
+            {profile?.name || "Loading..."}
           </div>
 
           {/* Desktop Navigation */}
