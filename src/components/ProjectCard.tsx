@@ -38,9 +38,9 @@ const ProjectCard = ({ id, title, description, image, tags, category, demoUrl, g
 
   const handleTagClick = (e: React.MouseEvent, tag: string) => {
     e.stopPropagation();
-    // For now, we'll navigate to a 404 page as requested
-    // In the future, this could navigate to a tags page
-    navigate('/404-tag-not-found');
+    // Navigate to the tag detail page
+    const tagSlug = tag.toLowerCase().replace(/\s+/g, '-');
+    navigate(`/tags/${encodeURIComponent(tagSlug)}`);
   };
 
   const handleCodeClick = (e: React.MouseEvent) => {
