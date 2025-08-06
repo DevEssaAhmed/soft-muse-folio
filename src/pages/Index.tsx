@@ -3,6 +3,7 @@ import HeroSection from "@/components/HeroSection";
 import TabNavigation from "@/components/TabNavigation";
 import ContactForm from "@/components/ContactForm";
 import Footer from "@/components/Footer";
+import SEO from "@/components/SEO";
 
 const Index = () => {
   return (
