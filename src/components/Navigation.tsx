@@ -61,10 +61,10 @@ const Navigation = () => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={toggleDarkMode}
+              onClick={toggleTheme}
               className="hover:bg-primary/10 hover:text-primary transition-all duration-300"
             >
-              {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </Button>
             <Button 
               size="sm" 
