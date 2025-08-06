@@ -102,7 +102,7 @@ const RecentProjects = ({ showAll = false }: RecentProjectsProps) => {
         )}
 
         {/* Projects Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8 animate-fade-up delay-300">
+        <div className={`grid md:grid-cols-2 ${showAll ? 'lg:grid-cols-3' : 'lg:grid-cols-2'} gap-8 animate-fade-up delay-300`}>
           {filteredProjects.map((project, index) => (
             <Card 
               key={project.id} 
