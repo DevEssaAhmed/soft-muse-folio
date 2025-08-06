@@ -73,28 +73,33 @@ const ProfileManagePage = () => {
 
   const fetchProfile = async () => {
     try {
+      // First try to get all profiles and use the most recent one
       const { data, error } = await supabase
         .from("profile")
         .select("*")
-        .single();
+        .order('updated_at', { ascending: false })
+        .limit(1);
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         throw error;
       }
 
-      if (data) {
-        setProfile(data);
-        setValue("name", data.name || "");
-        setValue("username", data.username || "");
-        setValue("title", data.title || "");
-        setValue("bio", data.bio || "");
-        setValue("location", data.location || "");
-        setValue("email", data.email || "");
-        setValue("github_url", data.github_url || "");
-        setValue("linkedin_url", data.linkedin_url || "");
-        setValue("website_url", data.website_url || "");
-        setSkills(data.skills || []);
-        setAvatarUrl(data.avatar_url || "");
+      // Use the first (most recent) profile if available
+      const profileData = data && data.length > 0 ? data[0] : null;
+
+      if (profileData) {
+        setProfile(profileData);
+        setValue("name", profileData.name || "");
+        setValue("username", profileData.username || "");
+        setValue("title", profileData.title || "");
+        setValue("bio", profileData.bio || "");
+        setValue("location", profileData.location || "");
+        setValue("email", profileData.email || "");
+        setValue("github_url", profileData.github_url || "");
+        setValue("linkedin_url", profileData.linkedin_url || "");
+        setValue("website_url", profileData.website_url || "");
+        setSkills(profileData.skills || []);
+        setAvatarUrl(profileData.avatar_url || "");
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
