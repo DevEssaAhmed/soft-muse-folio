@@ -17,6 +17,8 @@ interface FileUploadProps {
   multiple?: boolean;
   maxSizeMB?: number;
   showPreview?: boolean;
+  allowUrlInput?: boolean;
+  urlInputPlaceholder?: string;
 }
 
 interface UploadingFile {
