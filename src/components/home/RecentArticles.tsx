@@ -28,7 +28,7 @@ const RecentArticles = ({ showAll = false }: RecentArticlesProps) => {
         .select("*")
         .eq("published", true)
         .order("created_at", { ascending: false })
-        .limit(6);
+        .limit(showAll ? 50 : 6);
       
       if (data) {
         setArticles(data);
