@@ -92,6 +92,9 @@ const ContactForm = () => {
 
       if (error) throw error;
 
+      // Track successful form submission
+      trackContactForm(data.purpose);
+      
       toast.success('Message sent successfully! I\'ll get back to you soon.');
       form.reset();
       setShowOtherField(false);
