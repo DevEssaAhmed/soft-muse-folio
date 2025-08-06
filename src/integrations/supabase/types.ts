@@ -231,6 +231,7 @@ export type Database = {
         Row: {
           additional_images: string[] | null
           category: string
+          category_id: string | null
           comments: number | null
           created_at: string
           demo_url: string | null
@@ -250,6 +251,7 @@ export type Database = {
         Insert: {
           additional_images?: string[] | null
           category: string
+          category_id?: string | null
           comments?: number | null
           created_at?: string
           demo_url?: string | null
@@ -269,6 +271,7 @@ export type Database = {
         Update: {
           additional_images?: string[] | null
           category?: string
+          category_id?: string | null
           comments?: number | null
           created_at?: string
           demo_url?: string | null
@@ -284,6 +287,59 @@ export type Database = {
           title?: string
           updated_at?: string
           views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      series: {
+        Row: {
+          article_count: number | null
+          created_at: string
+          description: string | null
+          featured: boolean | null
+          featured_image_url: string | null
+          id: string
+          image_url: string | null
+          slug: string
+          status: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          article_count?: number | null
+          created_at?: string
+          description?: string | null
+          featured?: boolean | null
+          featured_image_url?: string | null
+          id?: string
+          image_url?: string | null
+          slug: string
+          status?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          article_count?: number | null
+          created_at?: string
+          description?: string | null
+          featured?: boolean | null
+          featured_image_url?: string | null
+          id?: string
+          image_url?: string | null
+          slug?: string
+          status?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }
