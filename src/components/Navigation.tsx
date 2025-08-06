@@ -89,14 +89,16 @@ const Navigation = () => {
         {isOpen && (
           <div className="md:hidden py-4 space-y-4 animate-fade-up">
             {navItems.map((item) => (
-              <a
+              <button
                 key={item.name}
-                href={item.path}
-                className="block text-foreground/80 hover:text-primary transition-colors duration-300 py-2"
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  navigate(item.path);
+                  setIsMenuOpen(false);
+                }}
+                className="block text-foreground/80 hover:text-primary transition-colors duration-300 py-2 w-full text-left"
               >
                 {item.name}
-              </a>
+              </button>
             ))}
             <Button 
               size="sm" 
