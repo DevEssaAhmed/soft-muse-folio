@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-08-06T05:59:35.918077",
+  "timestamp": "2025-08-06T18:38:56.078289",
   "database_connection": {
     "success": true,
     "message": "Database connection successful"
@@ -19,13 +19,13 @@
       "table": "projects",
       "create": {
         "success": true,
-        "id": "d3c64d9a-9f19-4725-b30c-4c73c33a5b23"
+        "id": "cb93f681-08b0-47b4-ab88-d3b49a414a01"
       },
       "read": {
         "success": true,
         "data": {
-          "id": "d3c64d9a-9f19-4725-b30c-4c73c33a5b23",
-          "title": "Test Portfolio Project 07e1b33b",
+          "id": "cb93f681-08b0-47b4-ab88-d3b49a414a01",
+          "title": "Test Portfolio Project 94409278",
           "description": "A comprehensive web application built with React and TypeScript, featuring modern UI components and responsive design.",
           "image_url": "https://images.unsplash.com/photo-1517180102446-f3ece451e9d8?w=800",
           "category": "Web Development",
@@ -41,8 +41,8 @@
           "likes": 0,
           "comments": 0,
           "featured": true,
-          "created_at": "2025-08-06T05:59:39.7858+00:00",
-          "updated_at": "2025-08-06T05:59:39.7858+00:00"
+          "created_at": "2025-08-06T18:39:06.454463+00:00",
+          "updated_at": "2025-08-06T18:39:06.454463+00:00"
         }
       },
       "update": {
@@ -56,14 +56,14 @@
       "table": "blog_posts",
       "create": {
         "success": true,
-        "id": "05ed62a3-12b1-41ff-aa56-62c290695cbe"
+        "id": "ca45ad32-18bd-45aa-8eaf-a52fbf17cd5f"
       },
       "read": {
         "success": true,
         "data": {
-          "id": "05ed62a3-12b1-41ff-aa56-62c290695cbe",
-          "title": "Building Modern Web Applications 07e1b33b",
-          "slug": "building-modern-web-apps-07e1b33b",
+          "id": "ca45ad32-18bd-45aa-8eaf-a52fbf17cd5f",
+          "title": "Building Modern Web Applications 94409278",
+          "slug": "building-modern-web-apps-94409278",
           "excerpt": "Learn how to build scalable and maintainable web applications using modern frameworks and tools.",
           "content": "# Building Modern Web Applications\n\nIn this comprehensive guide, we'll explore the latest trends and best practices in modern web development...",
           "image_url": "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800",
@@ -76,8 +76,8 @@
           "views": 0,
           "likes": 0,
           "reading_time": 8,
-          "created_at": "2025-08-06T05:59:42.746535+00:00",
-          "updated_at": "2025-08-06T05:59:42.746535+00:00"
+          "created_at": "2025-08-06T18:39:09.349586+00:00",
+          "updated_at": "2025-08-06T18:39:09.349586+00:00"
         }
       },
       "update": {
@@ -91,19 +91,19 @@
       "table": "profile",
       "create": {
         "success": true,
-        "id": "4a566188-3b55-4806-bc27-79fcd7465d50"
+        "id": "1ed458f9-13b6-4049-9dc8-dd38677fe005"
       },
       "read": {
         "success": true,
         "data": {
-          "id": "4a566188-3b55-4806-bc27-79fcd7465d50",
+          "id": "1ed458f9-13b6-4049-9dc8-dd38677fe005",
           "name": "John Developer",
-          "username": "johndeveloper07e1b33b",
+          "username": "johndeveloper94409278",
           "title": "Full Stack Developer",
           "bio": "Passionate full-stack developer with expertise in React, Node.js, and cloud technologies. Love building scalable web applications.",
           "location": "San Francisco, CA",
           "avatar_url": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400",
-          "email": "john.developer07e1b33b@example.com",
+          "email": "john.developer94409278@example.com",
           "github_url": "https://github.com/johndeveloper",
           "linkedin_url": "https://linkedin.com/in/johndeveloper",
           "website_url": "https://johndeveloper.dev",
@@ -121,8 +121,8 @@
             "technologies_used": 15,
             "projects_completed": 25
           },
-          "created_at": "2025-08-06T05:59:45.593471+00:00",
-          "updated_at": "2025-08-06T05:59:45.593471+00:00"
+          "created_at": "2025-08-06T18:39:11.310591+00:00",
+          "updated_at": "2025-08-06T18:39:11.310591+00:00"
         }
       },
       "update": {
@@ -142,12 +142,66 @@
     },
     "published_posts": {
       "success": true
+    },
+    "blog_with_series": {
+      "success": false,
+      "error": "Status 400: {\"code\":\"PGRST200\",\"details\":\"Searched for a foreign key relationship between 'blog_posts' and 'series' in the schema 'public', but no matches were found.\",\"hint\":null,\"message\":\"Could not find a relationship between 'blog_posts' and 'series' in the schema cache\"}"
+    }
+  },
+  "site_settings": {
+    "hero_stats_read": {
+      "success": false,
+      "error": "Status 404: {\"code\":\"42P01\",\"details\":null,\"hint\":null,\"message\":\"relation \\\"public.site_settings\\\" does not exist\"}"
+    },
+    "hero_stats_upsert": {
+      "success": false,
+      "error": "Status 404: {}"
+    },
+    "site_settings_crud": {
+      "success": false,
+      "error": "Status 404: {}"
+    }
+  },
+  "series_operations": {
+    "series_read": {
+      "success": false,
+      "error": "Status 404: {\"code\":\"42P01\",\"details\":null,\"hint\":null,\"message\":\"relation \\\"public.series\\\" does not exist\"}"
+    },
+    "series_create": {
+      "success": false,
+      "error": "Status 404: {}"
+    },
+    "categories_read": {
+      "success": false,
+      "error": "Status 404: {\"code\":\"42P01\",\"details\":null,\"hint\":null,\"message\":\"relation \\\"public.categories\\\" does not exist\"}"
+    }
+  },
+  "storage_buckets": {
+    "images_bucket": {
+      "success": false,
+      "error": "Status 400: {\"statusCode\":\"400\",\"error\":\"Error\",\"message\":\"body must have required property 'prefix'\"}"
+    },
+    "videos_bucket": {
+      "success": false,
+      "error": "Status 400: {\"statusCode\":\"400\",\"error\":\"Error\",\"message\":\"body must have required property 'prefix'\"}"
+    },
+    "avatars_bucket": {
+      "success": false,
+      "error": "Status 400: {\"statusCode\":\"400\",\"error\":\"Error\",\"message\":\"body must have required property 'prefix'\"}"
+    },
+    "documents_bucket": {
+      "success": false,
+      "error": "Status 400: {\"statusCode\":\"400\",\"error\":\"Error\",\"message\":\"body must have required property 'prefix'\"}"
     }
   },
   "summary": {
-    "total_tests": 18,
+    "total_tests": 29,
     "passed_tests": 18,
-    "failed_tests": 0,
-    "critical_failures": []
+    "failed_tests": 11,
+    "critical_failures": [
+      "Site settings operations failed: hero_stats_read, hero_stats_upsert, site_settings_crud",
+      "Series/Categories operations failed: series_read, series_create, categories_read",
+      "Storage bucket access failed: images_bucket, videos_bucket, avatars_bucket, documents_bucket"
+    ]
   }
 }
