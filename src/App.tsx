@@ -16,6 +16,7 @@ import ArticlesPage from "./pages/ArticlesPage";
 import ArticleDetailPageEnhanced from "./pages/ArticleDetailPageEnhanced";
 import ProjectDetailPage from "./pages/ProjectDetailPage";
 import AboutPage from "./pages/AboutPage";
+import ProfileManagePage from "./pages/ProfileManagePage";
 import LoginForm from "./components/auth/LoginForm";
 
 const queryClient = new QueryClient();
