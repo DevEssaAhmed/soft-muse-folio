@@ -34,35 +34,37 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/projects" element={<ProjectsPage />} />
-              <Route path="/projects/:id" element={<ProjectDetailPage />} />
-              <Route path="/articles" element={<ArticlesPage />} />
-              <Route path="/articles/:slug" element={<ArticleDetailPageEnhanced />} />
-              <Route path="/categories" element={<CategoriesPage />} />
-              <Route path="/categories/:slug" element={<CategoryDetailPage />} />
-              <Route path="/series" element={<SeriesPage />} />
-              <Route path="/series/:slug" element={<SeriesDetailPage />} />
-              <Route path="/tags/:tagSlug" element={<TagDetailPage />} />
-              <Route path="/about" element={<AboutPage />} />
-              <Route path="/404-tag-not-found" element={<TagNotFoundPage />} />
-              <Route path="/admin/login" element={<LoginForm />} />
-              <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
-              <Route path="/admin/profile" element={<ProtectedRoute><ProfileManagePage /></ProtectedRoute>} />
-              <Route path="/admin/blog/new" element={<ProtectedRoute><BlogEditorEnhanced /></ProtectedRoute>} />
-              <Route path="/admin/blog/edit/:id" element={<ProtectedRoute><BlogEditorEnhanced /></ProtectedRoute>} />
-              <Route path="/admin/project/new" element={<ProtectedRoute><ProjectEditorEnhanced /></ProtectedRoute>} />
-              <Route path="/admin/project/edit/:id" element={<ProtectedRoute><ProjectEditorEnhanced /></ProtectedRoute>} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
+          <ProfileProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/projects" element={<ProjectsPage />} />
+                <Route path="/projects/:id" element={<ProjectDetailPage />} />
+                <Route path="/articles" element={<ArticlesPage />} />
+                <Route path="/articles/:slug" element={<ArticleDetailPageEnhanced />} />
+                <Route path="/categories" element={<CategoriesPage />} />
+                <Route path="/categories/:slug" element={<CategoryDetailPage />} />
+                <Route path="/series" element={<SeriesPage />} />
+                <Route path="/series/:slug" element={<SeriesDetailPage />} />
+                <Route path="/tags/:tagSlug" element={<TagDetailPage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/404-tag-not-found" element={<TagNotFoundPage />} />
+                <Route path="/admin/login" element={<LoginForm />} />
+                <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
+                <Route path="/admin/profile" element={<ProtectedRoute><ProfileManagePage /></ProtectedRoute>} />
+                <Route path="/admin/blog/new" element={<ProtectedRoute><BlogEditorEnhanced /></ProtectedRoute>} />
+                <Route path="/admin/blog/edit/:id" element={<ProtectedRoute><BlogEditorEnhanced /></ProtectedRoute>} />
+                <Route path="/admin/project/new" element={<ProtectedRoute><ProjectEditorEnhanced /></ProtectedRoute>} />
+                <Route path="/admin/project/edit/:id" element={<ProtectedRoute><ProjectEditorEnhanced /></ProtectedRoute>} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </ProfileProvider>
       </AuthProvider>
     </ThemeProvider>
   </QueryClientProvider>
