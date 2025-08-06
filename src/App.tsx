@@ -37,7 +37,6 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
-              <GoogleAnalytics />
               <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/projects" element={<ProjectsPage />} />
