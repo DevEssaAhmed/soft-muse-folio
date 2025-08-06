@@ -245,6 +245,187 @@ class PortfolioBackendTester:
             
         return table_results
     
+    async def test_site_settings_operations(self) -> Dict[str, Any]:
+        """Test site_settings table operations for hero stats"""
+        import aiohttp
+        
+        results = {
+            "hero_stats_read": {"success": False, "error": None},
+            "hero_stats_upsert": {"success": False, "error": None},
+            "site_settings_crud": {"success": False, "error": None}
+        }
+        
+        try:
+            async with aiohttp.ClientSession() as session:
+                # Test reading hero stats
+                try:
+                    url = f"{self.client.base_url}/rest/v1/site_settings?key=eq.hero_stats"
+                    async with session.get(url, headers=self.client.headers) as response:
+                        if response.status == 200:
+                            data = await response.json()
+                            if isinstance(data, list) and len(data) > 0:
+                                results["hero_stats_read"] = {"success": True, "data": data[0]}
+                            else:
+                                results["hero_stats_read"] = {"success": True, "data": "No hero stats found"}
+                        else:
+                            error_text = await response.text()
+                            results["hero_stats_read"] = {"success": False, "error": f"Status {response.status}: {error_text}"}
+                except Exception as e:
+                    results["hero_stats_read"] = {"success": False, "error": str(e)}
+                
+                # Test upserting hero stats
+                try:
+                    test_stats = {
+                        "projectsLed": {"label": "Test Projects", "value": "20+"},
+                        "hoursAnalyzed": {"label": "Test Hours", "value": "600+"},
+                        "clientsServed": {"label": "Test Clients", "value": "60+"}
+                    }
+                    
+                    upsert_data = {
+                        "key": "hero_stats_test",
+                        "value": test_stats,
+                        "description": "Test hero stats",
+                        "type": "hero_stats"
+                    }
+                    
+                    url = f"{self.client.base_url}/rest/v1/site_settings"
+                    async with session.post(url, json=upsert_data, headers=self.client.headers) as response:
+                        if response.status in [200, 201]:
+                            results["hero_stats_upsert"] = {"success": True}
+                        else:
+                            error_text = await response.text()
+                            results["hero_stats_upsert"] = {"success": False, "error": f"Status {response.status}: {error_text}"}
+                except Exception as e:
+                    results["hero_stats_upsert"] = {"success": False, "error": str(e)}
+                
+                # Test general site settings CRUD
+                try:
+                    test_setting = {
+                        "key": f"test_setting_{uuid.uuid4().hex[:8]}",
+                        "value": "test_value",
+                        "description": "Test setting",
+                        "type": "general"
+                    }
+                    
+                    # Create
+                    url = f"{self.client.base_url}/rest/v1/site_settings"
+                    async with session.post(url, json=test_setting, headers=self.client.headers) as response:
+                        if response.status in [200, 201]:
+                            # Read back
+                            read_url = f"{self.client.base_url}/rest/v1/site_settings?key=eq.{test_setting['key']}"
+                            async with session.get(read_url, headers=self.client.headers) as read_response:
+                                if read_response.status == 200:
+                                    results["site_settings_crud"] = {"success": True}
+                                else:
+                                    results["site_settings_crud"] = {"success": False, "error": "Failed to read back created setting"}
+                        else:
+                            error_text = await response.text()
+                            results["site_settings_crud"] = {"success": False, "error": f"Status {response.status}: {error_text}"}
+                except Exception as e:
+                    results["site_settings_crud"] = {"success": False, "error": str(e)}
+                    
+        except Exception as e:
+            results["general_error"] = str(e)
+            
+        return results
+    
+    async def test_series_operations(self) -> Dict[str, Any]:
+        """Test series table operations for blog series functionality"""
+        import aiohttp
+        
+        results = {
+            "series_read": {"success": False, "error": None},
+            "series_create": {"success": False, "error": None},
+            "categories_read": {"success": False, "error": None}
+        }
+        
+        try:
+            async with aiohttp.ClientSession() as session:
+                # Test reading series
+                try:
+                    url = f"{self.client.base_url}/rest/v1/series?order=title"
+                    async with session.get(url, headers=self.client.headers) as response:
+                        if response.status == 200:
+                            data = await response.json()
+                            results["series_read"] = {"success": True, "count": len(data) if isinstance(data, list) else 0}
+                        else:
+                            error_text = await response.text()
+                            results["series_read"] = {"success": False, "error": f"Status {response.status}: {error_text}"}
+                except Exception as e:
+                    results["series_read"] = {"success": False, "error": str(e)}
+                
+                # Test creating a new series
+                try:
+                    test_series = {
+                        "id": str(uuid.uuid4()),
+                        "title": f"Test Series {uuid.uuid4().hex[:8]}",
+                        "slug": f"test-series-{uuid.uuid4().hex[:8]}",
+                        "description": "A test series for backend testing",
+                        "status": "active",
+                        "article_count": 0
+                    }
+                    
+                    url = f"{self.client.base_url}/rest/v1/series"
+                    async with session.post(url, json=test_series, headers=self.client.headers) as response:
+                        if response.status in [200, 201]:
+                            results["series_create"] = {"success": True, "id": test_series["id"]}
+                        else:
+                            error_text = await response.text()
+                            results["series_create"] = {"success": False, "error": f"Status {response.status}: {error_text}"}
+                except Exception as e:
+                    results["series_create"] = {"success": False, "error": str(e)}
+                
+                # Test reading categories
+                try:
+                    url = f"{self.client.base_url}/rest/v1/categories?order=name"
+                    async with session.get(url, headers=self.client.headers) as response:
+                        if response.status == 200:
+                            data = await response.json()
+                            results["categories_read"] = {"success": True, "count": len(data) if isinstance(data, list) else 0}
+                        else:
+                            error_text = await response.text()
+                            results["categories_read"] = {"success": False, "error": f"Status {response.status}: {error_text}"}
+                except Exception as e:
+                    results["categories_read"] = {"success": False, "error": str(e)}
+                    
+        except Exception as e:
+            results["general_error"] = str(e)
+            
+        return results
+    
+    async def test_storage_buckets(self) -> Dict[str, Any]:
+        """Test storage bucket access and RLS policies"""
+        import aiohttp
+        
+        results = {
+            "images_bucket": {"success": False, "error": None},
+            "videos_bucket": {"success": False, "error": None},
+            "avatars_bucket": {"success": False, "error": None},
+            "documents_bucket": {"success": False, "error": None}
+        }
+        
+        buckets = ["images", "videos", "avatars", "documents"]
+        
+        try:
+            async with aiohttp.ClientSession() as session:
+                for bucket in buckets:
+                    try:
+                        # Test bucket access by trying to list objects
+                        url = f"{self.client.base_url}/storage/v1/object/list/{bucket}"
+                        async with session.post(url, json={"limit": 1}, headers=self.client.headers) as response:
+                            if response.status == 200:
+                                results[f"{bucket}_bucket"] = {"success": True}
+                            else:
+                                error_text = await response.text()
+                                results[f"{bucket}_bucket"] = {"success": False, "error": f"Status {response.status}: {error_text}"}
+                    except Exception as e:
+                        results[f"{bucket}_bucket"] = {"success": False, "error": str(e)}
+                        
+        except Exception as e:
+            results["general_error"] = str(e)
+            
+        return results
+
     async def test_specific_queries(self) -> Dict[str, Any]:
         """Test specific query patterns used in the application"""
         import aiohttp
@@ -252,7 +433,8 @@ class PortfolioBackendTester:
         results = {
             "blog_by_slug": {"success": False, "error": None},
             "featured_projects": {"success": False, "error": None},
-            "published_posts": {"success": False, "error": None}
+            "published_posts": {"success": False, "error": None},
+            "blog_with_series": {"success": False, "error": None}
         }
         
         try:
@@ -292,6 +474,18 @@ class PortfolioBackendTester:
                             results["published_posts"] = {"success": False, "error": f"Status {response.status}: {error_text}"}
                 except Exception as e:
                     results["published_posts"] = {"success": False, "error": str(e)}
+                
+                # Test blog posts with series join
+                try:
+                    url = f"{self.client.base_url}/rest/v1/blog_posts?select=*,series(title,slug)&series_id=not.is.null&limit=5"
+                    async with session.get(url, headers=self.client.headers) as response:
+                        if response.status == 200:
+                            results["blog_with_series"] = {"success": True}
+                        else:
+                            error_text = await response.text()
+                            results["blog_with_series"] = {"success": False, "error": f"Status {response.status}: {error_text}"}
+                except Exception as e:
+                    results["blog_with_series"] = {"success": False, "error": str(e)}
                     
         except Exception as e:
             results["general_error"] = str(e)
