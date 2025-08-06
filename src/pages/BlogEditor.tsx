@@ -118,10 +118,12 @@ const BlogEditor: React.FC = () => {
     setIsSaving(true);
     
     const tagsArray = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+    const additionalImagesArray = formData.additional_images.split(',').map(img => img.trim()).filter(img => img);
     
     const blogData = {
       ...formData,
       tags: tagsArray,
+      additional_images: additionalImagesArray,
     };
 
     try {
