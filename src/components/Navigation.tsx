@@ -26,34 +26,17 @@ const Navigation = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-12">
-            <a
-              href="/projects"
-              className="flex items-center gap-2 text-foreground/80 hover:text-primary transition-colors duration-300 relative group"
-            >
-              <span className="w-4 h-4 bg-primary/20 rounded-sm flex items-center justify-center">
-                <span className="w-2 h-2 bg-primary rounded-sm"></span>
-              </span>
-              PROJECTS
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-primary group-hover:w-full transition-all duration-300"></span>
-            </a>
-            <a
-              href="/articles"
-              className="flex items-center gap-2 text-foreground/80 hover:text-primary transition-colors duration-300 relative group"
-            >
-              <span className="w-4 h-4 border border-primary/40 rounded-sm flex items-center justify-center">
-                <span className="w-1.5 h-1.5 bg-primary/60 rounded-full"></span>
-              </span>
-              ARTICLES
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-primary group-hover:w-full transition-all duration-300"></span>
-            </a>
-            <a
-              href="/about"
-              className="text-foreground/80 hover:text-primary transition-colors duration-300 relative group"
-            >
-              ABOUT
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-primary group-hover:w-full transition-all duration-300"></span>
-            </a>
+          <div className="hidden md:flex items-center space-x-8">
+            {navItems.map((item) => (
+              <button
+                key={item.name}
+                onClick={() => navigate(item.path)}
+                className="group relative text-foreground/80 hover:text-primary font-medium transition-all duration-300 text-sm tracking-wide"
+              >
+                {item.name.toUpperCase()}
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-primary group-hover:w-full transition-all duration-300"></span>
+              </button>
+            ))}
           </div>
 
           {/* Theme toggle & CTA */}
