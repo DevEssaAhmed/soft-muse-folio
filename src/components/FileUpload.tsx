@@ -39,13 +39,17 @@ export const FileUpload = ({
   uploadType,
   multiple = false,
   maxSizeMB = 50,
-  showPreview = true
+  showPreview = true,
+  allowUrlInput = false,
+  urlInputPlaceholder = "Enter URL..."
 }: FileUploadProps) => {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadedFiles, setUploadedFiles] = useState<string[]>(existingFiles);
   const [uploadingFiles, setUploadingFiles] = useState<UploadingFile[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [urlInput, setUrlInput] = useState('');
+  const [activeTab, setActiveTab] = useState('upload');
 
   const getBucketName = () => {
     switch (uploadType) {
