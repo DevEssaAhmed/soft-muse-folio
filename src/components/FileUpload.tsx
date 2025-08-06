@@ -264,58 +264,135 @@ export const FileUpload = ({
 
   return (
     <div className="space-y-4">
-      <div>
-        <Label htmlFor={`file-upload-${uploadType}`} className="flex items-center gap-2">
-          {getFileIcon()}
-          {label}
-        </Label>
-        
-        <div className="mt-2">
-          <Input
-            id={`file-upload-${uploadType}`}
-            type="file"
-            accept={getAcceptTypes()}
-            onChange={handleFileUpload}
-            disabled={uploading || uploadedFiles.length >= maxFiles}
-            multiple={maxFiles > 1}
-            className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
-          />
-          
-          {maxFiles > 1 && (
-            <p className="text-sm text-muted-foreground mt-1">
-              {uploadedFiles.length} / {maxFiles} files uploaded
-            </p>
-          )}
-        </div>
+      {/* Label */}
+      <Label className="flex items-center gap-2">
+        {getFileIcon()}
+        {label}
+      </Label>
 
-        {uploading && (
-          <div className="mt-2">
-            <Progress value={uploadProgress} className="w-full" />
-            <p className="text-sm text-muted-foreground mt-1">
-              Uploading... {Math.round(uploadProgress)}%
-            </p>
-          </div>
+      {/* Upload Area */}
+      <div
+        className={`
+          border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 relative
+          ${isDragOver ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'}
+          ${uploading ? 'pointer-events-none opacity-50' : ''}
+        `}
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+      >
+        <Upload className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+        <div className="space-y-1">
+          <p className="text-sm font-medium">Drop files here or click to browse</p>
+          <p className="text-xs text-muted-foreground">
+            {uploadType === 'image' || uploadType === 'avatar' ? 'Images' : uploadType === 'video' ? 'Videos' : 'Files'} 
+            {` up to ${maxSizeMB}MB`}
+            {multiple && `, maximum ${maxFiles} files`}
+          </p>
+        </div>
+        <input
+          type="file"
+          accept={getAcceptTypes()}
+          multiple={multiple}
+          onChange={handleFileInput}
+          disabled={uploading || uploadedFiles.length >= maxFiles}
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+        />
+        <Button 
+          type="button" 
+          variant="outline" 
+          size="sm"
+          className="mt-2 hover:shadow-soft transition-all duration-300"
+          disabled={uploading || uploadedFiles.length >= maxFiles}
+        >
+          <Upload className="w-4 h-4 mr-2" />
+          Choose Files
+        </Button>
+        
+        {maxFiles > 1 && (
+          <p className="text-xs text-muted-foreground mt-1">
+            {uploadedFiles.length} / {maxFiles} files uploaded
+          </p>
         )}
       </div>
 
-      {/* Preview uploaded files */}
-      {uploadedFiles.length > 0 && (
-        <div className="grid gap-2">
+      {/* Uploading Files Progress */}
+      {uploadingFiles.length > 0 && (
+        <div className="space-y-2">
+          <h4 className="text-sm font-medium">Uploading Files</h4>
+          {uploadingFiles.map((uploadingFile, index) => (
+            <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+              <div className="flex items-center space-x-3 flex-1">
+                {uploadingFile.status === 'uploading' && (
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                )}
+                {uploadingFile.status === 'completed' && (
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                )}
+                {uploadingFile.status === 'error' && (
+                  <AlertCircle className="h-4 w-4 text-red-500" />
+                )}
+                
+                <div className="flex-1">
+                  <p className="text-sm font-medium truncate">
+                    {uploadingFile.file.name}
+                  </p>
+                  {uploadingFile.status === 'uploading' && (
+                    <div className="mt-1">
+                      <Progress value={uploadingFile.progress} className="h-1" />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {uploadingFile.progress}%
+                      </p>
+                    </div>
+                  )}
+                  {uploadingFile.status === 'error' && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {uploadingFile.error}
+                    </p>
+                  )}
+                </div>
+              </div>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => removeUploadingFile(index)}
+                className="ml-2"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Uploaded Files Preview */}
+      {uploadedFiles.length > 0 && showPreview && (
+        <div className="space-y-2">
           <Label className="text-sm font-medium">Uploaded Files:</Label>
           {uploadedFiles.map((fileUrl, index) => (
-            <div key={index} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
-              <div className="flex items-center gap-2">
-                {getFileIcon()}
+            <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+              <div className="flex items-center gap-3">
+                {(uploadType === 'image' || uploadType === 'avatar') && (
+                  <img 
+                    src={fileUrl} 
+                    alt={`Upload ${index + 1}`} 
+                    className="w-10 h-10 object-cover rounded"
+                  />
+                )}
+                {uploadType === 'video' && (
+                  <Video className="w-10 h-10 text-muted-foreground" />
+                )}
+                {uploadType === 'document' && (
+                  <FileText className="w-10 h-10 text-muted-foreground" />
+                )}
                 <div className="flex-1 min-w-0">
-                  {uploadType === 'image' && (
-                    <img 
-                      src={fileUrl} 
-                      alt={`Upload ${index + 1}`} 
-                      className="w-12 h-12 object-cover rounded"
-                    />
-                  )}
-                  <p className="text-sm text-muted-foreground truncate">
-                    File {index + 1} {uploadType === 'image' ? '(Image)' : ''}
+                  <p className="text-sm font-medium">
+                    File {index + 1}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {uploadType === 'image' || uploadType === 'avatar' ? 'Image' : 
+                     uploadType === 'video' ? 'Video' : 'Document'}
                   </p>
                 </div>
               </div>
