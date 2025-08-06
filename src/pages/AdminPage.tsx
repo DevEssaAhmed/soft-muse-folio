@@ -445,16 +445,27 @@ const AdminPage = () => {
                   <User className="w-5 h-5" />
                   Profile Management
                 </CardTitle>
+                <CardDescription>
+                  Manage your profile information, skills, and contact details
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <ProfileForm 
-                  profile={profile} 
-                  onClose={() => {}} 
-                  onSuccess={() => {
-                    // Refetch profile data after successful update
-                    window.location.reload();
-                  }} 
-                />
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-gradient-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <User className="w-8 h-8 text-primary" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">Update Your Profile</h3>
+                  <p className="text-muted-foreground mb-6">
+                    Keep your portfolio information up to date with the latest details about yourself.
+                  </p>
+                  <Button 
+                    onClick={() => navigate("/admin/profile")}
+                    className="bg-gradient-primary hover:shadow-soft transition-all duration-300"
+                  >
+                    <User className="w-4 h-4 mr-2" />
+                    Manage Profile
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
