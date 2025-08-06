@@ -236,10 +236,12 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Test Tabbed Navigation Functionality"
-    - "Test Article Markdown Rendering"
-    - "Test Contact Form Submission"
-    - "Test Contact Form Purpose Options and Dynamic Fields"
+    - "Test Categories and Series Pages"
+    - "Test Tag Navigation and 404 Handling"
+    - "Test SEO Implementation"
+    - "Test Google Analytics Integration"
+    - "Test Navigation Enhancement"
+    - "Investigate and Fix Responsiveness Issues"
   stuck_tasks: []
   test_all: false
   test_priority: "new_features_first"
