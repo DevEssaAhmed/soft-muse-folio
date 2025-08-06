@@ -38,6 +38,7 @@ const App = () => (
               <Route path="/about" element={<AboutPage />} />
               <Route path="/admin/login" element={<LoginForm />} />
               <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
+              <Route path="/admin/profile" element={<ProtectedRoute><ProfileManagePage /></ProtectedRoute>} />
               <Route path="/admin/blog/new" element={<ProtectedRoute><BlogEditor /></ProtectedRoute>} />
               <Route path="/admin/blog/edit/:id" element={<ProtectedRoute><BlogEditor /></ProtectedRoute>} />
               <Route path="/admin/project/new" element={<ProtectedRoute><ProjectEditor /></ProtectedRoute>} />
