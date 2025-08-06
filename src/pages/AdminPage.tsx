@@ -260,6 +260,10 @@ const AdminPage = () => {
               <User className="w-4 h-4 mr-2" />
               Profile
             </TabsTrigger>
+            <TabsTrigger value="settings" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white">
+              <Settings className="w-4 h-4 mr-2" />
+              Site Settings
+            </TabsTrigger>
             <TabsTrigger value="analytics" className="data-[state=active]:bg-gradient-primary data-[state=active]:text-white">
               <BarChart3 className="w-4 h-4 mr-2" />
               Analytics
