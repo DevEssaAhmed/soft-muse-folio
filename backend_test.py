@@ -267,62 +267,73 @@ class PortfolioBackendTester:
                                 results["hero_stats_read"] = {"success": True, "data": data[0]}
                             else:
                                 results["hero_stats_read"] = {"success": True, "data": "No hero stats found"}
+                        elif response.status == 404:
+                            error_text = await response.text()
+                            if "does not exist" in error_text:
+                                results["hero_stats_read"] = {"success": False, "error": "Table site_settings does not exist - migration not applied"}
+                            else:
+                                results["hero_stats_read"] = {"success": False, "error": f"Status {response.status}: {error_text}"}
                         else:
                             error_text = await response.text()
                             results["hero_stats_read"] = {"success": False, "error": f"Status {response.status}: {error_text}"}
                 except Exception as e:
                     results["hero_stats_read"] = {"success": False, "error": str(e)}
                 
-                # Test upserting hero stats
-                try:
-                    test_stats = {
-                        "projectsLed": {"label": "Test Projects", "value": "20+"},
-                        "hoursAnalyzed": {"label": "Test Hours", "value": "600+"},
-                        "clientsServed": {"label": "Test Clients", "value": "60+"}
-                    }
+                # Skip other tests if table doesn't exist
+                if "does not exist" in results["hero_stats_read"].get("error", ""):
+                    results["hero_stats_upsert"] = {"success": False, "error": "Skipped - table does not exist"}
+                    results["site_settings_crud"] = {"success": False, "error": "Skipped - table does not exist"}
+                else:
+                    # Test upserting hero stats
+                    try:
+                        test_stats = {
+                            "projectsLed": {"label": "Test Projects", "value": "20+"},
+                            "hoursAnalyzed": {"label": "Test Hours", "value": "600+"},
+                            "clientsServed": {"label": "Test Clients", "value": "60+"}
+                        }
+                        
+                        upsert_data = {
+                            "key": "hero_stats_test",
+                            "value": test_stats,
+                            "description": "Test hero stats",
+                            "type": "hero_stats"
+                        }
+                        
+                        url = f"{self.client.base_url}/rest/v1/site_settings"
+                        async with session.post(url, json=upsert_data, headers=self.client.headers) as response:
+                            if response.status in [200, 201]:
+                                results["hero_stats_upsert"] = {"success": True}
+                            else:
+                                error_text = await response.text()
+                                results["hero_stats_upsert"] = {"success": False, "error": f"Status {response.status}: {error_text}"}
+                    except Exception as e:
+                        results["hero_stats_upsert"] = {"success": False, "error": str(e)}
                     
-                    upsert_data = {
-                        "key": "hero_stats_test",
-                        "value": test_stats,
-                        "description": "Test hero stats",
-                        "type": "hero_stats"
-                    }
-                    
-                    url = f"{self.client.base_url}/rest/v1/site_settings"
-                    async with session.post(url, json=upsert_data, headers=self.client.headers) as response:
-                        if response.status in [200, 201]:
-                            results["hero_stats_upsert"] = {"success": True}
-                        else:
-                            error_text = await response.text()
-                            results["hero_stats_upsert"] = {"success": False, "error": f"Status {response.status}: {error_text}"}
-                except Exception as e:
-                    results["hero_stats_upsert"] = {"success": False, "error": str(e)}
-                
-                # Test general site settings CRUD
-                try:
-                    test_setting = {
-                        "key": f"test_setting_{uuid.uuid4().hex[:8]}",
-                        "value": "test_value",
-                        "description": "Test setting",
-                        "type": "general"
-                    }
-                    
-                    # Create
-                    url = f"{self.client.base_url}/rest/v1/site_settings"
-                    async with session.post(url, json=test_setting, headers=self.client.headers) as response:
-                        if response.status in [200, 201]:
-                            # Read back
-                            read_url = f"{self.client.base_url}/rest/v1/site_settings?key=eq.{test_setting['key']}"
-                            async with session.get(read_url, headers=self.client.headers) as read_response:
-                                if read_response.status == 200:
-                                    results["site_settings_crud"] = {"success": True}
-                                else:
-                                    results["site_settings_crud"] = {"success": False, "error": "Failed to read back created setting"}
-                        else:
-                            error_text = await response.text()
-                            results["site_settings_crud"] = {"success": False, "error": f"Status {response.status}: {error_text}"}
-                except Exception as e:
-                    results["site_settings_crud"] = {"success": False, "error": str(e)}
+                    # Test general site settings CRUD
+                    try:
+                        test_setting = {
+                            "key": f"test_setting_{uuid.uuid4().hex[:8]}",
+                            "value": "test_value",
+                            "description": "Test setting",
+                            "type": "general"
+                        }
+                        
+                        # Create
+                        url = f"{self.client.base_url}/rest/v1/site_settings"
+                        async with session.post(url, json=test_setting, headers=self.client.headers) as response:
+                            if response.status in [200, 201]:
+                                # Read back
+                                read_url = f"{self.client.base_url}/rest/v1/site_settings?key=eq.{test_setting['key']}"
+                                async with session.get(read_url, headers=self.client.headers) as read_response:
+                                    if read_response.status == 200:
+                                        results["site_settings_crud"] = {"success": True}
+                                    else:
+                                        results["site_settings_crud"] = {"success": False, "error": "Failed to read back created setting"}
+                            else:
+                                error_text = await response.text()
+                                results["site_settings_crud"] = {"success": False, "error": f"Status {response.status}: {error_text}"}
+                    except Exception as e:
+                        results["site_settings_crud"] = {"success": False, "error": str(e)}
                     
         except Exception as e:
             results["general_error"] = str(e)
@@ -348,32 +359,17 @@ class PortfolioBackendTester:
                         if response.status == 200:
                             data = await response.json()
                             results["series_read"] = {"success": True, "count": len(data) if isinstance(data, list) else 0}
+                        elif response.status == 404:
+                            error_text = await response.text()
+                            if "does not exist" in error_text:
+                                results["series_read"] = {"success": False, "error": "Table series does not exist - migration not applied"}
+                            else:
+                                results["series_read"] = {"success": False, "error": f"Status {response.status}: {error_text}"}
                         else:
                             error_text = await response.text()
                             results["series_read"] = {"success": False, "error": f"Status {response.status}: {error_text}"}
                 except Exception as e:
                     results["series_read"] = {"success": False, "error": str(e)}
-                
-                # Test creating a new series
-                try:
-                    test_series = {
-                        "id": str(uuid.uuid4()),
-                        "title": f"Test Series {uuid.uuid4().hex[:8]}",
-                        "slug": f"test-series-{uuid.uuid4().hex[:8]}",
-                        "description": "A test series for backend testing",
-                        "status": "active",
-                        "article_count": 0
-                    }
-                    
-                    url = f"{self.client.base_url}/rest/v1/series"
-                    async with session.post(url, json=test_series, headers=self.client.headers) as response:
-                        if response.status in [200, 201]:
-                            results["series_create"] = {"success": True, "id": test_series["id"]}
-                        else:
-                            error_text = await response.text()
-                            results["series_create"] = {"success": False, "error": f"Status {response.status}: {error_text}"}
-                except Exception as e:
-                    results["series_create"] = {"success": False, "error": str(e)}
                 
                 # Test reading categories
                 try:
@@ -382,11 +378,42 @@ class PortfolioBackendTester:
                         if response.status == 200:
                             data = await response.json()
                             results["categories_read"] = {"success": True, "count": len(data) if isinstance(data, list) else 0}
+                        elif response.status == 404:
+                            error_text = await response.text()
+                            if "does not exist" in error_text:
+                                results["categories_read"] = {"success": False, "error": "Table categories does not exist - migration not applied"}
+                            else:
+                                results["categories_read"] = {"success": False, "error": f"Status {response.status}: {error_text}"}
                         else:
                             error_text = await response.text()
                             results["categories_read"] = {"success": False, "error": f"Status {response.status}: {error_text}"}
                 except Exception as e:
                     results["categories_read"] = {"success": False, "error": str(e)}
+                
+                # Skip series creation if table doesn't exist
+                if "does not exist" in results["series_read"].get("error", ""):
+                    results["series_create"] = {"success": False, "error": "Skipped - table does not exist"}
+                else:
+                    # Test creating a new series
+                    try:
+                        test_series = {
+                            "id": str(uuid.uuid4()),
+                            "title": f"Test Series {uuid.uuid4().hex[:8]}",
+                            "slug": f"test-series-{uuid.uuid4().hex[:8]}",
+                            "description": "A test series for backend testing",
+                            "status": "active",
+                            "article_count": 0
+                        }
+                        
+                        url = f"{self.client.base_url}/rest/v1/series"
+                        async with session.post(url, json=test_series, headers=self.client.headers) as response:
+                            if response.status in [200, 201]:
+                                results["series_create"] = {"success": True, "id": test_series["id"]}
+                            else:
+                                error_text = await response.text()
+                                results["series_create"] = {"success": False, "error": f"Status {response.status}: {error_text}"}
+                    except Exception as e:
+                        results["series_create"] = {"success": False, "error": str(e)}
                     
         except Exception as e:
             results["general_error"] = str(e)
@@ -410,9 +437,11 @@ class PortfolioBackendTester:
             async with aiohttp.ClientSession() as session:
                 for bucket in buckets:
                     try:
-                        # Test bucket access by trying to list objects
+                        # Test bucket access by trying to list objects with proper parameters
                         url = f"{self.client.base_url}/storage/v1/object/list/{bucket}"
-                        async with session.post(url, json={"limit": 1}, headers=self.client.headers) as response:
+                        # Add required prefix parameter
+                        payload = {"limit": 1, "prefix": ""}
+                        async with session.post(url, json=payload, headers=self.client.headers) as response:
                             if response.status == 200:
                                 results[f"{bucket}_bucket"] = {"success": True}
                             else:
