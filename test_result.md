@@ -147,54 +147,69 @@ frontend:
       - working: true
         agent: "main"
         comment: "Enhanced FileUpload component with tabbed interface supporting both file upload and URL input. Component now shows Upload Files and Add URL tabs, with improved URL validation and preview functionality."
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: FileUpload component is well-implemented with tabbed interface (Upload Files/Add URL), proper URL validation, file type validation, drag-and-drop support, and preview functionality. Storage backend is working correctly."
 
   - task: "Hero Stats Manager Component"
     implemented: true
-    working: true
+    working: false
     file: "/app/src/components/admin/HeroStatsManager.tsx"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "Created comprehensive hero stats management interface allowing admins to edit both labels and values of hero section statistics. Includes add/remove stats functionality and live preview."
+      - working: false
+        agent: "testing"
+        comment: "❌ BLOCKED: Component implementation is correct but will fail at runtime because site_settings table does not exist. Database migration must be applied first."
 
   - task: "Dynamic Hero Section Stats"
     implemented: true
-    working: true
+    working: false
     file: "/app/src/components/HeroSection.tsx"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "Updated HeroSection to dynamically fetch and display stats from site_settings table. Falls back to default values if database query fails."
+      - working: false
+        agent: "testing"
+        comment: "❌ BLOCKED: Component has proper fallback logic but dynamic stats loading will fail because site_settings table does not exist. Will show default stats only."
 
   - task: "Admin Dashboard Site Settings Tab"
     implemented: true
-    working: true
+    working: false
     file: "/app/src/pages/AdminPage.tsx"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "Added Site Settings tab to admin dashboard containing the HeroStatsManager component. Tab integrates seamlessly with existing admin interface."
+      - working: false
+        agent: "testing"
+        comment: "❌ BLOCKED: Admin interface integration is correct but HeroStatsManager will fail because site_settings table does not exist."
 
   - task: "Blog Series Database Integration"
     implemented: true
-    working: true
+    working: false
     file: "/app/src/components/admin/BlogForm.tsx"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "Updated BlogForm to use real database series data instead of mock data. Includes dropdown for existing series and functionality to create new series with database persistence."
+      - working: false
+        agent: "testing"
+        comment: "❌ BLOCKED: Component has proper fallback to mock data but series/categories tables do not exist. Database migration must be applied for full functionality."
 
 metadata:
   created_by: "main_agent"
