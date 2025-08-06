@@ -8,6 +8,11 @@ import SEO from "@/components/SEO";
 const Index = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SEO 
+        title="Home"
+        description="Welcome to Alex Chen's portfolio. Explore projects, articles, and insights about web development, data science, and technology."
+        url="/"
+      />
       <Navigation />
       <HeroSection />
       <TabNavigation className="py-20" />
