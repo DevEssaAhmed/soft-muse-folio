@@ -26,9 +26,24 @@ const BlogForm = ({ blogPost, onClose, onSuccess }: BlogFormProps) => {
     excerpt: "",
     content: "",
     image_url: "",
+    additional_images: [] as string[],
+    video_url: "",
+    video_type: "",
     tags: "",
+    category_id: "",
+    series_id: "",
+    series_order: 1,
     published: false,
     reading_time: 5,
+  });
+
+  const [categories, setCategories] = useState<any[]>([]);
+  const [series, setSeries] = useState<any[]>([]);
+  const [showNewSeriesDialog, setShowNewSeriesDialog] = useState(false);
+  const [newSeries, setNewSeries] = useState({
+    title: "",
+    slug: "",
+    description: "",
   });
 
   useEffect(() => {
