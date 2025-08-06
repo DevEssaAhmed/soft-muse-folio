@@ -115,14 +115,10 @@ const ProfileManagePage = () => {
     setSkills(skills.filter(skill => skill !== skillToRemove));
   };
 
-  const handleAvatarUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setAvatarUrl(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+  const handleAvatarUpload = (urls: string[]) => {
+    if (urls.length > 0) {
+      setAvatarUrl(urls[0]);
+      toast.success("Avatar uploaded successfully!");
     }
   };
 
