@@ -475,6 +475,13 @@ const AdminPage = () => {
             </Card>
           </TabsContent>
 
+          {/* Site Settings Tab */}
+          <TabsContent value="settings">
+            <div className="space-y-6">
+              <HeroStatsManager />
+            </div>
+          </TabsContent>
+
           {/* Analytics Tab */}
           <TabsContent value="analytics">
             <div className="grid gap-6">
