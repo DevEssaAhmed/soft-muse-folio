@@ -203,25 +203,28 @@ const BlogForm = ({ blogPost, onClose, onSuccess }: BlogFormProps) => {
           </Button>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="title">Title</Label>
-              <Input
-                id="title"
-                value={formData.title}
-                onChange={(e) => setFormData({...formData, title: e.target.value})}
-                required
-              />
-            </div>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Basic Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="title">Title *</Label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => setFormData({...formData, title: e.target.value})}
+                  required
+                />
+              </div>
 
-            <div>
-              <Label htmlFor="slug">Slug</Label>
-              <Input
-                id="slug"
-                value={formData.slug}
-                onChange={(e) => setFormData({...formData, slug: e.target.value})}
-                required
-              />
+              <div>
+                <Label htmlFor="slug">Slug *</Label>
+                <Input
+                  id="slug"
+                  value={formData.slug}
+                  onChange={(e) => setFormData({...formData, slug: e.target.value})}
+                  required
+                />
+              </div>
             </div>
 
             <div>
@@ -236,7 +239,7 @@ const BlogForm = ({ blogPost, onClose, onSuccess }: BlogFormProps) => {
             </div>
 
             <div>
-              <Label htmlFor="content">Content</Label>
+              <Label htmlFor="content">Content *</Label>
               <Textarea
                 id="content"
                 value={formData.content}
@@ -247,35 +250,163 @@ const BlogForm = ({ blogPost, onClose, onSuccess }: BlogFormProps) => {
               />
             </div>
 
-            <div>
-              <Label htmlFor="image_url">Featured Image URL</Label>
-              <Input
-                id="image_url"
-                type="url"
-                value={formData.image_url}
-                onChange={(e) => setFormData({...formData, image_url: e.target.value})}
-              />
+            {/* Category and Series */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="category">Category</Label>
+                <Select value={formData.category_id} onValueChange={(value) => setFormData({...formData, category_id: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">No Category</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="series">Series (Optional)</Label>
+                <div className="flex gap-2">
+                  <Select value={formData.series_id} onValueChange={(value) => setFormData({...formData, series_id: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a series" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">No Series</SelectItem>
+                      {series.map((s) => (
+                        <SelectItem key={s.id} value={s.id}>
+                          {s.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Dialog open={showNewSeriesDialog} onOpenChange={setShowNewSeriesDialog}>
+                    <DialogTrigger asChild>
+                      <Button type="button" variant="outline" size="icon">
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Create New Series</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="series-title">Title *</Label>
+                          <Input
+                            id="series-title"
+                            value={newSeries.title}
+                            onChange={(e) => setNewSeries({...newSeries, title: e.target.value})}
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="series-description">Description</Label>
+                          <Textarea
+                            id="series-description"
+                            value={newSeries.description}
+                            onChange={(e) => setNewSeries({...newSeries, description: e.target.value})}
+                            rows={3}
+                          />
+                        </div>
+                        <div className="flex gap-2 pt-4">
+                          <Button onClick={createNewSeries} className="flex-1">
+                            Create Series
+                          </Button>
+                          <Button type="button" variant="outline" onClick={() => setShowNewSeriesDialog(false)}>
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+                {formData.series_id && (
+                  <div className="mt-2">
+                    <Label htmlFor="series_order">Order in Series</Label>
+                    <Input
+                      id="series_order"
+                      type="number"
+                      min="1"
+                      value={formData.series_order}
+                      onChange={(e) => setFormData({...formData, series_order: parseInt(e.target.value) || 1})}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div>
-              <Label htmlFor="tags">Tags (comma-separated)</Label>
-              <Input
-                id="tags"
-                value={formData.tags}
-                onChange={(e) => setFormData({...formData, tags: e.target.value})}
-                placeholder="React, JavaScript, Tutorial"
+            {/* Media Uploads */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Media</h3>
+              
+              {/* Featured Image Upload */}
+              <FileUpload
+                label="Featured Image"
+                uploadType="image"
+                onUploadComplete={handleImageUpload}
+                maxFiles={1}
+                existingFiles={formData.image_url ? [formData.image_url] : []}
               />
+
+              {/* Additional Images */}
+              <FileUpload
+                label="Additional Images"
+                uploadType="image"
+                onUploadComplete={handleAdditionalImagesUpload}
+                maxFiles={5}
+                existingFiles={formData.additional_images}
+              />
+
+              {/* Video Upload */}
+              <FileUpload
+                label="Video (Optional)"
+                uploadType="video"
+                onUploadComplete={handleVideoUpload}
+                maxFiles={1}
+                existingFiles={formData.video_url ? [formData.video_url] : []}
+              />
+
+              {/* Fallback URL Input */}
+              <div>
+                <Label htmlFor="image_url">Featured Image URL (Alternative)</Label>
+                <Input
+                  id="image_url"
+                  type="url"
+                  value={formData.image_url}
+                  onChange={(e) => setFormData({...formData, image_url: e.target.value})}
+                  placeholder="https://example.com/image.jpg"
+                />
+              </div>
             </div>
 
-            <div>
-              <Label htmlFor="reading_time">Reading Time (minutes)</Label>
-              <Input
-                id="reading_time"
-                type="number"
-                min="1"
-                value={formData.reading_time}
-                onChange={(e) => setFormData({...formData, reading_time: parseInt(e.target.value)})}
-              />
+            {/* Tags and Metadata */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="tags">Tags (comma-separated)</Label>
+                <Input
+                  id="tags"
+                  value={formData.tags}
+                  onChange={(e) => setFormData({...formData, tags: e.target.value})}
+                  placeholder="React, JavaScript, Tutorial"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="reading_time">Reading Time (minutes)</Label>
+                <Input
+                  id="reading_time"
+                  type="number"
+                  min="1"
+                  value={formData.reading_time}
+                  onChange={(e) => setFormData({...formData, reading_time: parseInt(e.target.value)})}
+                />
+              </div>
             </div>
 
             <div className="flex items-center space-x-2">
