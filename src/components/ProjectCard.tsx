@@ -2,8 +2,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ExternalLink, Github, Heart, MessageCircle, Eye } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface ProjectCardProps {
+  id: string;
   title: string;
   description: string;
   image: string;
@@ -16,9 +18,36 @@ interface ProjectCardProps {
   comments: number;
 }
 
-const ProjectCard = ({ title, description, image, tags, category, demoUrl, githubUrl, views, likes, comments }: ProjectCardProps) => {
+const ProjectCard = ({ id, title, description, image, tags, category, demoUrl, githubUrl, views, likes, comments }: ProjectCardProps) => {
+  const navigate = useNavigate();
+
+  const handleProjectClick = (e: React.MouseEvent) => {
+    // Don't navigate if clicking on buttons
+    if ((e.target as HTMLElement).closest('button')) {
+      return;
+    }
+    navigate(`/projects/${id}`);
+  };
+
+  const handleDemoClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (demoUrl) {
+      window.open(demoUrl, '_blank');
+    }
+  };
+
+  const handleCodeClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (githubUrl) {
+      window.open(githubUrl, '_blank');
+    }
+  };
+
   return (
-    <Card className="group overflow-hidden bg-card shadow-card hover:shadow-glow transition-all duration-300 aspect-square relative">
+    <Card 
+      className="group overflow-hidden bg-card shadow-card hover:shadow-glow transition-all duration-300 aspect-square relative cursor-pointer"
+      onClick={handleProjectClick}
+    >
       <div className="relative h-full">
         <img
           src={image}
@@ -51,13 +80,23 @@ const ProjectCard = ({ title, description, image, tags, category, demoUrl, githu
             {/* Action buttons */}
             <div className="flex justify-center gap-2">
               {githubUrl && (
-                <Button size="sm" variant="secondary" className="bg-white/20 border-white/30 text-white hover:bg-white/30">
+                <Button 
+                  size="sm" 
+                  variant="secondary" 
+                  className="bg-white/20 border-white/30 text-white hover:bg-white/30"
+                  onClick={handleCodeClick}
+                >
                   <Github className="w-4 h-4 mr-2" />
                   Code
                 </Button>
               )}
               {demoUrl && (
-                <Button size="sm" variant="secondary" className="bg-white/20 border-white/30 text-white hover:bg-white/30">
+                <Button 
+                  size="sm" 
+                  variant="secondary" 
+                  className="bg-white/20 border-white/30 text-white hover:bg-white/30"
+                  onClick={handleDemoClick}
+                >
                   <ExternalLink className="w-4 h-4 mr-2" />
                   Demo
                 </Button>
