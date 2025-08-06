@@ -91,20 +91,9 @@ const ProfileManagePage = () => {
         ...data,
         skills: skills,
         avatar_url: avatarUrl,
-        updated_at: new Date().toISOString(),
       };
 
-      const { error } = profile 
-        ? await supabase
-            .from("profile")
-            .update(updateData)
-            .eq("id", profile.id)
-        : await supabase
-            .from("profile")
-            .insert([updateData]);
-
-      if (error) throw error;
-
+      await updateProfile(updateData);
       toast.success("Profile updated successfully!");
       navigate("/admin");
     } catch (error) {
