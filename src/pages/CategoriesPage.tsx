@@ -66,6 +66,11 @@ const CategoriesPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO 
+        title="Categories"
+        description="Explore articles organized by topics and technologies. Find exactly what you're looking for across web development, data science, and more."
+        url="/categories"
+      />
       <Navigation />
       <div className="pt-20">
         <div className="max-w-7xl mx-auto px-6 py-12">
