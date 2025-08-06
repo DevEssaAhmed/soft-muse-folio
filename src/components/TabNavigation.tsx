@@ -19,7 +19,6 @@ import {
 } from 'lucide-react';
 import RecentProjects from '@/components/home/RecentProjects';
 import RecentArticles from '@/components/home/RecentArticles';
-import ContactForm from '@/components/ContactForm';
 
 interface TabNavigationProps {
   className?: string;
