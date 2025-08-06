@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navigation from "@/components/Navigation";
+import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ScrollToTop from "@/components/blog/ScrollToTop";
 import ReadingProgress from "@/components/blog/ReadingProgress";
-import CodeBlock from "@/components/blog/CodeBlock";
 import { calculateReadingTime, formatReadingTime } from "@/utils/readingTime";
 
 const ArticleDetailPageEnhanced = () => {
