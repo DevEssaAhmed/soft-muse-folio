@@ -168,29 +168,26 @@ const ProfileManagePage = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center gap-6">
-                  <Avatar className="w-24 h-24">
+                <div className="flex flex-col md:flex-row items-start gap-6">
+                  <Avatar className="w-24 h-24 mx-auto md:mx-0">
                     <AvatarImage src={avatarUrl} alt="Profile" />
                     <AvatarFallback className="bg-gradient-primary text-white text-2xl">
                       {watch("name")?.charAt(0) || "U"}
                     </AvatarFallback>
                   </Avatar>
-                  <div>
-                    <Label htmlFor="avatar-upload" className="cursor-pointer">
-                      <Button type="button" variant="outline" className="hover:shadow-soft transition-all duration-300">
-                        <Upload className="w-4 h-4 mr-2" />
-                        Upload Photo
-                      </Button>
-                    </Label>
-                    <input
-                      id="avatar-upload"
-                      type="file"
+                  <div className="flex-1">
+                    <FileUpload
+                      label="Upload Avatar"
+                      uploadType="avatar"
                       accept="image/*"
-                      onChange={handleAvatarUpload}
-                      className="hidden"
+                      maxFiles={1}
+                      maxSizeMB={5}
+                      onUploadComplete={handleAvatarUpload}
+                      existingFiles={avatarUrl ? [avatarUrl] : []}
+                      showPreview={false}
                     />
                     <p className="text-sm text-muted-foreground mt-2">
-                      Recommended: Square image, at least 256x256px
+                      Recommended: Square image, at least 256x256px, max 5MB
                     </p>
                   </div>
                 </div>
