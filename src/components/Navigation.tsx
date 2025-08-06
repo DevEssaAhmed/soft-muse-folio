@@ -11,6 +11,7 @@ const Navigation = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const { user } = useAuth();
+  const { profile } = useProfile();
 
   const navItems = [
     { name: "Home", path: "/" },
