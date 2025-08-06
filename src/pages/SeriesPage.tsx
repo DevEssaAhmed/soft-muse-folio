@@ -91,6 +91,11 @@ const SeriesPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO 
+        title="Article Series"
+        description="Dive deep into comprehensive article series. Follow structured learning paths and master complex topics step by step."
+        url="/series"
+      />
       <Navigation />
       <div className="pt-20">
         <div className="max-w-7xl mx-auto px-6 py-12">
