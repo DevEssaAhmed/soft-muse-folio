@@ -1,19 +1,30 @@
-import { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
-import { Upload, X, Image as ImageIcon, Video, FileText } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, Video, FileText, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface FileUploadProps {
-  label: string;
+  label?: string;
   accept?: string;
   onUploadComplete: (urls: string[]) => void;
   maxFiles?: number;
   existingFiles?: string[];
-  uploadType: 'image' | 'video' | 'document';
+  uploadType: 'image' | 'video' | 'document' | 'avatar';
+  multiple?: boolean;
+  maxSizeMB?: number;
+  showPreview?: boolean;
+}
+
+interface UploadingFile {
+  file: File;
+  progress: number;
+  status: 'uploading' | 'completed' | 'error';
+  url?: string;
+  error?: string;
 }
 
 export const FileUpload = ({ 
