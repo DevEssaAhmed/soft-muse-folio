@@ -28,6 +28,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Navigation from "@/components/Navigation";
+import { FileUpload } from "@/components/FileUpload";
+import { useProfile } from "@/contexts/ProfileContext";
 
 const profileSchema = z.object({
   name: z.string().min(1, "Name is required"),
