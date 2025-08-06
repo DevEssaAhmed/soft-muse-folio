@@ -17,6 +17,12 @@ const RecentProjects = ({ showAll = false }: RecentProjectsProps) => {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [loading, setLoading] = useState(true);
 
+  const handleTagClick = (e: React.MouseEvent, tag: string) => {
+    e.stopPropagation();
+    const tagSlug = tag.toLowerCase().replace(/\s+/g, '-');
+    navigate(`/tags/${encodeURIComponent(tagSlug)}`);
+  };
+
   useEffect(() => {
     fetchProjects();
   }, []);
