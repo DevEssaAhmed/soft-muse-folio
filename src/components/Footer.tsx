@@ -170,7 +170,7 @@ const Footer = () => {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             {/* Copyright */}
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span>© 2024 Alex Chen. Built with</span>
+              <span>© 2024 {profile?.name || "Portfolio"}. Built with</span>
               <Heart className="w-4 h-4 text-red-500 fill-current" />
               <span>using React & TypeScript</span>
             </div>
