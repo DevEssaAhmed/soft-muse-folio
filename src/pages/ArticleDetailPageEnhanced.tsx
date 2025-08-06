@@ -15,7 +15,6 @@ import {
   Eye, 
   Heart, 
   Share,
-  BookmarkPlus,
   MessageSquare,
   User,
   Play,
