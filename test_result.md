@@ -250,7 +250,6 @@ test_plan:
     - "Test Series Functionality After Migration"
     - "Enhance FileUpload Component for Simultaneous File+URL Support"
   stuck_tasks:
-    - "Blog Series Database Integration"
   test_all: false
   test_priority: "verify_migration_success"
 
