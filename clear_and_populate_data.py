@@ -242,7 +242,7 @@ Remember: great features tell a story about your data that algorithms can unders
 """,
             "excerpt": "Discover advanced feature engineering techniques that can transform your machine learning models from mediocre to exceptional. Learn polynomial features, target encoding, and time-based transformations with real-world examples.",
             "image_url": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=600&fit=crop",
-            "featured_image_url": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&h=800&fit=crop",
+
             "tags": ["Machine Learning", "Feature Engineering", "Python", "Data Science", "Model Performance"],
             "published": True,
             "reading_time": 8,
