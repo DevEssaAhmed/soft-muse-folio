@@ -64,15 +64,16 @@ const AdminPage = () => {
         .select("*")
         .order("created_at", { ascending: false });
       
-      // Fetch profile
+      // Fetch profile - get the most recent one
       const { data: profileData } = await supabase
         .from("profile")
         .select("*")
-        .single();
+        .order('updated_at', { ascending: false })
+        .limit(1);
 
       setProjects(projectsData || []);
       setBlogPosts(blogData || []);
-      setProfile(profileData);
+      setProfile(profileData && profileData.length > 0 ? profileData[0] : null);
     } catch (error) {
       console.error("Error fetching data:", error);
       toast.error("Error loading data");
