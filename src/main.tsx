@@ -1,11 +1,7 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
+import { createRoot } from 'react-dom/client'
 
-const App = () => (
-  <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-    <h1>Test App</h1>
-    <p>Basic React app is working!</p>
-  </div>
-)
+function App() {
+  return <div>Hello World!</div>
+}
 
-ReactDOM.createRoot(document.getElementById('root')!).render(<App />)
+createRoot(document.getElementById('root')!).render(<App />)
