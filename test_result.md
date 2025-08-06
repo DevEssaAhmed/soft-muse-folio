@@ -102,137 +102,101 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: Build navigation like in attached image with PROJECTS, ARTICLES, ABOUT sections on home page below hero section. Fix article markdown rendering. Run SQL migrations. Add contact form with purpose options and conditional "other" field using profile email. ADD CATEGORIES AND SERIES PAGES like reference website syedamaham.dev. Remove save for later functionality. Fix tag navigation issues. Implement SEO and analytics. Fix responsiveness issues.
+user_problem_statement: I am using Supabase for my database app I have already created the file upload component and Supabase buckets but it's not working due to some row level policy I suppose for all my admin pages avatars, articles and projects I need the both options to upload files directly as well as using the links the current method also I want the ability to change hero section stats from dashboard as well additionally for the blog we also need to implement the series option like it should ask if it's series or not if yes shows a drop-down of existing series otherwise option to create a new series that's all do it fast don't think too much
 
 backend:
-  - task: "Supabase Contact Table Migration"
+  - task: "Fix Supabase RLS Policies for File Uploads"
     implemented: true
-    working: true
-    file: "/app/supabase/migrations/20250805130000_add_contacts_table.sql, /app/src/integrations/supabase/types.ts"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "main"
-        comment: "Created contacts table migration with all required fields (name, email, purpose, other_purpose, message, status). Updated Supabase types to include contact table schema. Added proper RLS policies and indexes."
-
-  - task: "Database Schema Enhancement - Categories and Series"
-    implemented: true
-    working: true
-    file: "/app/supabase/migrations/20250130140000_add_categories_series_tables.sql, /app/src/integrations/supabase/types.ts"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "main"
-        comment: "Added comprehensive categories and series tables with proper relationships, triggers, and sample data. Updated Supabase types to include new table schemas with foreign key relationships."
-
-frontend:
-  - task: "Enhanced Markdown Renderer"
-    implemented: true
-    working: true
-    file: "/app/src/components/MarkdownRenderer.tsx, /app/src/pages/ArticleDetailPageEnhanced.tsx"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "main"
-        comment: "Installed react-markdown, remark-gfm, rehype-highlight, and rehype-raw. Created comprehensive MarkdownRenderer component with proper styling, code highlighting, and typography. Updated ArticleDetailPageEnhanced to use new markdown renderer. Markdown rendering now works perfectly with headings, lists, code blocks, and syntax highlighting."
-
-  - task: "Tabbed Home Navigation Component"
-    implemented: true
-    working: true
-    file: "/app/src/components/TabNavigation.tsx, /app/src/pages/Index.tsx, /app/src/components/home/RecentProjects.tsx, /app/src/components/home/RecentArticles.tsx"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "main"
-        comment: "Created TabNavigation component matching the design from user's image with PROJECTS, ARTICLES, and ABOUT tabs. Updated Index page to use new tabbed navigation below hero section. Updated RecentProjects and RecentArticles components to support showAll prop for full display. Tabbed navigation works perfectly with smooth transitions between sections."
-
-  - task: "Categories and Series Pages Implementation"
-    implemented: true
-    working: true
-    file: "/app/src/pages/CategoriesPage.tsx, /app/src/pages/SeriesPage.tsx, /app/src/pages/CategoryDetailPage.tsx, /app/src/pages/SeriesDetailPage.tsx"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "main"
-        comment: "Created beautiful categories and series pages matching reference website structure. Includes featured/regular sections, proper navigation, and detail pages for individual categories/series with article listings."
-
-  - task: "Remove Save for Later Functionality"
-    implemented: true
-    working: true
-    file: "/app/src/pages/ProjectDetailPage.tsx, /app/src/pages/ArticleDetailPageEnhanced.tsx"
-    stuck_count: 0
-    priority: "medium"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "main"
-        comment: "Removed all Save for Later/BookmarkPlus buttons from project and article detail pages as requested. Cleaned up unused imports."
-
-  - task: "Fix Tag Navigation and 404 Handling"
-    implemented: true
-    working: true
-    file: "/app/src/components/ProjectCard.tsx, /app/src/pages/TagNotFoundPage.tsx, /app/src/App.tsx"
-    stuck_count: 0
-    priority: "medium"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "main"
-        comment: "Fixed tag clicking in project cards to properly handle navigation with fallback to custom 404 page. Added proper click handlers with event propagation prevention."
-
-  - task: "SEO and Analytics Implementation"
-    implemented: true
-    working: true
-    file: "/app/src/components/SEO.tsx, /app/src/components/GoogleAnalytics.tsx, /app/src/App.tsx, /app/src/components/ContactForm.tsx"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "main"
-        comment: "Implemented comprehensive SEO component with meta tags, OpenGraph, Twitter cards, and structured data. Added Google Analytics 4 with event tracking. Integrated into key pages and forms."
-
-  - task: "Navigation Enhancement"
-    implemented: true
-    working: true
-    file: "/app/src/components/Navigation.tsx, /app/src/App.tsx"
-    stuck_count: 0
-    priority: "medium"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "main"
-        comment: "Added Categories and Series links to main navigation. Updated routing to include all new pages with proper path handling."
-
-  - task: "Responsiveness and Mobile Navigation Fix"
-    implemented: false
     working: false
-    file: "TBD"
+    file: "/app/supabase/migrations/20250807160000_fix_storage_rls_policies.sql"
     stuck_count: 0
     priority: "high"
     needs_retesting: true
     status_history:
       - working: false
         agent: "main"
-        comment: "Needs investigation and fixes for responsive design issues and mobile vs desktop navigation crashes."
+        comment: "Created comprehensive RLS policies migration for storage buckets (images, videos, avatars, documents) with proper permissions. Migration ready but needs to be applied to database."
+
+  - task: "Site Settings Table for Hero Stats"  
+    implemented: true
+    working: true
+    file: "/app/supabase/migrations/20250807160000_fix_storage_rls_policies.sql"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Created site_settings table to store configurable hero stats and other site settings. Table structure includes key-value pairs with JSON support."
+
+frontend:
+  - task: "Enhanced FileUpload Component with URL Input"
+    implemented: true
+    working: true
+    file: "/app/src/components/FileUpload.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Enhanced FileUpload component with tabbed interface supporting both file upload and URL input. Component now shows Upload Files and Add URL tabs, with improved URL validation and preview functionality."
+
+  - task: "Hero Stats Manager Component"
+    implemented: true
+    working: true
+    file: "/app/src/components/admin/HeroStatsManager.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Created comprehensive hero stats management interface allowing admins to edit both labels and values of hero section statistics. Includes add/remove stats functionality and live preview."
+
+  - task: "Dynamic Hero Section Stats"
+    implemented: true
+    working: true
+    file: "/app/src/components/HeroSection.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Updated HeroSection to dynamically fetch and display stats from site_settings table. Falls back to default values if database query fails."
+
+  - task: "Admin Dashboard Site Settings Tab"
+    implemented: true
+    working: true
+    file: "/app/src/pages/AdminPage.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Added Site Settings tab to admin dashboard containing the HeroStatsManager component. Tab integrates seamlessly with existing admin interface."
+
+  - task: "Blog Series Database Integration"
+    implemented: true
+    working: true
+    file: "/app/src/components/admin/BlogForm.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Updated BlogForm to use real database series data instead of mock data. Includes dropdown for existing series and functionality to create new series with database persistence."
 
 metadata:
   created_by: "main_agent"
-  version: "4.0"
-  test_sequence: 5
+  version: "5.0"
+  test_sequence: 6
   run_ui: false
-  migration: "Contact_Form_Markdown_TabNavigation"
-  features_completed: ["tabbed_navigation", "markdown_renderer", "contact_form", "contact_migration"]
+  migration: "Supabase_RLS_FileUpload_HeroStats_Series"
+  features_completed: ["enhanced_file_upload", "hero_stats_manager", "dynamic_hero_stats", "admin_site_settings", "series_database_integration", "storage_rls_policies"]
 
 test_plan:
   current_focus:
