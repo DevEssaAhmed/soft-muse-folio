@@ -16,7 +16,6 @@ import {
   MessageSquare,
   Star,
   Share,
-  BookmarkPlus,
   Play,
   Image as ImageIcon,
   Maximize2
