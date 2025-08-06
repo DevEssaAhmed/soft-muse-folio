@@ -373,7 +373,12 @@ const ArticleDetailPageEnhanced = () => {
             {article.tags && article.tags.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-8">
                 {article.tags.map((tag: string) => (
-                  <Badge key={tag} variant="secondary" className="px-3 py-1">
+                  <Badge 
+                    key={tag} 
+                    variant="secondary" 
+                    className="px-3 py-1 cursor-pointer hover:bg-secondary/80 transition-colors"
+                    onClick={() => handleTagClick(tag)}
+                  >
                     {tag}
                   </Badge>
                 ))}
