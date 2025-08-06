@@ -54,9 +54,11 @@ export type Database = {
           views?: number | null
         }
         Update: {
+          additional_images?: string[] | null
           content?: string
           created_at?: string
           excerpt?: string | null
+          featured_image_url?: string | null
           id?: string
           image_url?: string | null
           likes?: number | null
@@ -66,6 +68,8 @@ export type Database = {
           tags?: string[] | null
           title?: string
           updated_at?: string
+          video_type?: string | null
+          video_url?: string | null
           views?: number | null
         }
         Relationships: []
