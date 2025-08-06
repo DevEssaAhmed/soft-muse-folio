@@ -156,10 +156,13 @@ export type Database = {
           views?: number | null
         }
         Update: {
+          additional_images?: string[] | null
           category?: string
           comments?: number | null
           created_at?: string
           demo_url?: string | null
+          demo_video_type?: string | null
+          demo_video_url?: string | null
           description?: string
           featured?: boolean | null
           github_url?: string | null
