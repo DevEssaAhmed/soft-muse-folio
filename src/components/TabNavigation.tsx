@@ -102,7 +102,7 @@ const TabNavigation = ({ className = "" }: TabNavigationProps) => {
 const AboutSection = () => {
   return (
     <div className="max-w-7xl mx-auto px-6">
-      <div className="grid lg:grid-cols-2 gap-12 items-start">
+      <div className="max-w-4xl mx-auto">
         {/* About Content */}
         <div className="space-y-8">
           <Card className="bg-card/50 backdrop-blur-sm border-primary/20 shadow-soft">
@@ -194,9 +194,6 @@ const AboutSection = () => {
             </CardContent>
           </Card>
         </div>
-
-        {/* Contact Form */}
-        <ContactForm />
       </div>
     </div>
   );
