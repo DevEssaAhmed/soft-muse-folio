@@ -176,6 +176,42 @@ export type Database = {
         }
         Relationships: []
       }
+      site_settings: {
+        Row: {
+          created_at: string
+          id: string
+          logo_image_url: string | null
+          logo_text: string | null
+          logo_type: string | null
+          primary_color: string | null
+          site_description: string | null
+          site_title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          logo_image_url?: string | null
+          logo_text?: string | null
+          logo_type?: string | null
+          primary_color?: string | null
+          site_description?: string | null
+          site_title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          logo_image_url?: string | null
+          logo_text?: string | null
+          logo_type?: string | null
+          primary_color?: string | null
+          site_description?: string | null
+          site_title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
