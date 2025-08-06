@@ -396,6 +396,19 @@ You can include:
                     </div>
                     
                     <div>
+                      <Label htmlFor="additional_images" className="text-sm font-medium">Additional Images</Label>
+                      <Textarea
+                        id="additional_images"
+                        value={formData.additional_images}
+                        onChange={(e) => setFormData(prev => ({ ...prev, additional_images: e.target.value }))}
+                        rows={3}
+                        className="mt-1"
+                        placeholder="https://example.com/img1.jpg, https://example.com/img2.jpg"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">Separate URLs with commas</p>
+                    </div>
+                    
+                    <div>
                       <Label htmlFor="tags" className="text-sm font-medium">Technologies Used</Label>
                       <Input
                         id="tags"
