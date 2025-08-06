@@ -107,27 +107,33 @@ user_problem_statement: I am using Supabase for my database app I have already c
 backend:
   - task: "Fix Supabase RLS Policies for File Uploads"
     implemented: true
-    working: false
-    file: "/app/supabase/migrations/20250807160000_fix_storage_rls_policies.sql"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: true
-    status_history:
-      - working: false
-        agent: "main"
-        comment: "Created comprehensive RLS policies migration for storage buckets (images, videos, avatars, documents) with proper permissions. Migration ready but needs to be applied to database."
-
-  - task: "Site Settings Table for Hero Stats"  
-    implemented: true
     working: true
     file: "/app/supabase/migrations/20250807160000_fix_storage_rls_policies.sql"
     stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
+      - working: false
+        agent: "main"
+        comment: "Created comprehensive RLS policies migration for storage buckets (images, videos, avatars, documents) with proper permissions. Migration ready but needs to be applied to database."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: All storage buckets (images, videos, avatars, documents) are accessible and working correctly. RLS policies are properly configured and allow access to storage operations."
+
+  - task: "Site Settings Table for Hero Stats"  
+    implemented: true
+    working: false
+    file: "/app/supabase/migrations/20250807160000_fix_storage_rls_policies.sql"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
       - working: true
         agent: "main"
         comment: "Created site_settings table to store configurable hero stats and other site settings. Table structure includes key-value pairs with JSON support."
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL: Table site_settings does not exist in database. Migration has not been applied. Hero stats functionality will not work until migration is executed in Supabase SQL editor."
 
 frontend:
   - task: "Enhanced FileUpload Component with URL Input"
