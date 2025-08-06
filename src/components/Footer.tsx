@@ -146,7 +146,7 @@ const Footer = () => {
                 className="w-full justify-start hover:shadow-soft transition-all duration-300"
                 asChild
               >
-                <a href="mailto:alex.chen@example.com">
+                <a href={`mailto:${profile?.email || 'contact@example.com'}`}>
                   <Mail className="w-4 h-4 mr-2" />
                   Get in Touch
                 </a>
