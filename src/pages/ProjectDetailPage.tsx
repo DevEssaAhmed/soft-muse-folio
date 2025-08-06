@@ -417,13 +417,6 @@ const ProjectDetailPage = () => {
                       <Share className="w-4 h-4 mr-2" />
                       Share Project
                     </Button>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start"
-                    >
-                      <BookmarkPlus className="w-4 h-4 mr-2" />
-                      Save for Later
-                    </Button>
                   </div>
                 </CardContent>
               </Card>
