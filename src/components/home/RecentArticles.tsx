@@ -143,7 +143,12 @@ const RecentArticles = ({ showAll = false }: RecentArticlesProps) => {
                 {/* Tags */}
                 <div className="flex flex-wrap gap-1 mb-4">
                   {article.tags?.slice(0, 3).map((tag) => (
-                    <Badge key={tag} variant="secondary" className="text-xs">
+                    <Badge 
+                      key={tag} 
+                      variant="secondary" 
+                      className="text-xs cursor-pointer hover:bg-secondary/80 transition-colors"
+                      onClick={(e) => handleTagClick(e, tag)}
+                    >
                       {tag}
                     </Badge>
                   ))}
