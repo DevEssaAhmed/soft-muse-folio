@@ -24,7 +24,6 @@ import {
 import { Mail, Send } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { trackContactForm } from '@/components/GoogleAnalytics';
 
 const contactSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
