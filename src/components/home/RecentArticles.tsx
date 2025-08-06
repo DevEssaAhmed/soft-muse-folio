@@ -104,7 +104,7 @@ const RecentArticles = ({ showAll = false }: RecentArticlesProps) => {
         )}
 
         {/* Articles Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8 animate-fade-up delay-300">
+        <div className={`grid md:grid-cols-2 ${showAll ? 'lg:grid-cols-3' : 'lg:grid-cols-2'} gap-8 animate-fade-up delay-300`}>
           {filteredArticles.map((article, index) => (
             <Card 
               key={article.id} 
