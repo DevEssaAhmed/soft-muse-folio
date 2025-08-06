@@ -43,7 +43,12 @@ const ProjectCard = ({ id, title, description, image, tags, category, demoUrl, g
     navigate('/404-tag-not-found');
   };
 
-  return (
+  const handleCodeClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (githubUrl) {
+      window.open(githubUrl, '_blank');
+    }
+  };
     <Card 
       className="group overflow-hidden bg-card shadow-card hover:shadow-glow transition-all duration-300 aspect-square relative cursor-pointer"
       onClick={handleProjectClick}
