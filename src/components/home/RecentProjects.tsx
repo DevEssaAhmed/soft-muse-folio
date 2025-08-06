@@ -44,8 +44,8 @@ const RecentProjects = ({ showAll = false }: RecentProjectsProps) => {
   };
 
   const filteredProjects = selectedCategory === "All" 
-    ? projects.slice(0, 4)
-    : projects.filter(project => project.category === selectedCategory).slice(0, 4);
+    ? projects.slice(0, showAll ? projects.length : 4)
+    : projects.filter(project => project.category === selectedCategory).slice(0, showAll ? projects.length : 4);
 
   if (loading) {
     return (
