@@ -21,9 +21,11 @@ import {
   PenTool,
   Folder,
   User,
-  Target
+  Target,
+  LogOut
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import ProfileForm from "@/components/admin/ProfileForm";
 
