@@ -37,30 +37,30 @@ const Footer = () => {
   ];
 
   const socialLinks = [
-    { 
+    ...(profile?.github_url ? [{ 
       name: 'GitHub', 
-      href: 'https://github.com/alexchen', 
+      href: profile.github_url, 
       icon: Github,
       color: 'hover:text-gray-900 dark:hover:text-gray-100'
-    },
-    { 
+    }] : []),
+    ...(profile?.linkedin_url ? [{ 
       name: 'LinkedIn', 
-      href: 'https://linkedin.com/in/alexchen', 
+      href: profile.linkedin_url, 
       icon: Linkedin,
       color: 'hover:text-blue-600'
-    },
-    { 
-      name: 'Twitter', 
-      href: 'https://twitter.com/alexchen', 
-      icon: Twitter,
-      color: 'hover:text-blue-400'
-    },
-    { 
+    }] : []),
+    ...(profile?.website_url ? [{ 
+      name: 'Website', 
+      href: profile.website_url, 
+      icon: Globe,
+      color: 'hover:text-green-500'
+    }] : []),
+    ...(profile?.email ? [{ 
       name: 'Email', 
-      href: 'mailto:alex.chen@example.com', 
+      href: `mailto:${profile.email}`, 
       icon: Mail,
       color: 'hover:text-red-500'
-    },
+    }] : []),
   ];
 
   return (
