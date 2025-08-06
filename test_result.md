@@ -145,7 +145,7 @@ frontend:
     file: "/app/src/components/FileUpload.tsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: true
         agent: "main"
@@ -153,6 +153,9 @@ frontend:
       - working: true
         agent: "testing"
         comment: "✅ VERIFIED: FileUpload component is well-implemented with tabbed interface (Upload Files/Add URL), proper URL validation, file type validation, drag-and-drop support, and preview functionality. Storage backend is working correctly."
+      - working: true
+        agent: "main"
+        comment: "✅ ENHANCED: Added simultaneousMode prop to FileUpload component. When enabled, users can now use both file upload AND URL input simultaneously (not just choose between tabs). This gives maximum flexibility as requested by user. Updated all media uploads in BlogEditorEnhanced to use this new simultaneous mode."
 
   - task: "Hero Stats Manager Component"
     implemented: true
