@@ -68,11 +68,11 @@ def create_profile_data(supabase: Client):
             "Git", "Statistical Analysis", "Data Visualization", "ETL",
             "A/B Testing", "Predictive Modeling", "Natural Language Processing"
         ],
-        "stats": {
+        "stats": json.dumps({
             "projectsLed": "25+",
             "hoursAnalyzed": "2000+", 
             "clientsServed": "150+"
-        },
+        }),
         "created_at": (datetime.now() - timedelta(days=1095)).isoformat(),  # 3 years ago
         "updated_at": datetime.now().isoformat()
     }
