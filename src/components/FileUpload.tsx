@@ -255,6 +255,38 @@ export const FileUpload = ({
     setUploadingFiles(prev => prev.filter((_, i) => i !== index));
   };
 
+  const validateUrl = (url: string): boolean => {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const addUrlAsFile = () => {
+    if (!urlInput.trim()) {
+      toast.error('Please enter a URL');
+      return;
+    }
+
+    if (!validateUrl(urlInput.trim())) {
+      toast.error('Please enter a valid URL');
+      return;
+    }
+
+    if (uploadedFiles.length >= maxFiles) {
+      toast.error(`Maximum ${maxFiles} files allowed`);
+      return;
+    }
+
+    const newFiles = [...uploadedFiles, urlInput.trim()].slice(0, maxFiles);
+    setUploadedFiles(newFiles);
+    onUploadComplete(newFiles);
+    setUrlInput('');
+    toast.success('URL added successfully');
+  };
+
   const getAcceptTypes = () => {
     switch (uploadType) {
       case 'image':
