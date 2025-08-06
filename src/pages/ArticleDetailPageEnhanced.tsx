@@ -122,6 +122,59 @@ const ArticleDetailPageEnhanced = () => {
     }
   };
 
+  const renderVideoEmbed = (url: string, type: string) => {
+    if (!url) return null;
+
+    if (type === 'youtube') {
+      const videoId = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)?.[1];
+      if (videoId) {
+        return (
+          <div className="relative w-full h-0 pb-[56.25%] mb-6">
+            <iframe
+              className="absolute top-0 left-0 w-full h-full rounded-lg"
+              src={`https://www.youtube.com/embed/${videoId}`}
+              title="Article Video"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        );
+      }
+    } else if (type === 'vimeo') {
+      const videoId = url.match(/vimeo\.com\/(\d+)/)?.[1];
+      if (videoId) {
+        return (
+          <div className="relative w-full h-0 pb-[56.25%] mb-6">
+            <iframe
+              className="absolute top-0 left-0 w-full h-full rounded-lg"
+              src={`https://player.vimeo.com/video/${videoId}`}
+              title="Article Video"
+              frameBorder="0"
+              allow="autoplay; fullscreen; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        );
+      }
+    } else if (type === 'upload' && url) {
+      return (
+        <div className="mb-6">
+          <video
+            className="w-full rounded-lg"
+            controls
+            preload="metadata"
+          >
+            <source src={url} type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
   const renderContent = (content: string) => {
     // Simple markdown-like rendering for code blocks
     const parts = content.split(/(```[\s\S]*?```)/);
