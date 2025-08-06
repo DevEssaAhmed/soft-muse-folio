@@ -309,51 +309,161 @@ export const FileUpload = ({
         {label}
       </Label>
 
-      {/* Upload Area */}
-      <div
-        className={`
-          border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 relative
-          ${isDragOver ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'}
-          ${uploading ? 'pointer-events-none opacity-50' : ''}
-        `}
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-      >
-        <Upload className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-        <div className="space-y-1">
-          <p className="text-sm font-medium">Drop files here or click to browse</p>
-          <p className="text-xs text-muted-foreground">
-            {uploadType === 'image' || uploadType === 'avatar' ? 'Images' : uploadType === 'video' ? 'Videos' : 'Files'} 
-            {` up to ${maxSizeMB}MB`}
-            {multiple && `, maximum ${maxFiles} files`}
-          </p>
-        </div>
-        <input
-          type="file"
-          accept={getAcceptTypes()}
-          multiple={multiple}
-          onChange={handleFileInput}
-          disabled={uploading || uploadedFiles.length >= maxFiles}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-        />
-        <Button 
-          type="button" 
-          variant="outline" 
-          size="sm"
-          className="mt-2 hover:shadow-soft transition-all duration-300"
-          disabled={uploading || uploadedFiles.length >= maxFiles}
+      {/* Tabbed Interface for Upload and URL */}
+      {allowUrlInput ? (
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="upload" className="flex items-center gap-2">
+              <Upload className="w-4 h-4" />
+              Upload Files
+            </TabsTrigger>
+            <TabsTrigger value="url" className="flex items-center gap-2">
+              <Link className="w-4 h-4" />
+              Add URL
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="upload" className="space-y-4">
+            {/* Upload Area */}
+            <div
+              className={`
+                border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 relative
+                ${isDragOver ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'}
+                ${uploading ? 'pointer-events-none opacity-50' : ''}
+              `}
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+            >
+              <Upload className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Drop files here or click to browse</p>
+                <p className="text-xs text-muted-foreground">
+                  {uploadType === 'image' || uploadType === 'avatar' ? 'Images' : uploadType === 'video' ? 'Videos' : 'Files'} 
+                  {` up to ${maxSizeMB}MB`}
+                  {multiple && `, maximum ${maxFiles} files`}
+                </p>
+              </div>
+              <input
+                type="file"
+                accept={getAcceptTypes()}
+                multiple={multiple}
+                onChange={handleFileInput}
+                disabled={uploading || uploadedFiles.length >= maxFiles}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm"
+                className="mt-2 hover:shadow-soft transition-all duration-300"
+                disabled={uploading || uploadedFiles.length >= maxFiles}
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Choose Files
+              </Button>
+              
+              {maxFiles > 1 && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  {uploadedFiles.length} / {maxFiles} files uploaded
+                </p>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="url" className="space-y-4">
+            {/* URL Input Area */}
+            <div className="border-2 border-dashed rounded-lg p-6">
+              <div className="space-y-3">
+                <div className="text-center">
+                  <Link className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                  <p className="text-sm font-medium">Add files via URL</p>
+                  <p className="text-xs text-muted-foreground">
+                    Enter a direct link to your file
+                  </p>
+                </div>
+                
+                <div className="flex gap-2">
+                  <Input
+                    type="url"
+                    value={urlInput}
+                    onChange={(e) => setUrlInput(e.target.value)}
+                    placeholder={urlInputPlaceholder}
+                    disabled={uploadedFiles.length >= maxFiles}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addUrlAsFile();
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    onClick={addUrlAsFile}
+                    disabled={!urlInput.trim() || uploadedFiles.length >= maxFiles}
+                    size="sm"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add
+                  </Button>
+                </div>
+
+                {maxFiles > 1 && (
+                  <p className="text-xs text-muted-foreground text-center">
+                    {uploadedFiles.length} / {maxFiles} files added
+                  </p>
+                )}
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+      ) : (
+        /* Original Upload Area for when URL input is disabled */
+        <div
+          className={`
+            border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 relative
+            ${isDragOver ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'}
+            ${uploading ? 'pointer-events-none opacity-50' : ''}
+          `}
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
         >
-          <Upload className="w-4 h-4 mr-2" />
-          Choose Files
-        </Button>
-        
-        {maxFiles > 1 && (
-          <p className="text-xs text-muted-foreground mt-1">
-            {uploadedFiles.length} / {maxFiles} files uploaded
-          </p>
-        )}
-      </div>
+          <Upload className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+          <div className="space-y-1">
+            <p className="text-sm font-medium">Drop files here or click to browse</p>
+            <p className="text-xs text-muted-foreground">
+              {uploadType === 'image' || uploadType === 'avatar' ? 'Images' : uploadType === 'video' ? 'Videos' : 'Files'} 
+              {` up to ${maxSizeMB}MB`}
+              {multiple && `, maximum ${maxFiles} files`}
+            </p>
+          </div>
+          <input
+            type="file"
+            accept={getAcceptTypes()}
+            multiple={multiple}
+            onChange={handleFileInput}
+            disabled={uploading || uploadedFiles.length >= maxFiles}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          />
+          <Button 
+            type="button" 
+            variant="outline" 
+            size="sm"
+            className="mt-2 hover:shadow-soft transition-all duration-300"
+            disabled={uploading || uploadedFiles.length >= maxFiles}
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            Choose Files
+          </Button>
+          
+          {maxFiles > 1 && (
+            <p className="text-xs text-muted-foreground mt-1">
+              {uploadedFiles.length} / {maxFiles} files uploaded
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Uploading Files Progress */}
       {uploadingFiles.length > 0 && (
@@ -417,6 +527,11 @@ export const FileUpload = ({
                     src={fileUrl} 
                     alt={`Upload ${index + 1}`} 
                     className="w-10 h-10 object-cover rounded"
+                    onError={(e) => {
+                      // Fallback for broken images
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                    }}
                   />
                 )}
                 {uploadType === 'video' && (
@@ -427,11 +542,10 @@ export const FileUpload = ({
                 )}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium">
-                    File {index + 1}
+                    {fileUrl.startsWith('http') ? 'External URL' : `File ${index + 1}`}
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    {uploadType === 'image' || uploadType === 'avatar' ? 'Image' : 
-                     uploadType === 'video' ? 'Video' : 'Document'}
+                  <p className="text-xs text-muted-foreground truncate max-w-[200px]">
+                    {fileUrl}
                   </p>
                 </div>
               </div>
