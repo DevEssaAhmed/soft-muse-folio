@@ -1,5 +1,20 @@
+import React from 'react'
 import { createRoot } from 'react-dom/client'
-import App from './App.tsx'
 import './index.css'
 
-createRoot(document.getElementById("root")!).render(<App />);
+const App = () => {
+  return (
+    <div style={{ padding: '20px' }}>
+      <h1>Hello World</h1>
+      <p>Test app is working</p>
+    </div>
+  );
+};
+
+const container = document.getElementById("root");
+if (container) {
+  const root = createRoot(container);
+  root.render(<App />);
+} else {
+  console.error('Root container not found');
+}
