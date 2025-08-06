@@ -30,6 +30,11 @@ const ProjectDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [isLiked, setIsLiked] = useState(false);
 
+  const handleTagClick = (tag: string) => {
+    const tagSlug = tag.toLowerCase().replace(/\s+/g, '-');
+    navigate(`/tags/${encodeURIComponent(tagSlug)}`);
+  };
+
   useEffect(() => {
     if (id) {
       fetchProject();
