@@ -20,6 +20,7 @@ interface FileUploadProps {
   showPreview?: boolean;
   allowUrlInput?: boolean;
   urlInputPlaceholder?: string;
+  simultaneousMode?: boolean; // New prop for simultaneous upload + URL
 }
 
 interface UploadingFile {
@@ -41,7 +42,8 @@ export const FileUpload = ({
   maxSizeMB = 50,
   showPreview = true,
   allowUrlInput = true, // Enable URL input by default
-  urlInputPlaceholder = "Enter URL..."
+  urlInputPlaceholder = "Enter URL...",
+  simultaneousMode = false // Enable simultaneous mode
 }: FileUploadProps) => {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -105,60 +107,69 @@ export const FileUpload = ({
   };
 
   const uploadFile = async (file: File): Promise<string> => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-    const filePath = `${fileName}`;
+    const bucket = getBucketName();
+    const timestamp = Date.now();
+    const fileName = `${timestamp}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
 
-    const { data, error } = await supabase.storage
-      .from(getBucketName())
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: false
-      });
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const arrayBuffer = e.target?.result as ArrayBuffer;
+          
+          const { data, error } = await supabase.storage
+            .from(bucket)
+            .upload(fileName, arrayBuffer, {
+              contentType: file.type,
+              upsert: true
+            });
 
-    if (error) {
-      throw error;
-    }
+          if (error) throw error;
 
-    // Get public URL
-    const { data: urlData } = supabase.storage
-      .from(getBucketName())
-      .getPublicUrl(data.path);
+          const { data: urlData } = supabase.storage
+            .from(bucket)
+            .getPublicUrl(fileName);
 
-    return urlData.publicUrl;
+          resolve(urlData.publicUrl);
+        } catch (error) {
+          console.error('Upload error:', error);
+          reject(error);
+        }
+      };
+      
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsArrayBuffer(file);
+    });
   };
 
-  const handleFiles = async (files: FileList | File[]) => {
-    const fileArray = Array.from(files);
+  const handleFiles = async (fileList: FileList | File[]) => {
+    const files = Array.from(fileList);
     
-    // Check max files limit
-    if (!multiple && fileArray.length > 1) {
-      toast.error('Only one file is allowed');
-      return;
-    }
-
-    if (fileArray.length > maxFiles) {
-      toast.error(`Maximum ${maxFiles} files allowed`);
-      return;
-    }
-
-    // Validate files
-    const validFiles: File[] = [];
-    for (const file of fileArray) {
+    // Validate files first
+    const validationErrors: string[] = [];
+    files.forEach((file, index) => {
       const error = validateFile(file);
       if (error) {
-        toast.error(`${file.name}: ${error}`);
-        continue;
+        validationErrors.push(`File ${index + 1}: ${error}`);
       }
-      validFiles.push(file);
+    });
+
+    if (validationErrors.length > 0) {
+      toast.error(validationErrors.join('\n'));
+      return;
     }
 
-    if (validFiles.length === 0) return;
+    // Check total file limit
+    const totalFiles = uploadedFiles.length + files.length;
+    if (totalFiles > maxFiles) {
+      toast.error(`Maximum ${maxFiles} files allowed. Currently have ${uploadedFiles.length}, trying to add ${files.length}`);
+      return;
+    }
 
     setUploading(true);
 
     // Initialize uploading files state
-    const newUploadingFiles: UploadingFile[] = validFiles.map(file => ({
+    const newUploadingFiles: UploadingFile[] = files.map(file => ({
       file,
       progress: 0,
       status: 'uploading' as const
@@ -166,36 +177,23 @@ export const FileUpload = ({
 
     setUploadingFiles(newUploadingFiles);
 
-    // Upload files
-    const uploadPromises = validFiles.map(async (file, index) => {
+    // Upload files with individual progress tracking
+    const uploadPromises = files.map(async (file, index) => {
       try {
-        // Simulate progress (since Supabase client doesn't provide native progress)
-        const progressInterval = setInterval(() => {
-          setUploadingFiles(prev => prev.map((item, i) => 
-            i === index && item.status === 'uploading' 
-              ? { ...item, progress: Math.min(item.progress + 10, 90) }
-              : item
-          ));
-        }, 200);
-
         const url = await uploadFile(file);
-
-        clearInterval(progressInterval);
-
-        setUploadingFiles(prev => prev.map((item, i) => 
-          i === index 
-            ? { ...item, progress: 100, status: 'completed', url }
-            : item
+        
+        // Update individual file status
+        setUploadingFiles(prev => prev.map((uploadingFile, i) => 
+          i === index ? { ...uploadingFile, progress: 100, status: 'completed', url } : uploadingFile
         ));
-
+        
         return url;
       } catch (error) {
-        setUploadingFiles(prev => prev.map((item, i) => 
-          i === index 
-            ? { ...item, status: 'error', error: error.message }
-            : item
+        // Update individual file status to error
+        setUploadingFiles(prev => prev.map((uploadingFile, i) => 
+          i === index ? { ...uploadingFile, status: 'error', error: error.message } : uploadingFile
         ));
-        throw error;
+        return null;
       }
     });
 
@@ -301,6 +299,93 @@ export const FileUpload = ({
     }
   };
 
+  const renderUploadArea = () => (
+    <div
+      className={`
+        border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 relative
+        ${isDragOver ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'}
+        ${uploading ? 'pointer-events-none opacity-50' : ''}
+      `}
+      onDrop={handleDrop}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+    >
+      <Upload className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+      <div className="space-y-1">
+        <p className="text-sm font-medium">Drop files here or click to browse</p>
+        <p className="text-xs text-muted-foreground">
+          {uploadType === 'image' || uploadType === 'avatar' ? 'Images' : uploadType === 'video' ? 'Videos' : 'Files'} 
+          {` up to ${maxSizeMB}MB`}
+          {multiple && `, maximum ${maxFiles} files`}
+        </p>
+      </div>
+      <input
+        type="file"
+        accept={getAcceptTypes()}
+        multiple={multiple}
+        onChange={handleFileInput}
+        disabled={uploading || uploadedFiles.length >= maxFiles}
+        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+      />
+      <Button 
+        type="button" 
+        variant="outline" 
+        size="sm"
+        className="mt-2 hover:shadow-soft transition-all duration-300"
+        disabled={uploading || uploadedFiles.length >= maxFiles}
+      >
+        <Upload className="w-4 h-4 mr-2" />
+        Choose Files
+      </Button>
+      
+      {maxFiles > 1 && (
+        <p className="text-xs text-muted-foreground mt-1">
+          {uploadedFiles.length} / {maxFiles} files uploaded
+        </p>
+      )}
+    </div>
+  );
+
+  const renderUrlInput = () => (
+    <div className="border-2 border-dashed rounded-lg p-6">
+      <div className="space-y-3">
+        <div className="text-center">
+          <Link className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+          <p className="text-sm font-medium">Add files via URL</p>
+          <p className="text-xs text-muted-foreground">
+            Enter a direct link to your file
+          </p>
+        </div>
+        
+        <div className="flex gap-2">
+          <Input
+            type="url"
+            value={urlInput}
+            onChange={(e) => setUrlInput(e.target.value)}
+            placeholder={urlInputPlaceholder}
+            disabled={uploadedFiles.length >= maxFiles}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                addUrlAsFile();
+              }
+            }}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addUrlAsFile}
+            disabled={uploadedFiles.length >= maxFiles || !urlInput.trim()}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add URL
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-4">
       {/* Label */}
@@ -309,8 +394,15 @@ export const FileUpload = ({
         {label}
       </Label>
 
-      {/* Tabbed Interface for Upload and URL */}
-      {allowUrlInput ? (
+      {/* Simultaneous Mode OR Tabbed Interface */}
+      {simultaneousMode && allowUrlInput ? (
+        // Show both upload area and URL input simultaneously
+        <div className="space-y-4">
+          {renderUploadArea()}
+          {renderUrlInput()}
+        </div>
+      ) : allowUrlInput ? (
+        // Show tabbed interface (original behavior)
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="upload" className="flex items-center gap-2">
@@ -324,242 +416,103 @@ export const FileUpload = ({
           </TabsList>
 
           <TabsContent value="upload" className="space-y-4">
-            {/* Upload Area */}
-            <div
-              className={`
-                border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 relative
-                ${isDragOver ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'}
-                ${uploading ? 'pointer-events-none opacity-50' : ''}
-              `}
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-            >
-              <Upload className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-              <div className="space-y-1">
-                <p className="text-sm font-medium">Drop files here or click to browse</p>
-                <p className="text-xs text-muted-foreground">
-                  {uploadType === 'image' || uploadType === 'avatar' ? 'Images' : uploadType === 'video' ? 'Videos' : 'Files'} 
-                  {` up to ${maxSizeMB}MB`}
-                  {multiple && `, maximum ${maxFiles} files`}
-                </p>
-              </div>
-              <input
-                type="file"
-                accept={getAcceptTypes()}
-                multiple={multiple}
-                onChange={handleFileInput}
-                disabled={uploading || uploadedFiles.length >= maxFiles}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              />
-              <Button 
-                type="button" 
-                variant="outline" 
-                size="sm"
-                className="mt-2 hover:shadow-soft transition-all duration-300"
-                disabled={uploading || uploadedFiles.length >= maxFiles}
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                Choose Files
-              </Button>
-              
-              {maxFiles > 1 && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  {uploadedFiles.length} / {maxFiles} files uploaded
-                </p>
-              )}
-            </div>
+            {renderUploadArea()}
           </TabsContent>
 
           <TabsContent value="url" className="space-y-4">
-            {/* URL Input Area */}
-            <div className="border-2 border-dashed rounded-lg p-6">
-              <div className="space-y-3">
-                <div className="text-center">
-                  <Link className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                  <p className="text-sm font-medium">Add files via URL</p>
-                  <p className="text-xs text-muted-foreground">
-                    Enter a direct link to your file
-                  </p>
-                </div>
-                
-                <div className="flex gap-2">
-                  <Input
-                    type="url"
-                    value={urlInput}
-                    onChange={(e) => setUrlInput(e.target.value)}
-                    placeholder={urlInputPlaceholder}
-                    disabled={uploadedFiles.length >= maxFiles}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        addUrlAsFile();
-                      }
-                    }}
-                  />
-                  <Button
-                    type="button"
-                    onClick={addUrlAsFile}
-                    disabled={!urlInput.trim() || uploadedFiles.length >= maxFiles}
-                    size="sm"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add
-                  </Button>
-                </div>
-
-                {maxFiles > 1 && (
-                  <p className="text-xs text-muted-foreground text-center">
-                    {uploadedFiles.length} / {maxFiles} files added
-                  </p>
-                )}
-              </div>
-            </div>
+            {renderUrlInput()}
           </TabsContent>
         </Tabs>
       ) : (
-        /* Original Upload Area for when URL input is disabled */
-        <div
-          className={`
-            border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 relative
-            ${isDragOver ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'}
-            ${uploading ? 'pointer-events-none opacity-50' : ''}
-          `}
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-        >
-          <Upload className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-          <div className="space-y-1">
-            <p className="text-sm font-medium">Drop files here or click to browse</p>
-            <p className="text-xs text-muted-foreground">
-              {uploadType === 'image' || uploadType === 'avatar' ? 'Images' : uploadType === 'video' ? 'Videos' : 'Files'} 
-              {` up to ${maxSizeMB}MB`}
-              {multiple && `, maximum ${maxFiles} files`}
-            </p>
-          </div>
-          <input
-            type="file"
-            accept={getAcceptTypes()}
-            multiple={multiple}
-            onChange={handleFileInput}
-            disabled={uploading || uploadedFiles.length >= maxFiles}
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-          />
-          <Button 
-            type="button" 
-            variant="outline" 
-            size="sm"
-            className="mt-2 hover:shadow-soft transition-all duration-300"
-            disabled={uploading || uploadedFiles.length >= maxFiles}
-          >
-            <Upload className="w-4 h-4 mr-2" />
-            Choose Files
-          </Button>
-          
-          {maxFiles > 1 && (
-            <p className="text-xs text-muted-foreground mt-1">
-              {uploadedFiles.length} / {maxFiles} files uploaded
-            </p>
-          )}
-        </div>
+        // Show only upload area (no URL input)
+        renderUploadArea()
       )}
 
       {/* Uploading Files Progress */}
       {uploadingFiles.length > 0 && (
-        <div className="space-y-2">
-          <h4 className="text-sm font-medium">Uploading Files</h4>
+        <div className="space-y-3">
+          <h4 className="text-sm font-medium">Uploading files...</h4>
           {uploadingFiles.map((uploadingFile, index) => (
-            <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-              <div className="flex items-center space-x-3 flex-1">
+            <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
+              <div className="flex-shrink-0">
                 {uploadingFile.status === 'uploading' && (
-                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
                 )}
                 {uploadingFile.status === 'completed' && (
-                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <CheckCircle className="w-4 h-4 text-green-600" />
                 )}
                 {uploadingFile.status === 'error' && (
-                  <AlertCircle className="h-4 w-4 text-red-500" />
+                  <AlertCircle className="w-4 h-4 text-red-600" />
                 )}
-                
-                <div className="flex-1">
-                  <p className="text-sm font-medium truncate">
-                    {uploadingFile.file.name}
-                  </p>
-                  {uploadingFile.status === 'uploading' && (
-                    <div className="mt-1">
-                      <Progress value={uploadingFile.progress} className="h-1" />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {uploadingFile.progress}%
-                      </p>
-                    </div>
-                  )}
-                  {uploadingFile.status === 'error' && (
-                    <p className="text-xs text-red-500 mt-1">
-                      {uploadingFile.error}
-                    </p>
-                  )}
-                </div>
               </div>
               
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => removeUploadingFile(index)}
-                className="ml-2"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Uploaded Files Preview */}
-      {uploadedFiles.length > 0 && showPreview && (
-        <div className="space-y-2">
-          <Label className="text-sm font-medium">Uploaded Files:</Label>
-          {uploadedFiles.map((fileUrl, index) => (
-            <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-              <div className="flex items-center gap-3">
-                {(uploadType === 'image' || uploadType === 'avatar') && (
-                  <img 
-                    src={fileUrl} 
-                    alt={`Upload ${index + 1}`} 
-                    className="w-10 h-10 object-cover rounded"
-                    onError={(e) => {
-                      // Fallback for broken images
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                    }}
-                  />
+              <div className="flex-grow min-w-0">
+                <p className="text-sm font-medium truncate">{uploadingFile.file.name}</p>
+                {uploadingFile.status === 'uploading' && (
+                  <Progress value={uploadingFile.progress} className="mt-1 h-2" />
                 )}
-                {uploadType === 'video' && (
-                  <Video className="w-10 h-10 text-muted-foreground" />
+                {uploadingFile.status === 'error' && (
+                  <p className="text-xs text-red-600 mt-1">{uploadingFile.error}</p>
                 )}
-                {uploadType === 'document' && (
-                  <FileText className="w-10 h-10 text-muted-foreground" />
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium">
-                    {fileUrl.startsWith('http') ? 'External URL' : `File ${index + 1}`}
-                  </p>
-                  <p className="text-xs text-muted-foreground truncate max-w-[200px]">
-                    {fileUrl}
-                  </p>
-                </div>
               </div>
+              
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => removeFile(index)}
-                className="text-destructive hover:text-destructive"
+                onClick={() => removeUploadingFile(index)}
+                className="flex-shrink-0"
               >
                 <X className="w-4 h-4" />
               </Button>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Uploaded Files Display */}
+      {uploadedFiles.length > 0 && showPreview && (
+        <div className="space-y-3">
+          <h4 className="text-sm font-medium">Uploaded files:</h4>
+          <div className="grid grid-cols-1 gap-3">
+            {uploadedFiles.map((fileUrl, index) => (
+              <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
+                <div className="flex-shrink-0">
+                  {uploadType === 'image' || uploadType === 'avatar' ? (
+                    <img src={fileUrl} alt="" className="w-10 h-10 object-cover rounded" />
+                  ) : (
+                    getFileIcon()
+                  )}
+                </div>
+                
+                <div className="flex-grow min-w-0">
+                  <p className="text-sm font-medium truncate">{fileUrl.split('/').pop()}</p>
+                  <p className="text-xs text-muted-foreground truncate">{fileUrl}</p>
+                </div>
+                
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeFile(index)}
+                  className="flex-shrink-0"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Overall Upload Progress */}
+      {uploading && uploadProgress > 0 && (
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm">
+            <span>Uploading...</span>
+            <span>{uploadProgress}%</span>
+          </div>
+          <Progress value={uploadProgress} className="h-2" />
         </div>
       )}
     </div>

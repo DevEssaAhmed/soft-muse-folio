@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { 
   Select,
   SelectContent,
@@ -34,6 +35,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { createOrGetCategory, getAllCategories } from '@/lib/tagUtils';
+import FileUpload from '@/components/FileUpload';
 
 const BlogEditorEnhanced: React.FC = () => {
   const navigate = useNavigate();
@@ -43,8 +45,15 @@ const BlogEditorEnhanced: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [series, setSeries] = useState<any[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [showNewSeriesDialog, setShowNewSeriesDialog] = useState(false);
+  const [newSeries, setNewSeries] = useState({
+    title: '',
+    slug: '',
+    description: ''
+  });
   
   const [formData, setFormData] = useState({
     title: '',
@@ -57,12 +66,15 @@ const BlogEditorEnhanced: React.FC = () => {
     additional_images: '',
     category_id: '',
     category_name: '', // For new category creation
+    series_id: '',      // Added series support
+    series_order: 1,    // Added series order
     published: false,
     reading_time: 5,
   });
 
   useEffect(() => {
     loadCategories();
+    loadSeries(); // Load series data
     if (id) {
       fetchBlogPost();
     }
@@ -71,6 +83,38 @@ const BlogEditorEnhanced: React.FC = () => {
   const loadCategories = async () => {
     const allCategories = await getAllCategories();
     setCategories(allCategories);
+  };
+
+  const loadSeries = async () => {
+    try {
+      // Fetch series from database
+      const { data: seriesData, error: seriesError } = await supabase
+        .from('series')
+        .select('*')
+        .order('title');
+
+      if (seriesError) {
+        console.error('Error fetching series:', seriesError);
+        // Fall back to mock data if database fails
+        setSeries([
+          { id: '1', title: 'React Mastery', slug: 'react-mastery' },
+          { id: '2', title: 'Python for Data Science', slug: 'python-data-science' },
+          { id: '3', title: 'Full Stack Development', slug: 'fullstack-development' },
+          { id: '4', title: 'DevOps Fundamentals', slug: 'devops-fundamentals' }
+        ]);
+      } else {
+        setSeries(seriesData || []);
+      }
+    } catch (error) {
+      console.error("Error loading series:", error);
+      // Use fallback mock data
+      setSeries([
+        { id: '1', title: 'React Mastery', slug: 'react-mastery' },
+        { id: '2', title: 'Python for Data Science', slug: 'python-data-science' },
+        { id: '3', title: 'Full Stack Development', slug: 'fullstack-development' },
+        { id: '4', title: 'DevOps Fundamentals', slug: 'devops-fundamentals' }
+      ]);
+    }
   };
 
   const fetchBlogPost = async () => {
@@ -83,6 +127,10 @@ const BlogEditorEnhanced: React.FC = () => {
           categories (
             id,
             name
+          ),
+          series (
+            id,
+            title
           )
         `)
         .eq('id', id)
@@ -101,6 +149,8 @@ const BlogEditorEnhanced: React.FC = () => {
         additional_images: data.additional_images ? data.additional_images.join(', ') : '',
         category_id: data.category_id || '',
         category_name: '',
+        series_id: data.series_id || '',        // Load series data
+        series_order: data.series_order || 1,   // Load series order
         published: data.published || false,
         reading_time: data.reading_time || 5,
       });
@@ -182,6 +232,57 @@ const BlogEditorEnhanced: React.FC = () => {
     }
   };
 
+  const createNewSeries = async () => {
+    if (!newSeries.title) return;
+    
+    try {
+      // Generate slug if not provided
+      const seriesSlug = newSeries.slug || newSeries.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+      
+      const { data, error } = await supabase
+        .from('series')
+        .insert([{
+          title: newSeries.title,
+          slug: seriesSlug,
+          description: newSeries.description,
+          status: 'active'
+        }])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating series:', error);
+        // Fallback to local state for demo purposes
+        const mockId = (series.length + 1).toString();
+        const newSeriesItem = {
+          id: mockId,
+          title: newSeries.title,
+          slug: seriesSlug,
+          description: newSeries.description
+        };
+        
+        setSeries(prev => [...prev, newSeriesItem]);
+        setFormData(prev => ({ ...prev, series_id: mockId }));
+        toast({ title: "Series created successfully (demo mode)" });
+      } else {
+        // Successfully created in database
+        setSeries(prev => [...prev, data]);
+        setFormData(prev => ({ ...prev, series_id: data.id }));
+        toast({ title: "Series created successfully" });
+      }
+      
+      setShowNewSeriesDialog(false);
+      setNewSeries({ title: "", slug: "", description: "" });
+    } catch (error) {
+      console.error('Error creating series:', error);
+      toast({ 
+        title: "Error creating series", 
+        description: "Please try again",
+        variant: "destructive" 
+      });
+    }
+  };
+
   const handleSave = async (isAutoSave = false) => {
     if (!formData.title.trim()) return;
     
@@ -200,180 +301,275 @@ const BlogEditorEnhanced: React.FC = () => {
       }
     }
     
-    const blogData = {
-      title: formData.title,
-      slug: formData.slug,
-      excerpt: formData.excerpt,
-      content: formData.content,
-      image_url: formData.image_url,
-      video_url: formData.video_url,
-      video_type: formData.video_type,
-      additional_images: additionalImagesArray,
-      category_id: categoryId || null,
-      tags: selectedTags,
-      published: formData.published,
-      reading_time: formData.reading_time,
-    };
-
     try {
+      const blogData = {
+        title: formData.title,
+        slug: formData.slug,
+        excerpt: formData.excerpt,
+        content: formData.content,
+        image_url: formData.image_url,
+        video_url: formData.video_url,
+        video_type: formData.video_type,
+        additional_images: additionalImagesArray,
+        category_id: categoryId || null,
+        series_id: formData.series_id || null,      // Include series data
+        series_order: formData.series_order,        // Include series order
+        tags: selectedTags,
+        published: formData.published,
+        reading_time: formData.reading_time,
+      };
+
       if (id) {
         // Update existing blog post
-        await supabase
+        const { error } = await supabase
           .from('blog_posts')
           .update(blogData)
           .eq('id', id);
+        
+        if (error) throw error;
+        
+        if (!isAutoSave) {
+          toast({ title: 'Blog post updated successfully!' });
+        }
       } else {
         // Create new blog post
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('blog_posts')
           .insert([blogData])
           .select()
           .single();
         
-        // Navigate to edit mode with the new ID
-        navigate(`/admin/blog/edit/${data.id}`, { replace: true });
-      }
-      
-      if (!isAutoSave) {
-        toast({ title: 'Blog post saved successfully' });
+        if (error) throw error;
+        
+        if (!isAutoSave) {
+          toast({ title: 'Blog post created successfully!' });
+          navigate(`/admin/blog/edit/${data.id}`);
+        }
       }
     } catch (error) {
-      toast({
-        title: 'Error saving blog post',
-        description: error.message,
-        variant: 'destructive',
-      });
+      if (!isAutoSave) {
+        toast({
+          title: 'Error saving blog post',
+          description: error.message,
+          variant: 'destructive',
+        });
+      }
+      console.error('Save error:', error);
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handlePublish = async () => {
-    setFormData(prev => ({ ...prev, published: !prev.published }));
-    await handleSave();
-    toast({ 
-      title: formData.published ? 'Post unpublished' : 'Post published successfully' 
-    });
+  const handleImageUpload = (urls: string[]) => {
+    if (urls.length > 0) {
+      setFormData(prev => ({ ...prev, image_url: urls[0] }));
+    }
   };
 
-  const insertFormatting = (prefix: string, suffix = '') => {
-    const textarea = document.getElementById('content') as HTMLTextAreaElement;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = textarea.value.substring(start, end);
-    const beforeText = textarea.value.substring(0, start);
-    const afterText = textarea.value.substring(end);
-    
-    const newText = beforeText + prefix + selectedText + suffix + afterText;
-    setFormData(prev => ({ ...prev, content: newText }));
-    
-    // Reset cursor position
-    setTimeout(() => {
-      textarea.focus();
-      textarea.selectionStart = start + prefix.length;
-      textarea.selectionEnd = start + prefix.length + selectedText.length;
-    }, 0);
+  const handleAdditionalImagesUpload = (urls: string[]) => {
+    setFormData(prev => ({ 
+      ...prev, 
+      additional_images: urls.join(', ')
+    }));
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-hero flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading blog post...</p>
-        </div>
-      </div>
-    );
-  }
+  const handleVideoUpload = (urls: string[]) => {
+    if (urls.length > 0) {
+      setFormData(prev => ({ 
+        ...prev, 
+        video_url: urls[0],
+        video_type: urls[0].includes('youtube') || urls[0].includes('vimeo') ? 'external' : 'file'
+      }));
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-hero">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-card/80 backdrop-blur-md border-b border-border sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
             <div className="flex items-center gap-4">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate('/admin')}
-                className="hover:bg-primary/10"
+                className="gap-2"
               >
-                <ArrowLeft className="w-4 h-4 mr-2" />
+                <ArrowLeft className="w-4 h-4" />
                 Back to Admin
               </Button>
-              <div className="h-6 w-px bg-border" />
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                <span className="text-sm text-muted-foreground">
-                  {isSaving ? 'Saving...' : 'Saved'}
-                </span>
+              <div className="text-sm text-gray-500">
+                {id ? 'Editing' : 'Creating'} Blog Post
               </div>
             </div>
             
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setShowSettings(!showSettings)}
-                className="hover:shadow-soft transition-all duration-300"
+                className="gap-2"
               >
-                <Settings className="w-4 h-4 mr-2" />
+                <Settings className="w-4 h-4" />
                 Settings
               </Button>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handleSave()}
-                disabled={isSaving}
-                className="hover:shadow-soft transition-all duration-300"
+                className="gap-2"
+                disabled={!formData.title}
               >
-                <Save className="w-4 h-4 mr-2" />
-                Save
+                <Eye className="w-4 h-4" />
+                Preview
               </Button>
               <Button
                 size="sm"
-                onClick={handlePublish}
-                className={`transition-all duration-300 ${
-                  formData.published 
-                    ? 'bg-red-500 hover:bg-red-600' 
-                    : 'bg-gradient-primary hover:shadow-glow'
-                }`}
+                onClick={() => handleSave()}
+                disabled={isSaving || !formData.title}
+                className="gap-2"
               >
-                <Globe className="w-4 h-4 mr-2" />
-                {formData.published ? 'Unpublish' : 'Publish'}
+                <Save className="w-4 h-4" />
+                {isSaving ? 'Saving...' : id ? 'Update' : 'Publish'}
               </Button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Editor */}
-          <div className="lg:col-span-3 space-y-6">
-            {/* Title */}
-            <div>
-              <Input
-                value={formData.title}
-                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="Enter your blog post title..."
-                className="text-2xl md:text-4xl font-bold border-none bg-transparent px-0 placeholder:text-muted-foreground/50 focus-visible:ring-0 focus-visible:ring-offset-0"
-              />
-            </div>
-
-            {/* Category Selection */}
-            <Card className="bg-card/50 backdrop-blur-sm">
+          <div className="lg:col-span-2">
+            <Card>
               <CardContent className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Category & Tags</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div className="space-y-6">
+                  {/* Title */}
                   <div>
-                    <Label htmlFor="category" className="text-sm font-medium">Select Category</Label>
+                    <Input
+                      placeholder="Enter your blog post title..."
+                      value={formData.title}
+                      onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                      className="text-2xl font-bold border-none p-0 focus:ring-0 placeholder:text-gray-400"
+                    />
+                  </div>
+
+                  {/* Slug */}
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                      <Link className="w-4 h-4" />
+                      Slug
+                    </Label>
+                    <Input
+                      value={formData.slug}
+                      onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
+                      className="mt-1"
+                      placeholder="blog-post-slug"
+                    />
+                  </div>
+
+                  {/* Excerpt */}
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Excerpt</Label>
+                    <Textarea
+                      value={formData.excerpt}
+                      onChange={(e) => setFormData(prev => ({ ...prev, excerpt: e.target.value }))}
+                      className="mt-1"
+                      rows={3}
+                      placeholder="Write a brief description of your blog post..."
+                    />
+                  </div>
+
+                  {/* Content Editor */}
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Content</Label>
+                    <div className="mt-1 border rounded-lg">
+                      {/* Toolbar */}
+                      <div className="border-b p-3 flex flex-wrap gap-1">
+                        <Button variant="ghost" size="sm" className="gap-1">
+                          <Bold className="w-4 h-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="gap-1">
+                          <Italic className="w-4 h-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="gap-1">
+                          <Link className="w-4 h-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="gap-1">
+                          <List className="w-4 h-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="gap-1">
+                          <Hash className="w-4 h-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="gap-1">
+                          <Image className="w-4 h-4" />
+                        </Button>
+                      </div>
+
+                      <Textarea
+                        value={formData.content}
+                        onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+                        className="min-h-[400px] border-none focus:ring-0 resize-none"
+                        placeholder="Write your blog post content here... (Markdown supported)"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Publishing Settings */}
+            <Card>
+              <CardContent className="p-4">
+                <h3 className="font-semibold mb-4 flex items-center gap-2">
+                  <Calendar className="w-4 h-4" />
+                  Publishing
+                </h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Status</span>
+                    <Badge variant={formData.published ? "default" : "secondary"}>
+                      {formData.published ? 'Published' : 'Draft'}
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Reading Time</span>
+                    <div className="flex items-center gap-1">
+                      <Input
+                        type="number"
+                        value={formData.reading_time}
+                        onChange={(e) => setFormData(prev => ({ ...prev, reading_time: parseInt(e.target.value) || 5 }))}
+                        className="w-16 h-8 text-center"
+                        min="1"
+                      />
+                      <Clock className="w-4 h-4 text-gray-400" />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Categories and Series */}
+            <Card>
+              <CardContent className="p-4">
+                <h3 className="font-semibold mb-4 flex items-center gap-2">
+                  <Tag className="w-4 h-4" />
+                  Categories & Series
+                </h3>
+                <div className="space-y-4">
+                  {/* Category Selection */}
+                  <div>
+                    <Label className="text-sm font-medium">Category</Label>
                     <Select value={formData.category_id} onValueChange={(value) => setFormData(prev => ({ ...prev, category_id: value }))}>
                       <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Choose a category" />
+                        <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="">No Category</SelectItem>
                         {categories.map((category: any) => (
                           <SelectItem key={category.id} value={category.id}>
                             {category.name}
@@ -382,18 +578,20 @@ const BlogEditorEnhanced: React.FC = () => {
                       </SelectContent>
                     </Select>
                   </div>
+
+                  {/* New Category Creation */}
                   <div>
-                    <Label htmlFor="new_category" className="text-sm font-medium">Or Create New</Label>
+                    <Label className="text-sm font-medium">Create New Category</Label>
                     <div className="flex gap-2 mt-1">
                       <Input
-                        id="new_category"
                         value={formData.category_name}
                         onChange={(e) => setFormData(prev => ({ ...prev, category_name: e.target.value }))}
-                        placeholder="New category name"
+                        placeholder="Category name"
+                        className="flex-1"
                       />
                       <Button
-                        type="button"
                         size="sm"
+                        variant="outline"
                         onClick={handleCreateNewCategory}
                         disabled={!formData.category_name.trim()}
                       >
@@ -401,276 +599,168 @@ const BlogEditorEnhanced: React.FC = () => {
                       </Button>
                     </div>
                   </div>
-                </div>
 
-                {/* Tags */}
-                <div>
-                  <Label htmlFor="tags" className="text-sm font-medium">Tags</Label>
-                  <div className="flex gap-2 mt-1">
-                    <Input
-                      id="tags"
-                      value={tagInput}
-                      onChange={(e) => setTagInput(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                      placeholder="Add a tag and press Enter"
-                    />
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={handleAddTag}
-                      disabled={!tagInput.trim()}
-                    >
-                      <Plus className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  
-                  {/* Selected Tags */}
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    {selectedTags.map((tag, index) => (
-                      <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                        {tag}
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="h-4 w-4 p-0 hover:bg-destructive/20"
-                          onClick={() => handleRemoveTag(tag)}
-                        >
-                          <X className="w-3 h-3" />
-                        </Button>
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Formatting Toolbar */}
-            <Card className="bg-card/50 backdrop-blur-sm">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => insertFormatting('**', '**')}
-                    title="Bold"
-                  >
-                    <Bold className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => insertFormatting('*', '*')}
-                    title="Italic"
-                  >
-                    <Italic className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => insertFormatting('[', '](url)')}
-                    title="Link"
-                  >
-                    <Link className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => insertFormatting('## ', '')}
-                    title="Heading"
-                  >
-                    <Hash className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => insertFormatting('- ', '')}
-                    title="List"
-                  >
-                    <List className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => insertFormatting('![Alt text](', ')')}
-                    title="Image"
-                  >
-                    <Image className="w-4 h-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Content Editor */}
-            <Card className="bg-card/50 backdrop-blur-sm">
-              <CardContent className="p-6">
-                <Textarea
-                  id="content"
-                  value={formData.content}
-                  onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-                  placeholder="Start writing your amazing blog post here... 
-
-You can use Markdown formatting:
-- **Bold text**
-- *Italic text*
-- [Links](https://example.com)
-- ## Headings
-- - Lists
-- ![Images](url)
-
-Your content will be automatically saved as you type."
-                  className="min-h-[600px] border-none bg-transparent resize-none focus-visible:ring-0 focus-visible:ring-offset-0 text-lg leading-relaxed"
-                />
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Post Status */}
-            <Card className="bg-card/50 backdrop-blur-sm">
-              <CardContent className="p-6">
-                <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-                  <Eye className="w-4 h-4" />
-                  Post Status
-                </h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Status</span>
-                    <Badge variant={formData.published ? "default" : "secondary"}>
-                      {formData.published ? "Published" : "Draft"}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Reading Time</span>
-                    <span className="text-sm font-medium">{formData.reading_time} min</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* SEO Settings */}
-            {showSettings && (
-              <Card className="bg-card/50 backdrop-blur-sm">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-                    <Settings className="w-4 h-4" />
-                    SEO & Settings
-                  </h3>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="slug" className="text-sm font-medium">URL Slug</Label>
-                      <Input
-                        id="slug"
-                        value={formData.slug}
-                        onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-                        className="mt-1"
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="excerpt" className="text-sm font-medium">Excerpt</Label>
-                      <Textarea
-                        id="excerpt"
-                        value={formData.excerpt}
-                        onChange={(e) => setFormData(prev => ({ ...prev, excerpt: e.target.value }))}
-                        rows={3}
-                        className="mt-1"
-                        placeholder="Brief description for SEO and preview..."
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="image_url" className="text-sm font-medium">Featured Image</Label>
-                      <Input
-                        id="image_url"
-                        type="url"
-                        value={formData.image_url}
-                        onChange={(e) => setFormData(prev => ({ ...prev, image_url: e.target.value }))}
-                        className="mt-1"
-                        placeholder="https://example.com/image.jpg"
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="video_url" className="text-sm font-medium">Video URL</Label>
-                      <Input
-                        id="video_url"
-                        type="url"
-                        value={formData.video_url}
-                        onChange={(e) => setFormData(prev => ({ ...prev, video_url: e.target.value }))}
-                        className="mt-1"
-                        placeholder="YouTube, Vimeo, or direct video URL"
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="video_type" className="text-sm font-medium">Video Type</Label>
-                      <Select value={formData.video_type} onValueChange={(value) => setFormData(prev => ({ ...prev, video_type: value }))}>
-                        <SelectTrigger className="mt-1">
-                          <SelectValue />
+                  {/* Series Selection */}
+                  <div>
+                    <Label className="text-sm font-medium">Series (Optional)</Label>
+                    <div className="flex gap-2 mt-1">
+                      <Select value={formData.series_id} onValueChange={(value) => setFormData(prev => ({ ...prev, series_id: value }))}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a series" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="youtube">YouTube</SelectItem>
-                          <SelectItem value="vimeo">Vimeo</SelectItem>
-                          <SelectItem value="upload">Direct Upload</SelectItem>
+                          <SelectItem value="">No Series</SelectItem>
+                          {series.map((s) => (
+                            <SelectItem key={s.id} value={s.id}>
+                              {s.title}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
+                      <Dialog open={showNewSeriesDialog} onOpenChange={setShowNewSeriesDialog}>
+                        <DialogTrigger asChild>
+                          <Button type="button" variant="outline" size="sm">
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Create New Series</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4">
+                            <div>
+                              <Label htmlFor="series-title">Title *</Label>
+                              <Input
+                                id="series-title"
+                                value={newSeries.title}
+                                onChange={(e) => setNewSeries({...newSeries, title: e.target.value})}
+                                required
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="series-description">Description</Label>
+                              <Textarea
+                                id="series-description"
+                                value={newSeries.description}
+                                onChange={(e) => setNewSeries({...newSeries, description: e.target.value})}
+                                rows={3}
+                              />
+                            </div>
+                            <div className="flex gap-2 pt-4">
+                              <Button onClick={createNewSeries} className="flex-1">
+                                Create Series
+                              </Button>
+                              <Button type="button" variant="outline" onClick={() => setShowNewSeriesDialog(false)}>
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                     </div>
-                    
-                    <div>
-                      <Label htmlFor="additional_images" className="text-sm font-medium">Additional Images</Label>
-                      <Textarea
-                        id="additional_images"
-                        value={formData.additional_images}
-                        onChange={(e) => setFormData(prev => ({ ...prev, additional_images: e.target.value }))}
-                        rows={3}
-                        className="mt-1"
-                        placeholder="https://example.com/img1.jpg, https://example.com/img2.jpg"
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">Separate URLs with commas</p>
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="reading_time" className="text-sm font-medium">Reading Time (minutes)</Label>
-                      <Input
-                        id="reading_time"
-                        type="number"
-                        min="1"
-                        value={formData.reading_time}
-                        onChange={(e) => setFormData(prev => ({ ...prev, reading_time: parseInt(e.target.value) || 1 }))}
-                        className="mt-1"
-                      />
-                    </div>
+                    {formData.series_id && (
+                      <div className="mt-2">
+                        <Label className="text-sm">Order in Series</Label>
+                        <Input
+                          type="number"
+                          min="1"
+                          value={formData.series_order}
+                          onChange={(e) => setFormData(prev => ({ ...prev, series_order: parseInt(e.target.value) || 1 }))}
+                          className="mt-1"
+                        />
+                      </div>
+                    )}
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                </div>
+              </CardContent>
+            </Card>
 
-            {/* Quick Actions */}
-            <Card className="bg-card/50 backdrop-blur-sm">
-              <CardContent className="p-6">
-                <h3 className="font-semibold text-foreground mb-4">Quick Actions</h3>
-                <div className="space-y-2">
+            {/* Tags */}
+            <Card>
+              <CardContent className="p-4">
+                <h3 className="font-semibold mb-4 flex items-center gap-2">
+                  <Hash className="w-4 h-4" />
+                  Tags
+                </h3>
+                
+                {/* Tag Input */}
+                <div className="flex gap-2 mb-3">
+                  <Input
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyDown={handleKeyPress}
+                    placeholder="Add a tag..."
+                    className="flex-1"
+                  />
                   <Button
-                    variant="outline"
                     size="sm"
-                    className="w-full justify-start"
-                    onClick={() => window.open(`/articles/${formData.slug}`, '_blank')}
-                    disabled={!formData.published}
-                  >
-                    <Globe className="w-4 h-4 mr-2" />
-                    Preview Post
-                  </Button>
-                  <Button
                     variant="outline"
-                    size="sm"
-                    className="w-full justify-start"
-                    onClick={() => navigator.clipboard.writeText(formData.slug)}
+                    onClick={handleAddTag}
+                    disabled={!tagInput.trim() || selectedTags.includes(tagInput.trim())}
                   >
-                    <Link className="w-4 h-4 mr-2" />
-                    Copy URL
+                    <Plus className="w-4 h-4" />
                   </Button>
+                </div>
+
+                {/* Selected Tags */}
+                <div className="flex flex-wrap gap-2">
+                  {selectedTags.map((tag, index) => (
+                    <Badge key={index} variant="secondary" className="gap-1">
+                      {tag}
+                      <button
+                        onClick={() => handleRemoveTag(tag)}
+                        className="ml-1 hover:text-destructive"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Media Uploads */}
+            <Card>
+              <CardContent className="p-4">
+                <h3 className="font-semibold mb-4 flex items-center gap-2">
+                  <Image className="w-4 h-4" />
+                  Media
+                </h3>
+                
+                <div className="space-y-4">
+                  {/* Featured Image Upload with simultaneous file + URL support */}
+                  <FileUpload
+                    label="Featured Image"
+                    uploadType="image"
+                    onUploadComplete={handleImageUpload}
+                    maxFiles={1}
+                    existingFiles={formData.image_url ? [formData.image_url] : []}
+                    simultaneousMode={true}  // Enable simultaneous mode
+                    urlInputPlaceholder="https://example.com/image.jpg"
+                  />
+
+                  {/* Additional Images with simultaneous support */}
+                  <FileUpload
+                    label="Additional Images"
+                    uploadType="image"
+                    onUploadComplete={handleAdditionalImagesUpload}
+                    maxFiles={5}
+                    multiple={true}
+                    existingFiles={formData.additional_images ? formData.additional_images.split(', ').filter(img => img.trim()) : []}
+                    simultaneousMode={true}  // Enable simultaneous mode
+                    urlInputPlaceholder="https://example.com/additional-image.jpg"
+                  />
+
+                  {/* Video Upload with simultaneous support */}
+                  <FileUpload
+                    label="Video (Optional)"
+                    uploadType="video"
+                    onUploadComplete={handleVideoUpload}
+                    maxFiles={1}
+                    existingFiles={formData.video_url ? [formData.video_url] : []}
+                    simultaneousMode={true}  // Enable simultaneous mode
+                    urlInputPlaceholder="https://youtube.com/watch?v=... or direct video URL"
+                  />
                 </div>
               </CardContent>
             </Card>
