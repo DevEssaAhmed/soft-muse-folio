@@ -99,8 +99,7 @@ def create_projects_data(supabase: Client):
             "image_url": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=600&fit=crop",
             "demo_url": "https://churn-predictor-demo.herokuapp.com",
             "github_url": "https://github.com/sarahdatapro/churn-prediction",
-            "demo_video_url": "https://youtube.com/watch?v=demo1",
-            "demo_video_type": "youtube",
+
             "featured": True,
             "views": 2847,
             "likes": 156,
