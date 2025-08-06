@@ -93,7 +93,7 @@ const Navigation = () => {
                 key={item.name}
                 onClick={() => {
                   navigate(item.path);
-                  setIsMenuOpen(false);
+                  setIsOpen(false);
                 }}
                 className="block text-foreground/80 hover:text-primary transition-colors duration-300 py-2 w-full text-left"
               >
