@@ -474,7 +474,6 @@ Prophet has become my go-to tool for most forecasting problems. Its simplicity a
 """,
             "excerpt": "Master time series forecasting with Facebook's Prophet. Learn advanced techniques, custom seasonality, external regressors, and real-world optimization strategies.",
             "image_url": "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&h=600&fit=crop",
-            "featured_image_url": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&h=800&fit=crop",
             "tags": ["Time Series", "Forecasting", "Prophet", "Python", "Data Science"],
             "published": True,
             "reading_time": 10,
