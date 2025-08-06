@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { 
   ArrowLeft, 
   Calendar, 
@@ -15,7 +16,10 @@ import {
   Share,
   BookmarkPlus,
   MessageSquare,
-  User
+  User,
+  Play,
+  Image as ImageIcon,
+  Maximize2
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
