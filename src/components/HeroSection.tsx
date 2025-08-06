@@ -1,6 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { Github, Linkedin, Mail, MessageCircle, MapPin, Calendar, Globe } from "lucide-react";
 import { useProfile } from "@/contexts/ProfileContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect } from "react";
+
+interface HeroStat {
+  label: string;
+  value: string;
+}
+
+interface HeroStatsData {
+  [key: string]: HeroStat;
+}
 
 const HeroSection = () => {
   const { profile, loading } = useProfile();
