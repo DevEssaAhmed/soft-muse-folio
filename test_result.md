@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: Build navigation like in attached image with PROJECTS, ARTICLES, ABOUT sections on home page below hero section. Fix article markdown rendering. Run SQL migrations. Add contact form with purpose options and conditional "other" field using profile email.
+user_problem_statement: Build navigation like in attached image with PROJECTS, ARTICLES, ABOUT sections on home page below hero section. Fix article markdown rendering. Run SQL migrations. Add contact form with purpose options and conditional "other" field using profile email. ADD CATEGORIES AND SERIES PAGES like reference website syedamaham.dev. Remove save for later functionality. Fix tag navigation issues. Implement SEO and analytics. Fix responsiveness issues.
 
 backend:
   - task: "Supabase Contact Table Migration"
