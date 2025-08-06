@@ -104,10 +104,12 @@ const ProjectEditor: React.FC = () => {
     setIsSaving(true);
     
     const tagsArray = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+    const additionalImagesArray = formData.additional_images.split(',').map(img => img.trim()).filter(img => img);
     
     const projectData = {
       ...formData,
       tags: tagsArray,
+      additional_images: additionalImagesArray,
     };
 
     try {
