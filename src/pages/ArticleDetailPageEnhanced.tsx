@@ -363,13 +363,6 @@ const ArticleDetailPageEnhanced = () => {
                 <Share className="w-4 h-4 mr-2" />
                 Share
               </Button>
-              <Button
-                variant="outline"
-                className="hover:shadow-soft transition-all duration-300"
-              >
-                <BookmarkPlus className="w-4 h-4 mr-2" />
-                Save
-              </Button>
             </div>
 
             {/* Tags */}
