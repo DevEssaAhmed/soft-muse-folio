@@ -347,7 +347,6 @@ The key is treating ML systems as software systems with proper engineering pract
 """,
             "excerpt": "Learn how to build robust, production-ready machine learning pipelines using MLOps best practices. Cover data validation, model deployment, monitoring, and automated retraining.",
             "image_url": "https://images.unsplash.com/photo-1518186233392-c232efbf2373?w=800&h=600&fit=crop",
-            "featured_image_url": "https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?w=1200&h=800&fit=crop",
             "tags": ["MLOps", "Machine Learning", "DevOps", "Production Systems", "Model Deployment"],
             "published": True,
             "reading_time": 12,
