@@ -15,6 +15,32 @@ interface HeroStatsData {
 
 const HeroSection = () => {
   const { profile, loading } = useProfile();
+  const [heroStats, setHeroStats] = useState<HeroStatsData>({
+    projectsLed: { label: 'Projects Led', value: '15+' },
+    hoursAnalyzed: { label: 'Hours Analyzed', value: '500+' },
+    clientsServed: { label: 'Clients Served', value: '50+' }
+  });
+
+  useEffect(() => {
+    fetchHeroStats();
+  }, []);
+
+  const fetchHeroStats = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('value')
+        .eq('key', 'hero_stats')
+        .single();
+
+      if (!error && data) {
+        setHeroStats(data.value);
+      }
+    } catch (error) {
+      console.error('Error fetching hero stats:', error);
+      // Keep default stats on error
+    }
+  };
 
   if (loading) {
     return (
@@ -34,8 +60,8 @@ const HeroSection = () => {
     );
   }
 
-  // Parse stats if it's stored as JSON
-  const stats = profile.stats ? (typeof profile.stats === 'string' ? JSON.parse(profile.stats) : profile.stats) : {};
+  // Parse stats if it's stored as JSON (fallback to heroStats from settings)
+  const stats = profile.stats ? (typeof profile.stats === 'string' ? JSON.parse(profile.stats) : profile.stats) : heroStats;
   
   return (
     <section className="min-h-screen bg-gradient-hero flex items-center justify-center px-6 py-20">
