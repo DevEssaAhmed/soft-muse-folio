@@ -75,12 +75,11 @@ const Footer = () => {
                 <BarChart3 className="w-5 h-5 text-white" />
               </div>
               <h3 className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                Alex Chen
+                {profile?.name || "Portfolio"}
               </h3>
             </div>
             <p className="text-muted-foreground mb-6 leading-relaxed">
-              Senior Data Analyst passionate about transforming complex data into actionable insights. 
-              Building beautiful, functional applications with modern technology.
+              {profile?.bio || "Professional portfolio showcasing projects and expertise in data analysis and development."}
             </p>
             {/* Social Links */}
             <div className="flex gap-3">
