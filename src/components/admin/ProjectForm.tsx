@@ -39,13 +39,36 @@ const ProjectForm = ({ project, onClose, onSuccess }: ProjectFormProps) => {
         description: project.description || "",
         category: project.category || "",
         image_url: project.image_url || "",
+        additional_images: project.additional_images || [],
         demo_url: project.demo_url || "",
+        demo_video_url: project.demo_video_url || "",
+        demo_video_type: project.demo_video_type || "",
         github_url: project.github_url || "",
         tags: project.tags ? project.tags.join(", ") : "",
         featured: project.featured || false,
       });
     }
   }, [project]);
+
+  const handleImageUpload = (urls: string[]) => {
+    if (urls.length > 0) {
+      setFormData(prev => ({ ...prev, image_url: urls[0] }));
+    }
+  };
+
+  const handleAdditionalImagesUpload = (urls: string[]) => {
+    setFormData(prev => ({ ...prev, additional_images: urls }));
+  };
+
+  const handleDemoVideoUpload = (urls: string[]) => {
+    if (urls.length > 0) {
+      setFormData(prev => ({ 
+        ...prev, 
+        demo_video_url: urls[0],
+        demo_video_type: 'file'
+      }));
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
