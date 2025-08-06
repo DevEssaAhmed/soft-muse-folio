@@ -313,6 +313,56 @@ const ArticleDetailPageEnhanced = () => {
               </div>
             )}
 
+            {/* Article Video Section */}
+            {article.video_url && (
+              <Card className="bg-card/50 backdrop-blur-sm border-primary/20 shadow-soft mb-8">
+                <CardContent className="p-6">
+                  <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                    <Play className="w-5 h-5 text-primary" />
+                    Video Content
+                  </h3>
+                  {renderVideoEmbed(article.video_url, article.video_type || 'youtube')}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Additional Images Gallery */}
+            {article.additional_images && article.additional_images.length > 0 && (
+              <Card className="bg-card/50 backdrop-blur-sm border-primary/20 shadow-soft mb-8">
+                <CardContent className="p-6">
+                  <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                    <ImageIcon className="w-5 h-5 text-primary" />
+                    Image Gallery
+                  </h3>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {article.additional_images.map((imageUrl: string, index: number) => (
+                      <Dialog key={index}>
+                        <DialogTrigger asChild>
+                          <div className="relative group cursor-pointer rounded-lg overflow-hidden">
+                            <img
+                              src={imageUrl}
+                              alt={`Article image ${index + 1}`}
+                              className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
+                            />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                              <Maximize2 className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                            </div>
+                          </div>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-4xl">
+                          <img
+                            src={imageUrl}
+                            alt={`Article image ${index + 1}`}
+                            className="w-full h-auto rounded-lg"
+                          />
+                        </DialogContent>
+                      </Dialog>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Action Buttons */}
             <div className="flex items-center gap-3 mb-8">
               <Button
