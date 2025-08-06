@@ -6,7 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Eye, Heart, Clock, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-const RecentArticles = () => {
+interface RecentArticlesProps {
+  showAll?: boolean;
+}
+
+const RecentArticles = ({ showAll = false }: RecentArticlesProps) => {
   const navigate = useNavigate();
   const [articles, setArticles] = useState([]);
   const [tags, setTags] = useState([]);
