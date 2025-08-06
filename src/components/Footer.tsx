@@ -16,6 +16,8 @@ import {
 import { useProfile } from '@/contexts/ProfileContext';
 
 const Footer = () => {
+  const { profile } = useProfile();
+  
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
