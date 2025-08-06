@@ -1,13 +1,15 @@
 import Navigation from "@/components/Navigation";
 import HeroSection from "@/components/HeroSection";
-import ProjectGrid from "@/components/ProjectGrid";
+import RecentProjects from "@/components/home/RecentProjects";
+import RecentArticles from "@/components/home/RecentArticles";
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
       <HeroSection />
-      <ProjectGrid />
+      <RecentProjects />
+      <RecentArticles />
     </div>
   );
 };
