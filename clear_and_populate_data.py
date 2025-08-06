@@ -35,7 +35,12 @@ def clear_all_data(supabase: Client):
     
     for table in tables_to_clear:
         try:
-            result = supabase.table(table).delete().neq('id', 'dummy').execute()
+            # Get all records first
+            result = supabase.table(table).select('id').execute()
+            if result.data:
+                # Delete each record
+                for record in result.data:
+                    supabase.table(table).delete().eq('id', record['id']).execute()
             print(f"✅ Cleared {table} table")
         except Exception as e:
             print(f"❌ Error clearing {table}: {e}")
