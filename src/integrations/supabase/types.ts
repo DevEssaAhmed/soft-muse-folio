@@ -74,6 +74,42 @@ export type Database = {
         }
         Relationships: []
       }
+      contacts: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          message: string
+          name: string
+          other_purpose: string | null
+          purpose: string
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          message: string
+          name: string
+          other_purpose?: string | null
+          purpose: string
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          other_purpose?: string | null
+          purpose?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profile: {
         Row: {
           avatar_url: string | null
