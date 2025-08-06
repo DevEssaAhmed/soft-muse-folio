@@ -62,6 +62,7 @@ export const FileUpload = ({
   const getFileIcon = () => {
     switch (uploadType) {
       case 'image':
+      case 'avatar':
         return <ImageIcon className="w-4 h-4" />;
       case 'video':
         return <Video className="w-4 h-4" />;
@@ -72,90 +73,170 @@ export const FileUpload = ({
     }
   };
 
-  const uploadFile = async (file: File): Promise<string | null> => {
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
-      const filePath = fileName;
-
-      // Convert file to base64 for storage (as per user requirement to use base64)
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const base64String = reader.result as string;
-          resolve(base64String);
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-
-      // For now, we'll return the base64 string directly since they prefer base64 format
-      return base64;
-
-    } catch (error) {
-      console.error('Error uploading file:', error);
-      toast.error('Failed to upload file');
-      return null;
+  const validateFile = (file: File): string | null => {
+    // Check file size
+    const maxSizeBytes = maxSizeMB * 1024 * 1024;
+    if (file.size > maxSizeBytes) {
+      return `File size must be less than ${maxSizeMB}MB`;
     }
+
+    // Check file type
+    const acceptedTypes = accept.split(',').map(type => type.trim());
+    const isValidType = acceptedTypes.some(type => {
+      if (type.includes('*')) {
+        const baseType = type.split('/')[0];
+        return file.type.startsWith(baseType);
+      }
+      return file.type === type;
+    });
+
+    if (!isValidType) {
+      return `File type not supported. Accepted types: ${accept}`;
+    }
+
+    return null;
   };
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
+  const uploadFile = async (file: File): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { data, error } = await supabase.storage
+      .from(getBucketName())
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (error) {
+      throw error;
+    }
+
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from(getBucketName())
+      .getPublicUrl(data.path);
+
+    return urlData.publicUrl;
+  };
+
+  const handleFiles = async (files: FileList | File[]) => {
+    const fileArray = Array.from(files);
+    
+    // Check max files limit
+    if (!multiple && fileArray.length > 1) {
+      toast.error('Only one file is allowed');
+      return;
+    }
+
+    if (fileArray.length > maxFiles) {
+      toast.error(`Maximum ${maxFiles} files allowed`);
+      return;
+    }
+
+    // Validate files
+    const validFiles: File[] = [];
+    for (const file of fileArray) {
+      const error = validateFile(file);
+      if (error) {
+        toast.error(`${file.name}: ${error}`);
+        continue;
+      }
+      validFiles.push(file);
+    }
+
+    if (validFiles.length === 0) return;
 
     setUploading(true);
-    setUploadProgress(0);
+
+    // Initialize uploading files state
+    const newUploadingFiles: UploadingFile[] = validFiles.map(file => ({
+      file,
+      progress: 0,
+      status: 'uploading' as const
+    }));
+
+    setUploadingFiles(newUploadingFiles);
+
+    // Upload files
+    const uploadPromises = validFiles.map(async (file, index) => {
+      try {
+        // Simulate progress (since Supabase client doesn't provide native progress)
+        const progressInterval = setInterval(() => {
+          setUploadingFiles(prev => prev.map((item, i) => 
+            i === index && item.status === 'uploading' 
+              ? { ...item, progress: Math.min(item.progress + 10, 90) }
+              : item
+          ));
+        }, 200);
+
+        const url = await uploadFile(file);
+
+        clearInterval(progressInterval);
+
+        setUploadingFiles(prev => prev.map((item, i) => 
+          i === index 
+            ? { ...item, progress: 100, status: 'completed', url }
+            : item
+        ));
+
+        return url;
+      } catch (error) {
+        setUploadingFiles(prev => prev.map((item, i) => 
+          i === index 
+            ? { ...item, status: 'error', error: error.message }
+            : item
+        ));
+        throw error;
+      }
+    });
 
     try {
-      const filesToUpload = Array.from(files).slice(0, maxFiles);
-      const uploadPromises: Promise<string | null>[] = [];
-
-      for (let i = 0; i < filesToUpload.length; i++) {
-        const file = filesToUpload[i];
-        
-        // Validate file type
-        if (uploadType === 'image' && !file.type.startsWith('image/')) {
-          toast.error(`File ${file.name} is not a valid image`);
-          continue;
-        }
-        if (uploadType === 'video' && !file.type.startsWith('video/')) {
-          toast.error(`File ${file.name} is not a valid video`);
-          continue;
-        }
-
-        // Validate file size (10MB limit)
-        if (file.size > 10 * 1024 * 1024) {
-          toast.error(`File ${file.name} is too large. Maximum size is 10MB.`);
-          continue;
-        }
-
-        uploadPromises.push(uploadFile(file));
-        
-        // Update progress
-        const progress = ((i + 1) / filesToUpload.length) * 100;
-        setUploadProgress(progress);
-      }
-
-      const uploadResults = await Promise.all(uploadPromises);
-      const successfulUploads = uploadResults.filter((url): url is string => url !== null);
-
-      if (successfulUploads.length > 0) {
-        const newFiles = [...uploadedFiles, ...successfulUploads].slice(0, maxFiles);
-        setUploadedFiles(newFiles);
-        onUploadComplete(newFiles);
-        toast.success(`${successfulUploads.length} file(s) uploaded successfully!`);
-      }
-
+      const urls = await Promise.all(uploadPromises);
+      const newFiles = [...uploadedFiles, ...urls.filter(Boolean)].slice(0, maxFiles);
+      setUploadedFiles(newFiles);
+      onUploadComplete(newFiles);
+      toast.success(`${urls.length} file(s) uploaded successfully`);
+      
+      // Clear uploading files after a delay
+      setTimeout(() => setUploadingFiles([]), 2000);
     } catch (error) {
-      console.error('Error in file upload:', error);
+      console.error('Upload error:', error);
       toast.error('Failed to upload files');
     } finally {
       setUploading(false);
-      setUploadProgress(0);
-      // Reset input
-      event.target.value = '';
     }
   };
+
+  const handleFileInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      handleFiles(files);
+    }
+    // Reset input
+    event.target.value = '';
+  };
+
+  const handleDrop = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    setIsDragOver(false);
+    
+    const files = event.dataTransfer.files;
+    if (files) {
+      handleFiles(files);
+    }
+  }, []);
+
+  const handleDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    setIsDragOver(false);
+  }, []);
 
   const removeFile = (index: number) => {
     const newFiles = uploadedFiles.filter((_, i) => i !== index);
@@ -163,9 +244,14 @@ export const FileUpload = ({
     onUploadComplete(newFiles);
   };
 
+  const removeUploadingFile = (index: number) => {
+    setUploadingFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
   const getAcceptTypes = () => {
     switch (uploadType) {
       case 'image':
+      case 'avatar':
         return 'image/*';
       case 'video':
         return 'video/*';
