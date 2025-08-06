@@ -503,6 +503,9 @@ class PortfolioBackendTester:
             "authentication": None,
             "table_operations": [],
             "specific_queries": None,
+            "site_settings": None,
+            "series_operations": None,
+            "storage_buckets": None,
             "summary": {
                 "total_tests": 0,
                 "passed_tests": 0,
@@ -527,8 +530,38 @@ class PortfolioBackendTester:
         auth_passed = all(result.get("success", False) for result in auth_result.values())
         print(f"   Result: {'✅ PASS' if auth_passed else '❌ FAIL'}")
         
-        # Test 3: Table Operations
-        print("\n3. Testing Table CRUD Operations...")
+        # Test 3: Site Settings (Hero Stats)
+        print("\n3. Testing Site Settings & Hero Stats...")
+        site_settings_result = await self.test_site_settings_operations()
+        all_results["site_settings"] = site_settings_result
+        site_settings_passed = all(result.get("success", False) for result in site_settings_result.values() if isinstance(result, dict))
+        print(f"   Result: {'✅ PASS' if site_settings_passed else '❌ FAIL'}")
+        if not site_settings_passed:
+            failed_ops = [k for k, v in site_settings_result.items() if isinstance(v, dict) and not v.get("success", False)]
+            all_results["summary"]["critical_failures"].append(f"Site settings operations failed: {', '.join(failed_ops)}")
+        
+        # Test 4: Series & Categories Operations
+        print("\n4. Testing Series & Categories...")
+        series_result = await self.test_series_operations()
+        all_results["series_operations"] = series_result
+        series_passed = all(result.get("success", False) for result in series_result.values() if isinstance(result, dict))
+        print(f"   Result: {'✅ PASS' if series_passed else '❌ FAIL'}")
+        if not series_passed:
+            failed_ops = [k for k, v in series_result.items() if isinstance(v, dict) and not v.get("success", False)]
+            all_results["summary"]["critical_failures"].append(f"Series/Categories operations failed: {', '.join(failed_ops)}")
+        
+        # Test 5: Storage Buckets & RLS Policies
+        print("\n5. Testing Storage Buckets & RLS Policies...")
+        storage_result = await self.test_storage_buckets()
+        all_results["storage_buckets"] = storage_result
+        storage_passed = all(result.get("success", False) for result in storage_result.values() if isinstance(result, dict))
+        print(f"   Result: {'✅ PASS' if storage_passed else '❌ FAIL'}")
+        if not storage_passed:
+            failed_buckets = [k for k, v in storage_result.items() if isinstance(v, dict) and not v.get("success", False)]
+            all_results["summary"]["critical_failures"].append(f"Storage bucket access failed: {', '.join(failed_buckets)}")
+        
+        # Test 6: Table Operations
+        print("\n6. Testing Table CRUD Operations...")
         table_results = await self.test_all_tables()
         all_results["table_operations"] = table_results
         
@@ -542,8 +575,8 @@ class PortfolioBackendTester:
                 failed_ops = [op for op in operations if not table_result.get(op, {}).get("success", False)]
                 all_results["summary"]["critical_failures"].append(f"{table_name} table: {', '.join(failed_ops)} operations failed")
         
-        # Test 4: Specific Queries
-        print("\n4. Testing Application-Specific Queries...")
+        # Test 7: Application-Specific Queries
+        print("\n7. Testing Application-Specific Queries...")
         query_result = await self.test_specific_queries()
         all_results["specific_queries"] = query_result
         query_passed = all(result.get("success", False) for result in query_result.values() if isinstance(result, dict))
@@ -552,6 +585,9 @@ class PortfolioBackendTester:
         # Calculate summary
         total_tests = 1  # database connection
         total_tests += len(auth_result)  # authentication tests
+        total_tests += len([k for k, v in site_settings_result.items() if isinstance(v, dict)])  # site settings tests
+        total_tests += len([k for k, v in series_result.items() if isinstance(v, dict)])  # series tests
+        total_tests += len([k for k, v in storage_result.items() if isinstance(v, dict)])  # storage tests
         total_tests += sum(4 for _ in table_results)  # 4 operations per table
         total_tests += len([k for k, v in query_result.items() if isinstance(v, dict)])  # specific queries
         
@@ -559,6 +595,9 @@ class PortfolioBackendTester:
         if connection_result['success']:
             passed_tests += 1
         passed_tests += sum(1 for result in auth_result.values() if result.get("success", False))
+        passed_tests += sum(1 for result in site_settings_result.values() if isinstance(result, dict) and result.get("success", False))
+        passed_tests += sum(1 for result in series_result.values() if isinstance(result, dict) and result.get("success", False))
+        passed_tests += sum(1 for result in storage_result.values() if isinstance(result, dict) and result.get("success", False))
         passed_tests += sum(sum(1 for op in ["create", "read", "update", "delete"] if table_result.get(op, {}).get("success", False)) for table_result in table_results)
         passed_tests += sum(1 for result in query_result.values() if isinstance(result, dict) and result.get("success", False))
         
