@@ -77,7 +77,7 @@ const ProfileForm = ({ profile, onClose, onSuccess }: ProfileFormProps) => {
     } catch (error) {
       toast({ 
         title: "Error saving profile", 
-        description: error.message,
+        description: error instanceof Error ? error.message : "An unknown error occurred",
         variant: "destructive" 
       });
     }
