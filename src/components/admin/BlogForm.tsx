@@ -47,6 +47,36 @@ const BlogForm = ({ blogPost, onClose, onSuccess }: BlogFormProps) => {
   });
 
   useEffect(() => {
+    fetchCategoriesAndSeries();
+  }, []);
+
+  const fetchCategoriesAndSeries = async () => {
+    try {
+      // For now, let's create mock data since tables don't exist yet
+      const mockCategories = [
+        { id: '1', name: 'Web Development', slug: 'web-development' },
+        { id: '2', name: 'Data Science', slug: 'data-science' },
+        { id: '3', name: 'Mobile Development', slug: 'mobile-development' },
+        { id: '4', name: 'DevOps', slug: 'devops' },
+        { id: '5', name: 'Career', slug: 'career' },
+        { id: '6', name: 'Tutorials', slug: 'tutorials' }
+      ];
+
+      const mockSeries = [
+        { id: '1', title: 'React Mastery', slug: 'react-mastery' },
+        { id: '2', title: 'Python for Data Science', slug: 'python-data-science' },
+        { id: '3', title: 'Full Stack Development', slug: 'fullstack-development' },
+        { id: '4', title: 'DevOps Fundamentals', slug: 'devops-fundamentals' }
+      ];
+
+      setCategories(mockCategories);
+      setSeries(mockSeries);
+    } catch (error) {
+      console.error("Error fetching categories and series:", error);
+    }
+  };
+
+  useEffect(() => {
     if (blogPost) {
       setFormData({
         title: blogPost.title || "",
@@ -54,7 +84,13 @@ const BlogForm = ({ blogPost, onClose, onSuccess }: BlogFormProps) => {
         excerpt: blogPost.excerpt || "",
         content: blogPost.content || "",
         image_url: blogPost.image_url || "",
+        additional_images: blogPost.additional_images || [],
+        video_url: blogPost.video_url || "",
+        video_type: blogPost.video_type || "",
         tags: blogPost.tags ? blogPost.tags.join(", ") : "",
+        category_id: blogPost.category_id || "",
+        series_id: blogPost.series_id || "",
+        series_order: blogPost.series_order || 1,
         published: blogPost.published || false,
         reading_time: blogPost.reading_time || 5,
       });
