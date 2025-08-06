@@ -146,6 +146,7 @@ const ProjectGrid = () => {
               style={{ animationDelay: `${index * 100}ms` }}
             >
               <ProjectCard
+                id={project.id}
                 title={project.title}
                 description={project.description}
                 image={project.image_url || "/placeholder.svg"}
