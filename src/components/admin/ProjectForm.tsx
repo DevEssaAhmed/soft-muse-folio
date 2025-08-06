@@ -147,14 +147,48 @@ const ProjectForm = ({ project, onClose, onSuccess }: ProjectFormProps) => {
               />
             </div>
 
-            <div>
-              <Label htmlFor="image_url">Image URL</Label>
-              <Input
-                id="image_url"
-                type="url"
-                value={formData.image_url}
-                onChange={(e) => setFormData({...formData, image_url: e.target.value})}
+            {/* Media Uploads */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Project Media</h3>
+              
+              {/* Project Image Upload */}
+              <FileUpload
+                label="Project Image"
+                uploadType="image"
+                onUploadComplete={handleImageUpload}
+                maxFiles={1}
+                existingFiles={formData.image_url ? [formData.image_url] : []}
               />
+
+              {/* Additional Images */}
+              <FileUpload
+                label="Additional Images"
+                uploadType="image"
+                onUploadComplete={handleAdditionalImagesUpload}
+                maxFiles={5}
+                existingFiles={formData.additional_images}
+              />
+
+              {/* Demo Video Upload */}
+              <FileUpload
+                label="Demo Video (Optional)"
+                uploadType="video"
+                onUploadComplete={handleDemoVideoUpload}
+                maxFiles={1}
+                existingFiles={formData.demo_video_url ? [formData.demo_video_url] : []}
+              />
+
+              {/* Fallback URL Input */}
+              <div>
+                <Label htmlFor="image_url">Image URL (Alternative)</Label>
+                <Input
+                  id="image_url"
+                  type="url"
+                  value={formData.image_url}
+                  onChange={(e) => setFormData({...formData, image_url: e.target.value})}
+                  placeholder="https://example.com/image.jpg"
+                />
+              </div>
             </div>
 
             <div>
