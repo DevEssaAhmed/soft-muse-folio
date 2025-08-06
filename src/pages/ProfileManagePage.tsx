@@ -47,12 +47,11 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 
 const ProfileManagePage = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [skills, setSkills] = useState<string[]>([]);
   const [newSkill, setNewSkill] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
-  const [profile, setProfile] = useState(null);
+  const { profile, loading, updateProfile, refreshProfile } = useProfile();
 
   const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
