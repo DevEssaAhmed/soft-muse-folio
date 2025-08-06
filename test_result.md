@@ -221,9 +221,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Apply Database Migrations"
-    - "Test Hero Stats After Migration"
+    - "Verify Database Migrations Applied"
+    - "Test Hero Stats After Migration" 
     - "Test Series Functionality After Migration"
+    - "Enhance FileUpload Component for Simultaneous File+URL Support"
   stuck_tasks:
     - "Site Settings Table for Hero Stats"
     - "Hero Stats Manager Component" 
@@ -231,7 +232,7 @@ test_plan:
     - "Admin Dashboard Site Settings Tab"
     - "Blog Series Database Integration"
   test_all: false
-  test_priority: "migration_required"
+  test_priority: "verify_migration_success"
 
 agent_communication:
   - agent: "main"
