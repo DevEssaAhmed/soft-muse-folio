@@ -19,6 +19,7 @@ import CategoriesPage from "./pages/CategoriesPage";
 import CategoryDetailPage from "./pages/CategoryDetailPage";
 import SeriesPage from "./pages/SeriesPage";
 import SeriesDetailPage from "./pages/SeriesDetailPage";
+import TagDetailPage from "./pages/TagDetailPage";
 import TagNotFoundPage from "./pages/TagNotFoundPage";
 import ProjectDetailPage from "./pages/ProjectDetailPage";
 import AboutPage from "./pages/AboutPage";
