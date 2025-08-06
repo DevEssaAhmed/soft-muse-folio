@@ -69,46 +69,20 @@ const ProfileManagePage = () => {
   });
 
   useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  const fetchProfile = async () => {
-    try {
-      // First try to get all profiles and use the most recent one
-      const { data, error } = await supabase
-        .from("profile")
-        .select("*")
-        .order('updated_at', { ascending: false })
-        .limit(1);
-
-      if (error) {
-        throw error;
-      }
-
-      // Use the first (most recent) profile if available
-      const profileData = data && data.length > 0 ? data[0] : null;
-
-      if (profileData) {
-        setProfile(profileData);
-        setValue("name", profileData.name || "");
-        setValue("username", profileData.username || "");
-        setValue("title", profileData.title || "");
-        setValue("bio", profileData.bio || "");
-        setValue("location", profileData.location || "");
-        setValue("email", profileData.email || "");
-        setValue("github_url", profileData.github_url || "");
-        setValue("linkedin_url", profileData.linkedin_url || "");
-        setValue("website_url", profileData.website_url || "");
-        setSkills(profileData.skills || []);
-        setAvatarUrl(profileData.avatar_url || "");
-      }
-    } catch (error) {
-      console.error("Error fetching profile:", error);
-      toast.error("Error loading profile data");
-    } finally {
-      setLoading(false);
+    if (profile) {
+      setValue("name", profile.name || "");
+      setValue("username", profile.username || "");
+      setValue("title", profile.title || "");
+      setValue("bio", profile.bio || "");
+      setValue("location", profile.location || "");
+      setValue("email", profile.email || "");
+      setValue("github_url", profile.github_url || "");
+      setValue("linkedin_url", profile.linkedin_url || "");
+      setValue("website_url", profile.website_url || "");
+      setSkills(profile.skills || []);
+      setAvatarUrl(profile.avatar_url || "");
     }
-  };
+  }, [profile, setValue]);
 
   const onSubmit = async (data: ProfileFormData) => {
     setSaving(true);
