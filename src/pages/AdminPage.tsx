@@ -434,7 +434,14 @@ const AdminPage = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ProfileForm profile={profile} onSave={setProfile} />
+                <ProfileForm 
+                  profile={profile} 
+                  onClose={() => {}} 
+                  onSuccess={() => {
+                    // Refetch profile data after successful update
+                    window.location.reload();
+                  }} 
+                />
               </CardContent>
             </Card>
           </TabsContent>
