@@ -28,16 +28,21 @@ interface UploadingFile {
 }
 
 export const FileUpload = ({ 
-  label, 
+  label = "Upload Files", 
   accept = "image/*", 
   onUploadComplete, 
   maxFiles = 1,
   existingFiles = [],
-  uploadType 
+  uploadType,
+  multiple = false,
+  maxSizeMB = 50,
+  showPreview = true
 }: FileUploadProps) => {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadedFiles, setUploadedFiles] = useState<string[]>(existingFiles);
+  const [uploadingFiles, setUploadingFiles] = useState<UploadingFile[]>([]);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const getBucketName = () => {
     switch (uploadType) {
@@ -47,6 +52,8 @@ export const FileUpload = ({
         return 'videos';
       case 'document':
         return 'documents';
+      case 'avatar':
+        return 'avatars';
       default:
         return 'files';
     }
