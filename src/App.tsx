@@ -46,6 +46,7 @@ const App = () => (
               <Route path="/series" element={<SeriesPage />} />
               <Route path="/series/:slug" element={<SeriesDetailPage />} />
               <Route path="/about" element={<AboutPage />} />
+              <Route path="/404-tag-not-found" element={<TagNotFoundPage />} />
               <Route path="/admin/login" element={<LoginForm />} />
               <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
               <Route path="/admin/profile" element={<ProtectedRoute><ProfileManagePage /></ProtectedRoute>} />
