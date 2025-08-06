@@ -35,6 +35,11 @@ const ArticleDetailPageEnhanced = () => {
   const [isLiked, setIsLiked] = useState(false);
   const [profile, setProfile] = useState<any>(null);
 
+  const handleTagClick = (tag: string) => {
+    const tagSlug = tag.toLowerCase().replace(/\s+/g, '-');
+    navigate(`/tags/${encodeURIComponent(tagSlug)}`);
+  };
+
   useEffect(() => {
     if (slug) {
       fetchArticle();
