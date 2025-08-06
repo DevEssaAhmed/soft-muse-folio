@@ -27,7 +27,7 @@ const RecentProjects = ({ showAll = false }: RecentProjectsProps) => {
         .from("projects")
         .select("*")
         .order("created_at", { ascending: false })
-        .limit(6);
+        .limit(showAll ? 50 : 6);
       
       if (data) {
         setProjects(data);
