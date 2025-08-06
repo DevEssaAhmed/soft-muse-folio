@@ -120,24 +120,16 @@ const HeroSection = () => {
 
               {/* Stats */}
               <div className="flex justify-center md:justify-start gap-8 mb-6">
-                <div className="text-center">
-                  <div className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                    {stats.projectsLed || '15+'}
+                {Object.entries(stats).map(([key, stat]) => (
+                  <div key={key} className="text-center">
+                    <div className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                      {typeof stat === 'object' ? stat.value : stat}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {typeof stat === 'object' ? stat.label : key}
+                    </div>
                   </div>
-                  <div className="text-sm text-muted-foreground">Projects Led</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                    {stats.hoursAnalyzed || '500+'}
-                  </div>
-                  <div className="text-sm text-muted-foreground">Hours Analyzed</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                    {stats.clientsServed || '50+'}
-                  </div>
-                  <div className="text-sm text-muted-foreground">Clients Served</div>
-                </div>
+                ))}
               </div>
 
               {/* Meta info */}
