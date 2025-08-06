@@ -118,7 +118,12 @@ const ProjectCard = ({ id, title, description, image, tags, category, demoUrl, g
             </Badge>
             <div className="flex gap-2">
               {tags.slice(0, 2).map((tag) => (
-                <Badge key={tag} variant="outline" className="text-xs bg-white/10 text-white border-white/30 backdrop-blur-sm">
+                <Badge 
+                  key={tag} 
+                  variant="outline" 
+                  className="text-xs bg-white/10 text-white border-white/30 backdrop-blur-sm cursor-pointer hover:bg-white/20 transition-colors"
+                  onClick={(e) => handleTagClick(e, tag)}
+                >
                   {tag}
                 </Badge>
               ))}
