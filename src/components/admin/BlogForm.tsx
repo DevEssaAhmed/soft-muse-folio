@@ -52,27 +52,62 @@ const BlogForm = ({ blogPost, onClose, onSuccess }: BlogFormProps) => {
 
   const fetchCategoriesAndSeries = async () => {
     try {
-      // For now, let's create mock data since tables don't exist yet
-      const mockCategories = [
+      // Fetch categories from database
+      const { data: categoriesData, error: categoriesError } = await supabase
+        .from('categories')
+        .select('*')
+        .order('name');
+
+      if (categoriesError) {
+        console.error('Error fetching categories:', categoriesError);
+        // Fall back to mock data if database fails
+        setCategories([
+          { id: '1', name: 'Web Development', slug: 'web-development' },
+          { id: '2', name: 'Data Science', slug: 'data-science' },
+          { id: '3', name: 'Mobile Development', slug: 'mobile-development' },
+          { id: '4', name: 'DevOps', slug: 'devops' },
+          { id: '5', name: 'Career', slug: 'career' },
+          { id: '6', name: 'Tutorials', slug: 'tutorials' }
+        ]);
+      } else {
+        setCategories(categoriesData || []);
+      }
+
+      // Fetch series from database  
+      const { data: seriesData, error: seriesError } = await supabase
+        .from('series')
+        .select('*')
+        .order('title');
+
+      if (seriesError) {
+        console.error('Error fetching series:', seriesError);
+        // Fall back to mock data if database fails
+        setSeries([
+          { id: '1', title: 'React Mastery', slug: 'react-mastery' },
+          { id: '2', title: 'Python for Data Science', slug: 'python-data-science' },
+          { id: '3', title: 'Full Stack Development', slug: 'fullstack-development' },
+          { id: '4', title: 'DevOps Fundamentals', slug: 'devops-fundamentals' }
+        ]);
+      } else {
+        setSeries(seriesData || []);
+      }
+    } catch (error) {
+      console.error("Error fetching categories and series:", error);
+      // Use fallback mock data
+      setCategories([
         { id: '1', name: 'Web Development', slug: 'web-development' },
         { id: '2', name: 'Data Science', slug: 'data-science' },
         { id: '3', name: 'Mobile Development', slug: 'mobile-development' },
         { id: '4', name: 'DevOps', slug: 'devops' },
         { id: '5', name: 'Career', slug: 'career' },
         { id: '6', name: 'Tutorials', slug: 'tutorials' }
-      ];
-
-      const mockSeries = [
+      ]);
+      setSeries([
         { id: '1', title: 'React Mastery', slug: 'react-mastery' },
         { id: '2', title: 'Python for Data Science', slug: 'python-data-science' },
         { id: '3', title: 'Full Stack Development', slug: 'fullstack-development' },
         { id: '4', title: 'DevOps Fundamentals', slug: 'devops-fundamentals' }
-      ];
-
-      setCategories(mockCategories);
-      setSeries(mockSeries);
-    } catch (error) {
-      console.error("Error fetching categories and series:", error);
+      ]);
     }
   };
 
