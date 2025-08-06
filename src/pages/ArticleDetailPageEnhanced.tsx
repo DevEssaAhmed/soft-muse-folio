@@ -176,27 +176,7 @@ const ArticleDetailPageEnhanced = () => {
   };
 
   const renderContent = (content: string) => {
-    // Simple markdown-like rendering for code blocks
-    const parts = content.split(/(```[\s\S]*?```)/);
-    
-    return parts.map((part, index) => {
-      if (part.startsWith('```') && part.endsWith('```')) {
-        const lines = part.slice(3, -3).split('\n');
-        const language = lines[0] || 'text';
-        const code = lines.slice(1).join('\n');
-        return <CodeBlock key={index} code={code} language={language} />;
-      }
-      
-      return (
-        <div key={index} className="prose prose-lg max-w-none text-foreground">
-          {part.split('\n').map((line, lineIndex) => (
-            <p key={lineIndex} className="mb-4 leading-relaxed">
-              {line}
-            </p>
-          ))}
-        </div>
-      );
-    });
+    return <MarkdownRenderer content={content} className="prose prose-lg max-w-none" />;
   };
 
   if (loading) {
