@@ -167,24 +167,45 @@ const BlogForm = ({ blogPost, onClose, onSuccess }: BlogFormProps) => {
     if (!newSeries.title) return;
     
     try {
-      // For now, add to local state since tables don't exist
-      const mockId = (series.length + 1).toString();
+      // Generate slug if not provided
       const seriesSlug = newSeries.slug || newSeries.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
       
-      const newSeriesItem = {
-        id: mockId,
-        title: newSeries.title,
-        slug: seriesSlug,
-        description: newSeries.description
-      };
+      const { data, error } = await supabase
+        .from('series')
+        .insert([{
+          title: newSeries.title,
+          slug: seriesSlug,
+          description: newSeries.description,
+          status: 'active'
+        }])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating series:', error);
+        // Fallback to local state for demo purposes
+        const mockId = (series.length + 1).toString();
+        const newSeriesItem = {
+          id: mockId,
+          title: newSeries.title,
+          slug: seriesSlug,
+          description: newSeries.description
+        };
+        
+        setSeries(prev => [...prev, newSeriesItem]);
+        setFormData(prev => ({ ...prev, series_id: mockId }));
+        toast({ title: "Series created successfully (demo mode)" });
+      } else {
+        // Successfully created in database
+        setSeries(prev => [...prev, data]);
+        setFormData(prev => ({ ...prev, series_id: data.id }));
+        toast({ title: "Series created successfully" });
+      }
       
-      setSeries(prev => [...prev, newSeriesItem]);
-      setFormData(prev => ({ ...prev, series_id: mockId }));
       setShowNewSeriesDialog(false);
       setNewSeries({ title: "", slug: "", description: "" });
-      
-      toast({ title: "Series created successfully" });
     } catch (error) {
+      console.error('Error creating series:', error);
       toast({ 
         title: "Error creating series", 
         description: "Please try again",
