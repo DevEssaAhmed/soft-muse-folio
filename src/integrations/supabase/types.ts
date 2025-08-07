@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      blog_post_tags: {
+        Row: {
+          blog_post_id: string
+          tag_id: string
+        }
+        Insert: {
+          blog_post_id: string
+          tag_id: string
+        }
+        Update: {
+          blog_post_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_post_tags_blog_post_id_fkey"
+            columns: ["blog_post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_post_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       blog_posts: {
         Row: {
           additional_images: string[] | null
