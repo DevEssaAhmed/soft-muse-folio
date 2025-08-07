@@ -193,7 +193,6 @@ const ProjectEditorEnhanced: React.FC = () => {
         title: formData.title,
         description: formData.description,
         category_id: finalCategoryId || null,
-        category_name: formData.category_name || "Uncategorized",
         image_url: formData.image_url || null,
         demo_url: formData.demo_url || null,
         demo_video_url: formData.demo_video_url || null,
