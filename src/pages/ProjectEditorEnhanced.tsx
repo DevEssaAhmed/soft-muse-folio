@@ -173,71 +173,100 @@ const ProjectEditorEnhanced: React.FC = () => {
     }));
   };
 
+ 
   const handleSave = async (isAutoSave = false) => {
-    if (!formData.title.trim()) return;
-    setIsSaving(true);
-    try {
-      let finalCategoryId = formData.category_id;
-      if (formData.category_name.trim()) {
-        const newCategory = await createOrGetCategory(formData.category_name);
-        if (newCategory) {
-          finalCategoryId = newCategory.id;
-          if (!categories.some(c => c.id === newCategory.id)) {
-            setCategories(prev => [...prev, newCategory]);
-          }
-          setFormData(prev => ({ ...prev, category_id: newCategory.id, category_name: '' }));
-        }
-      }
+  if (!formData.title.trim()) return;
+  setIsSaving(true);
 
-      const projectData = {
-        title: formData.title,
-        description: formData.description,
-        category_id: finalCategoryId || null,
-        image_url: formData.image_url || null,
-        demo_url: formData.demo_url || null,
-        demo_video_url: formData.demo_video_url || null,
-        demo_video_type: formData.demo_video_type,
-        additional_images: formData.additional_images.split(',').map(img => img.trim()).filter(Boolean),
-        github_url: formData.github_url || null,
-        featured: formData.featured,
-      };
+  try {
+    let finalCategoryId = formData.category_id;
 
-      let projectId = id;
-      let error;
+    // Determine the correct category
+    if (formData.category_name.trim()) {
+      // If user typed a new category name
+      const newCategory = await createOrGetCategory(formData.category_name);
+      if (newCategory) {
+        finalCategoryId = newCategory.id;
+        if (!categories.some(c => c.id === newCategory.id)) {
+          setCategories(prev => [...prev, newCategory]);
+        }
+        setFormData(prev => ({
+          ...prev,
+          category_id: newCategory.id,
+          category_name: '',
+        }));
+      }
+    } else if (!finalCategoryId) {
+      // Default to 'Uncategorized' if no category selected
+      const uncategorized = await createOrGetCategory('Uncategorized');
+      finalCategoryId = uncategorized?.id || null;
+      if (uncategorized && !categories.some(c => c.id === uncategorized.id)) {
+        setCategories(prev => [...prev, uncategorized]);
+      }
+    }
 
-      if (id) {
-        const { error: updateError } = await supabase.from('projects').update(projectData).eq('id', id);
-        error = updateError;
-      } else {
-        const { data, error: insertError } = await supabase.from('projects').insert(projectData).select('id').single();
-        error = insertError;
-        if (data) projectId = data.id;
-      }
+    const projectData = {
+      title: formData.title,
+      description: formData.description,
+      category_id: finalCategoryId || null,
+      image_url: formData.image_url || null,
+      demo_url: formData.demo_url || null,
+      demo_video_url: formData.demo_video_url || null,
+      demo_video_type: formData.demo_video_type,
+      additional_images: formData.additional_images
+        .split(',')
+        .map(img => img.trim())
+        .filter(Boolean),
+      github_url: formData.github_url || null,
+      featured: formData.featured,
+    };
 
-      if (error) throw error;
+    let projectId = id;
+    let error;
 
-      if (projectId) {
-        await associateProjectTags(projectId, selectedTags);
-      }
-      
-      if (!isAutoSave) {
-        toast({ title: `Project ${id ? 'updated' : 'created'} successfully` });
-      }
+    if (id) {
+      const { error: updateError } = await supabase
+        .from('projects')
+        .update(projectData)
+        .eq('id', id);
+      error = updateError;
+    } else {
+      const { data, error: insertError } = await supabase
+        .from('projects')
+        .insert(projectData)
+        .select('id')
+        .single();
+      error = insertError;
+      if (data) projectId = data.id;
+    }
 
-      if (!id && projectId) {
-        navigate(`/admin/project/edit/${projectId}`, { replace: true });
-      }
+    if (error) throw error;
 
-    } catch (error) {
-      if (!isAutoSave) {
-        toast({ title: 'Error saving project', description: error.message, variant: 'destructive' });
-      }
-      console.error("Save error:", error);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-  
+    if (projectId) {
+      await associateProjectTags(projectId, selectedTags);
+    }
+
+    if (!isAutoSave) {
+      toast({ title: `Project ${id ? 'updated' : 'created'} successfully` });
+    }
+
+    if (!id && projectId) {
+      navigate(`/admin/project/edit/${projectId}`, { replace: true });
+    }
+  } catch (error) {
+    if (!isAutoSave) {
+      toast({
+        title: 'Error saving project',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+    console.error('Save error:', error);
+  } finally {
+    setIsSaving(false);
+  }
+};
+
   // Corrected logic: only updates state and shows a toast. The debounced save handles the rest.
   const handleFeatureToggle = () => {
     const newFeaturedState = !formData.featured;
