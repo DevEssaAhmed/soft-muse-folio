@@ -31,7 +31,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { createOrGetCategory, getAllCategories } from '@/lib/tagUtils';
+import { createOrGetCategory, getAllCategories, associateProjectTags, getProjectTags } from '@/lib/tagUtils';
 
 const ProjectEditorEnhanced: React.FC = () => {
   const navigate = useNavigate();
