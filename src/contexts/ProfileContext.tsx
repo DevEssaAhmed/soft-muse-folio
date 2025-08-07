@@ -32,16 +32,85 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
         .limit(1);
 
       if (error) {
-        throw error;
+        console.error('Error fetching profile:', error);
+        // If the table doesn't exist or we can't access it, create a default profile
+        const defaultProfile = {
+          id: 'default',
+          name: 'Portfolio Owner',
+          username: 'portfolio_owner',
+          title: 'Developer',
+          bio: 'Welcome to my portfolio. Please update your profile information.',
+          email: null,
+          avatar_url: null,
+          github_url: null,
+          linkedin_url: null,
+          website_url: null,
+          location: null,
+          skills: ['JavaScript', 'React', 'Node.js'],
+          stats: {
+            projectsLed: { label: 'Projects Led', value: '15+' },
+            hoursAnalyzed: { label: 'Hours Analyzed', value: '500+' },
+            clientsServed: { label: 'Clients Served', value: '50+' }
+          },
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+        setProfile(defaultProfile);
+        setLoading(false);
+        return;
       }
 
-      // Use the first profile if it exists
-      const profileData = data && data.length > 0 ? data[0] : null;
+      // Use the first profile if it exists, otherwise create default
+      const profileData = data && data.length > 0 ? data[0] : {
+        id: 'default',
+        name: 'Portfolio Owner',
+        username: 'portfolio_owner',
+        title: 'Developer',
+        bio: 'Welcome to my portfolio. Please update your profile information.',
+        email: null,
+        avatar_url: null,
+        github_url: null,
+        linkedin_url: null,
+        website_url: null,
+        location: null,
+        skills: ['JavaScript', 'React', 'Node.js'],
+        stats: {
+          projectsLed: { label: 'Projects Led', value: '15+' },
+          hoursAnalyzed: { label: 'Hours Analyzed', value: '500+' },
+          clientsServed: { label: 'Clients Served', value: '50+' }
+        },
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      
       setProfile(profileData);
 
     } catch (err) {
       console.error('Error fetching profile:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load profile');
+      // Even on error, provide a default profile so the app doesn't get stuck
+      const defaultProfile = {
+        id: 'default',
+        name: 'Portfolio Owner',
+        username: 'portfolio_owner',
+        title: 'Developer',
+        bio: 'Welcome to my portfolio. Please update your profile information.',
+        email: null,
+        avatar_url: null,
+        github_url: null,
+        linkedin_url: null,
+        website_url: null,
+        location: null,
+        skills: ['JavaScript', 'React', 'Node.js'],
+        stats: {
+          projectsLed: { label: 'Projects Led', value: '15+' },
+          hoursAnalyzed: { label: 'Hours Analyzed', value: '500+' },
+          clientsServed: { label: 'Clients Served', value: '50+' }
+        },
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      setProfile(defaultProfile);
+      setError('Using default profile data. Please check your database connection.');
     } finally {
       setLoading(false);
     }
