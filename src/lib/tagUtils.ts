@@ -308,3 +308,90 @@ export const getAllCategories = async (): Promise<Category[]> => {
     return [];
   }
 };
+
+// Get blog posts by tag
+export const getBlogPostsByTag = async (tagSlug: string): Promise<any[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('blog_post_tags')
+      .select(`
+        blog_posts (
+          id,
+          title,
+          slug,
+          excerpt,
+          image_url,
+          created_at,
+          published,
+          reading_time,
+          views,
+          likes
+        )
+      `)
+      .eq('tags.slug', tagSlug);
+
+    if (error) {
+      console.error('Error getting blog posts by tag:', error);
+      return [];
+    }
+
+    return data?.map((item: any) => item.blog_posts).filter(Boolean) || [];
+  } catch (error) {
+    console.error('Error in getBlogPostsByTag:', error);
+    return [];
+  }
+};
+
+// Get projects by tag
+export const getProjectsByTag = async (tagSlug: string): Promise<any[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('project_tags')
+      .select(`
+        projects (
+          id,
+          title,
+          description,
+          image_url,
+          demo_url,
+          github_url,
+          created_at,
+          featured,
+          views,
+          likes
+        )
+      `)
+      .eq('tags.slug', tagSlug);
+
+    if (error) {
+      console.error('Error getting projects by tag:', error);
+      return [];
+    }
+
+    return data?.map((item: any) => item.projects).filter(Boolean) || [];
+  } catch (error) {
+    console.error('Error in getProjectsByTag:', error);
+    return [];
+  }
+};
+
+// Get tag by slug
+export const getTagBySlug = async (slug: string): Promise<Tag | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('tags')
+      .select('*')
+      .eq('slug', slug)
+      .single();
+
+    if (error) {
+      console.error('Error getting tag by slug:', error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error in getTagBySlug:', error);
+    return null;
+  }
+};
