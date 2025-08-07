@@ -185,7 +185,7 @@ const ProjectEditorEnhanced: React.FC = () => {
           if (!categories.some(c => c.id === newCategory.id)) {
             setCategories(prev => [...prev, newCategory]);
           }
-          setFormData(prev => ({ ...prev, category_id: newCategory.id, category_name: '' }));
+          setFormData(prev => ({ ...prev, category_id: newCategory.id, category_name: 'Uncategorized' }));
         }
       }
 
