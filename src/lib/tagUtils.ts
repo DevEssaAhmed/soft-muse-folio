@@ -105,20 +105,47 @@ export const createOrGetCategory = async (categoryName: string): Promise<Categor
   }
 };
 
-// Associate tags with blog post (using built-in tags array)
-export const associateBlogPostTags = async (blogPostId: string, tags: Tag[]): Promise<boolean> => {
+// Associate tags with blog post using junction table
+export const associateBlogPostTags = async (blogPostId: string, tagNames: string[]): Promise<boolean> => {
   try {
-    // Update the blog post with tags array
-    const tagNames = tags.map(tag => tag.name);
-    
-    const { error } = await supabase
-      .from('blog_posts')
-      .update({ tags: tagNames })
-      .eq('id', blogPostId);
+    // First, remove existing tag associations
+    const { error: deleteError } = await supabase
+      .from('blog_post_tags')
+      .delete()
+      .eq('blog_post_id', blogPostId);
 
-    if (error) {
-      console.error('Error updating blog post tags:', error);
+    if (deleteError) {
+      console.error('Error removing existing blog post tags:', deleteError);
       return false;
+    }
+
+    // If no tags to associate, return success
+    if (!tagNames || tagNames.length === 0) {
+      return true;
+    }
+
+    // Create or get tags and prepare junction data
+    const tagAssociations = [];
+    for (const tagName of tagNames) {
+      const tag = await createOrGetTag(tagName);
+      if (tag) {
+        tagAssociations.push({
+          blog_post_id: blogPostId,
+          tag_id: tag.id
+        });
+      }
+    }
+
+    // Insert new tag associations
+    if (tagAssociations.length > 0) {
+      const { error: insertError } = await supabase
+        .from('blog_post_tags')
+        .insert(tagAssociations);
+
+      if (insertError) {
+        console.error('Error inserting blog post tags:', insertError);
+        return false;
+      }
     }
 
     return true;
@@ -128,20 +155,47 @@ export const associateBlogPostTags = async (blogPostId: string, tags: Tag[]): Pr
   }
 };
 
-// Associate tags with project (using built-in tags array)
-export const associateProjectTags = async (projectId: string, tags: Tag[]): Promise<boolean> => {
+// Associate tags with project using junction table
+export const associateProjectTags = async (projectId: string, tagNames: string[]): Promise<boolean> => {
   try {
-    // Update the project with tags array
-    const tagNames = tags.map(tag => tag.name);
-    
-    const { error } = await supabase
-      .from('projects')
-      .update({ tags: tagNames })
-      .eq('id', projectId);
+    // First, remove existing tag associations
+    const { error: deleteError } = await supabase
+      .from('project_tags')
+      .delete()
+      .eq('project_id', projectId);
 
-    if (error) {
-      console.error('Error updating project tags:', error);
+    if (deleteError) {
+      console.error('Error removing existing project tags:', deleteError);
       return false;
+    }
+
+    // If no tags to associate, return success
+    if (!tagNames || tagNames.length === 0) {
+      return true;
+    }
+
+    // Create or get tags and prepare junction data
+    const tagAssociations = [];
+    for (const tagName of tagNames) {
+      const tag = await createOrGetTag(tagName);
+      if (tag) {
+        tagAssociations.push({
+          project_id: projectId,
+          tag_id: tag.id
+        });
+      }
+    }
+
+    // Insert new tag associations
+    if (tagAssociations.length > 0) {
+      const { error: insertError } = await supabase
+        .from('project_tags')
+        .insert(tagAssociations);
+
+      if (insertError) {
+        console.error('Error inserting project tags:', insertError);
+        return false;
+      }
     }
 
     return true;
