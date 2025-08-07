@@ -30,11 +30,12 @@ const HeroSection = () => {
     );
   }
 
+  // Profile should always exist now due to fallback in ProfileContext
   if (!profile) {
     return (
       <section className="min-h-screen bg-gradient-hero flex items-center justify-center px-6 py-20">
         <div className="text-center">
-          <p className="text-lg text-muted-foreground">No profile data available</p>
+          <p className="text-lg text-muted-foreground">Loading profile...</p>
         </div>
       </section>
     );
