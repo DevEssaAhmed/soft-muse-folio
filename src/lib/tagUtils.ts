@@ -6,6 +6,8 @@ export interface Tag {
   slug: string;
   description?: string;
   color?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Category {
@@ -26,50 +28,39 @@ export const generateSlug = (text: string): string => {
     .replace(/^-+|-+$/g, '');
 };
 
-// Create or get existing tag (using categories as tag source)
+// Create or get existing tag from tags table
 export const createOrGetTag = async (tagName: string): Promise<Tag | null> => {
   try {
     const slug = generateSlug(tagName);
     
-    // First try to get existing category as tag
-    const { data: existingCategory, error: fetchError } = await supabase
-      .from('categories')
+    // First try to get existing tag
+    const { data: existingTag, error: fetchError } = await supabase
+      .from('tags')
       .select('*')
       .eq('slug', slug)
       .single();
 
-    if (existingCategory && !fetchError) {
-      return {
-        id: existingCategory.id,
-        name: existingCategory.name,
-        slug: existingCategory.slug,
-        description: existingCategory.description,
-        color: existingCategory.color
-      };
+    if (existingTag && !fetchError) {
+      return existingTag;
     }
 
-    // If category doesn't exist, create it
-    const { data: newCategory, error: createError } = await supabase
-      .from('categories')
+    // If tag doesn't exist, create it
+    const { data: newTag, error: createError } = await supabase
+      .from('tags')
       .insert([{
         name: tagName.trim(),
-        slug: slug
+        slug: slug,
+        color: '#3B82F6'
       }])
       .select()
       .single();
 
     if (createError) {
-      console.error('Error creating category as tag:', createError);
+      console.error('Error creating tag:', createError);
       return null;
     }
 
-    return {
-      id: newCategory.id,
-      name: newCategory.name,
-      slug: newCategory.slug,
-      description: newCategory.description,
-      color: newCategory.color
-    };
+    return newTag;
   } catch (error) {
     console.error('Error in createOrGetTag:', error);
     return null;
