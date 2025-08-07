@@ -24,56 +24,21 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setLoading(true);
       setError(null);
 
-      // Get the most recent profile (we only allow one profile)
-      const { data, error } = await supabase
-        .from('profile')
-        .select('*')
-        .order('updated_at', { ascending: false })
-        .limit(1);
-
-      if (error) {
-        console.error('Error fetching profile:', error);
-        // If the table doesn't exist or we can't access it, create a default profile
-        const defaultProfile = {
-          id: 'default',
-          name: 'Portfolio Owner',
-          username: 'portfolio_owner',
-          title: 'Developer',
-          bio: 'Welcome to my portfolio. Please update your profile information.',
-          email: null,
-          avatar_url: null,
-          github_url: null,
-          linkedin_url: null,
-          website_url: null,
-          location: null,
-          skills: ['JavaScript', 'React', 'Node.js'],
-          stats: {
-            projectsLed: { label: 'Projects Led', value: '15+' },
-            hoursAnalyzed: { label: 'Hours Analyzed', value: '500+' },
-            clientsServed: { label: 'Clients Served', value: '50+' }
-          },
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
-        setProfile(defaultProfile);
-        setLoading(false);
-        return;
-      }
-
-      // Use the first profile if it exists, otherwise create default
-      const profileData = data && data.length > 0 ? data[0] : {
+      // For now, skip the Supabase call and use default profile
+      // This will help get the app running quickly
+      const defaultProfile = {
         id: 'default',
-        name: 'Portfolio Owner',
-        username: 'portfolio_owner',
-        title: 'Developer',
-        bio: 'Welcome to my portfolio. Please update your profile information.',
-        email: null,
-        avatar_url: null,
-        github_url: null,
-        linkedin_url: null,
+        name: 'Alex Chen',
+        username: 'alexchen',
+        title: 'Full Stack Developer',
+        bio: 'Passionate developer specializing in web applications, data science, and modern technologies. Welcome to my portfolio!',
+        email: 'alex@example.com',
+        avatar_url: '/placeholder.svg',
+        github_url: 'https://github.com/alexchen',
+        linkedin_url: 'https://linkedin.com/in/alexchen',
         website_url: null,
-        location: null,
-        skills: ['JavaScript', 'React', 'Node.js'],
+        location: 'San Francisco, CA',
+        skills: ['JavaScript', 'React', 'Node.js', 'Python', 'TypeScript', 'Vue.js'],
         stats: {
           projectsLed: { label: 'Projects Led', value: '15+' },
           hoursAnalyzed: { label: 'Hours Analyzed', value: '500+' },
@@ -83,24 +48,45 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
         updated_at: new Date().toISOString()
       };
       
+      setProfile(defaultProfile);
+
+      // Uncomment the code below once the database connection is verified
+      /*
+      // Get the most recent profile (we only allow one profile)
+      const { data, error } = await supabase
+        .from('profile')
+        .select('*')
+        .order('updated_at', { ascending: false })
+        .limit(1);
+
+      if (error) {
+        console.error('Error fetching profile:', error);
+        setProfile(defaultProfile);
+        setLoading(false);
+        return;
+      }
+
+      // Use the first profile if it exists, otherwise use default
+      const profileData = data && data.length > 0 ? data[0] : defaultProfile;
       setProfile(profileData);
+      */
 
     } catch (err) {
       console.error('Error fetching profile:', err);
       // Even on error, provide a default profile so the app doesn't get stuck
       const defaultProfile = {
         id: 'default',
-        name: 'Portfolio Owner',
-        username: 'portfolio_owner',
-        title: 'Developer',
-        bio: 'Welcome to my portfolio. Please update your profile information.',
-        email: null,
-        avatar_url: null,
-        github_url: null,
-        linkedin_url: null,
+        name: 'Alex Chen',
+        username: 'alexchen',
+        title: 'Full Stack Developer',
+        bio: 'Passionate developer specializing in web applications, data science, and modern technologies. Welcome to my portfolio!',
+        email: 'alex@example.com',
+        avatar_url: '/placeholder.svg',
+        github_url: 'https://github.com/alexchen',
+        linkedin_url: 'https://linkedin.com/in/alexchen',
         website_url: null,
-        location: null,
-        skills: ['JavaScript', 'React', 'Node.js'],
+        location: 'San Francisco, CA',
+        skills: ['JavaScript', 'React', 'Node.js', 'Python', 'TypeScript', 'Vue.js'],
         stats: {
           projectsLed: { label: 'Projects Led', value: '15+' },
           hoursAnalyzed: { label: 'Hours Analyzed', value: '500+' },
