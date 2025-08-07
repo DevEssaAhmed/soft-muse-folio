@@ -214,9 +214,10 @@ const ProjectEditorEnhanced: React.FC = () => {
       demo_video_type: formData.demo_video_type,
       additional_images: additionalImagesArray,
       github_url: formData.github_url,
-      tags: selectedTags,
       featured: formData.featured,
     };
+
+    let projectId = id;
 
     try {
       if (id) {
@@ -225,6 +226,9 @@ const ProjectEditorEnhanced: React.FC = () => {
           .from('projects')
           .update(projectData)
           .eq('id', id);
+          
+        // Update tags using relational approach
+        await associateProjectTags(id, selectedTags);
       } else {
         // Create new project
         const { data } = await supabase
@@ -232,6 +236,11 @@ const ProjectEditorEnhanced: React.FC = () => {
           .insert([projectData])
           .select()
           .single();
+          
+        projectId = data.id;
+        
+        // Associate tags using relational approach
+        await associateProjectTags(data.id, selectedTags);
         
         // Navigate to edit mode with the new ID
         navigate(`/admin/project/edit/${data.id}`, { replace: true });
