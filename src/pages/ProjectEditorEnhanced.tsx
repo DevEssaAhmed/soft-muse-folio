@@ -7,664 +7,437 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select';
-import { 
-  ArrowLeft, 
-  Save, 
-  Eye, 
-  Settings, 
-  Image, 
-  ExternalLink,
-  Github,
-  Star,
-  Folder,
-  Tag,
-  Globe,
-  Plus,
-  X
+import {
+  ArrowLeft,
+  Save,
+  Eye,
+  Settings,
+  Image,
+  ExternalLink,
+  Github,
+  Star,
+  Folder,
+  Tag,
+  Globe,
+  Plus,
+  X
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { createOrGetCategory, getAllCategories, associateProjectTags, getProjectTags } from '@/lib/tagUtils';
+import { useDebounce } from '@/hooks/use-debouncer'; // Assuming you created this hook
 
 const ProjectEditorEnhanced: React.FC = () => {
-  const navigate = useNavigate();
-  const { id } = useParams();
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [categories, setCategories] = useState([]);
-  const [tagInput, setTagInput] = useState('');
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    category: '', // Keep for backward compatibility
-    category_id: '',
-    category_name: '', // For new category creation
-    image_url: '',
-    demo_url: '',
-    demo_video_url: '',
-    demo_video_type: 'youtube',
-    additional_images: '',
-    github_url: '',
-    featured: false,
-  });
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [tagInput, setTagInput] = useState('');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
-  useEffect(() => {
-    loadCategories();
-    if (id) {
-      fetchProject();
-    }
-  }, [id]);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    category_id: '', // We only need the ID
+    category_name: '', // For the "create new" input field
+    image_url: '',
+    demo_url: '',
+    demo_video_url: '',
+    demo_video_type: 'youtube',
+    additional_images: '',
+    github_url: '',
+    featured: false,
+  });
 
-  const loadCategories = async () => {
-    const allCategories = await getAllCategories();
-    setCategories(allCategories);
-  };
+  // Debounce state that triggers auto-save for performance
+  const debouncedFormData = useDebounce(formData, 2000);
+  const debouncedTags = useDebounce(selectedTags, 2000);
 
-  const fetchProject = async () => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('projects')
-        .select(`
-          *,
-          categories (
-            id,
-            name
-          )
-        `)
-        .eq('id', id)
-        .single();
+  useEffect(() => {
+    loadCategories();
+    if (id) {
+      fetchProject();
+    }
+  }, [id]);
+  
+  // Corrected, debounced auto-save functionality
+  useEffect(() => {
+    if (id && debouncedFormData.title) {
+      handleSave(true);
+    }
+  }, [debouncedFormData, debouncedTags, id]);
 
-      if (error) throw error;
+  const loadCategories = async () => {
+    const allCategories = await getAllCategories();
+    setCategories(allCategories);
+  };
 
-      setFormData({
-        title: data.title || '',
-        description: data.description || '',
-        category: data.category || '',
-        category_id: data.category_id || '',
-        category_name: '',
-        image_url: data.image_url || '',
-        demo_url: data.demo_url || '',
-        demo_video_url: data.demo_video_url || '',
-        demo_video_type: data.demo_video_type || 'youtube',
-        additional_images: data.additional_images ? data.additional_images.join(', ') : '',
-        github_url: data.github_url || '',
-        featured: data.featured || false,
-      });
+  const fetchProject = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .select(`*, categories (id, name)`)
+        .eq('id', id)
+        .single();
 
-      // Load existing tags using the new relational approach
-      if (id) {
-        const tags = await getProjectTags(id);
-        setSelectedTags(tags.map(tag => tag.name));
-      }
-    } catch (error) {
-      toast({
-        title: 'Error loading project',
-        description: error.message,
-        variant: 'destructive',
-      });
-      navigate('/admin');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      if (error) throw error;
 
-  // Auto-save functionality
-  useEffect(() => {
-    if (!formData.title) return;
-    
-    const autoSaveTimer = setTimeout(() => {
-      handleSave(true);
-    }, 5000); // Auto-save every 5 seconds
+      setFormData({
+        title: data.title || '',
+        description: data.description || '',
+        category_id: data.category_id || '',
+        category_name: '',
+        image_url: data.image_url || '',
+        demo_url: data.demo_url || '',
+        demo_video_url: data.demo_video_url || '',
+        demo_video_type: data.demo_video_type || 'youtube',
+        additional_images: data.additional_images ? data.additional_images.join(', ') : '',
+        github_url: data.github_url || '',
+        featured: data.featured || false,
+      });
 
-    return () => clearTimeout(autoSaveTimer);
-  }, [formData, selectedTags]);
+      if (id) {
+        const tags = await getProjectTags(id);
+        setSelectedTags(tags.map(tag => tag.name));
+      }
+    } catch (error) {
+      toast({
+        title: 'Error loading project',
+        description: error.message,
+        variant: 'destructive',
+      });
+      navigate('/admin');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  const handleAddTag = () => {
-    if (tagInput.trim() && !selectedTags.includes(tagInput.trim())) {
-      setSelectedTags(prev => [...prev, tagInput.trim()]);
-      setTagInput('');
-    }
-  };
+  const handleAddTag = () => {
+    if (tagInput.trim() && !selectedTags.includes(tagInput.trim())) {
+      setSelectedTags(prev => [...prev, tagInput.trim()]);
+      setTagInput('');
+    }
+  };
 
-  const handleRemoveTag = (tagToRemove: string) => {
-    setSelectedTags(prev => prev.filter(tag => tag !== tagToRemove));
-  };
+  const handleRemoveTag = (tagToRemove: string) => {
+    setSelectedTags(prev => prev.filter(tag => tag !== tagToRemove));
+  };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleAddTag();
-    }
-  };
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddTag();
+    }
+  };
 
-  const handleCreateNewCategory = async () => {
-    if (!formData.category_name.trim()) return;
-    
-    try {
-      const newCategory = await createOrGetCategory(formData.category_name);
-      if (newCategory) {
-        setCategories(prev => [...prev, newCategory]);
-        setFormData(prev => ({ 
-          ...prev, 
-          category_id: newCategory.id,
-          category: newCategory.name, // Keep for backward compatibility
-          category_name: ''
-        }));
-        toast({ title: 'Category created successfully!' });
-      }
-    } catch (error) {
-      toast({
-        title: 'Error creating category',
-        description: 'Failed to create new category',
-        variant: 'destructive',
-      });
-    }
-  };
+  const handleCreateNewCategory = async () => {
+    if (!formData.category_name.trim()) return;
 
-  const handleCategoryChange = (categoryId: string) => {
-    const selectedCategory = categories.find(cat => cat.id === categoryId);
-    setFormData(prev => ({ 
-      ...prev, 
-      category_id: categoryId,
-      category: selectedCategory?.name || ''
-    }));
-  };
+    try {
+      const newCategory = await createOrGetCategory(formData.category_name);
+      if (newCategory) {
+        if (!categories.some(c => c.id === newCategory.id)) {
+          setCategories(prev => [...prev, newCategory]);
+        }
+        setFormData(prev => ({
+          ...prev,
+          category_id: newCategory.id, // Set the ID
+          category_name: '' // Clear the input
+        }));
+        toast({ title: 'Category created successfully!' });
+      }
+    } catch (error) {
+      toast({
+        title: 'Error creating category',
+        description: 'Failed to create new category',
+        variant: 'destructive',
+      });
+    }
+  };
 
-  const handleSave = async (isAutoSave = false) => {
-    if (!formData.title.trim()) return;
-    
-    setIsSaving(true);
-    
-    const additionalImagesArray = formData.additional_images.split(',').map(img => img.trim()).filter(img => img);
-    
-    // Handle category creation if needed
-    let categoryId = formData.category_id;
-    let categoryName = formData.category;
-    
-    if (formData.category_name.trim()) {
-      const newCategory = await createOrGetCategory(formData.category_name);
-      if (newCategory) {
-        categoryId = newCategory.id;
-        categoryName = newCategory.name;
-        setCategories(prev => [...prev, newCategory]);
-        setFormData(prev => ({ ...prev, category_name: '' }));
-      }
-    }
-    
-    const projectData = {
-      title: formData.title,
-      description: formData.description,
-      category: categoryName,
-      category_id: categoryId,
-      image_url: formData.image_url,
-      demo_url: formData.demo_url,
-      demo_video_url: formData.demo_video_url,
-      demo_video_type: formData.demo_video_type,
-      additional_images: additionalImagesArray,
-      github_url: formData.github_url,
-      featured: formData.featured,
-    };
+  const handleCategoryChange = (categoryId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      category_id: categoryId, // Only update the ID
+    }));
+  };
 
-    let projectId = id;
+  const handleSave = async (isAutoSave = false) => {
+    if (!formData.title.trim()) return;
+    setIsSaving(true);
+    try {
+      let finalCategoryId = formData.category_id;
+      if (formData.category_name.trim()) {
+        const newCategory = await createOrGetCategory(formData.category_name);
+        if (newCategory) {
+          finalCategoryId = newCategory.id;
+          if (!categories.some(c => c.id === newCategory.id)) {
+            setCategories(prev => [...prev, newCategory]);
+          }
+          setFormData(prev => ({ ...prev, category_id: newCategory.id, category_name: '' }));
+        }
+      }
 
-    try {
-      if (id) {
-        // Update existing project
-        await supabase
-          .from('projects')
-          .update(projectData)
-          .eq('id', id);
-          
-        // Update tags using relational approach
-        await associateProjectTags(id, selectedTags);
-      } else {
-        // Create new project
-        const { data } = await supabase
-          .from('projects')
-          .insert([projectData])
-          .select()
-          .single();
-          
-        projectId = data.id;
-        
-        // Associate tags using relational approach
-        await associateProjectTags(data.id, selectedTags);
-        
-        // Navigate to edit mode with the new ID
-        navigate(`/admin/project/edit/${data.id}`, { replace: true });
-      }
-      
-      if (!isAutoSave) {
-        toast({ title: 'Project saved successfully' });
-      }
-    } catch (error) {
-      toast({
-        title: 'Error saving project',
-        description: error.message,
-        variant: 'destructive',
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  };
+      const projectData = {
+        title: formData.title,
+        description: formData.description,
+        category_id: finalCategoryId || null,
+        image_url: formData.image_url || null,
+        demo_url: formData.demo_url || null,
+        demo_video_url: formData.demo_video_url || null,
+        demo_video_type: formData.demo_video_type,
+        additional_images: formData.additional_images.split(',').map(img => img.trim()).filter(Boolean),
+        github_url: formData.github_url || null,
+        featured: formData.featured,
+      };
 
-  const handleFeatureToggle = async () => {
-    setFormData(prev => ({ ...prev, featured: !prev.featured }));
-    await handleSave();
-    toast({ 
-      title: formData.featured ? 'Project unfeatured' : 'Project featured successfully' 
-    });
-  };
+      let projectId = id;
+      let error;
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-hero flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading project...</p>
-        </div>
-      </div>
-    );
-  }
+      if (id) {
+        const { error: updateError } = await supabase.from('projects').update(projectData).eq('id', id);
+        error = updateError;
+      } else {
+        const { data, error: insertError } = await supabase.from('projects').insert(projectData).select('id').single();
+        error = insertError;
+        if (data) projectId = data.id;
+      }
 
-  return (
-    <div className="min-h-screen bg-gradient-hero">
-      {/* Header */}
-      <div className="bg-card/80 backdrop-blur-md border-b border-border sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate('/admin')}
-                className="hover:bg-primary/10"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Admin
-              </Button>
-              <div className="h-6 w-px bg-border" />
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                <span className="text-sm text-muted-foreground">
-                  {isSaving ? 'Saving...' : 'Saved'}
-                </span>
-              </div>
-            </div>
-            
-            <div className="flex flex-wrap items-center gap-3">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowSettings(!showSettings)}
-                className="hover:shadow-soft transition-all duration-300"
-              >
-                <Settings className="w-4 h-4 mr-2" />
-                Settings
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleSave()}
-                disabled={isSaving}
-                className="hover:shadow-soft transition-all duration-300"
-              >
-                <Save className="w-4 h-4 mr-2" />
-                Save
-              </Button>
-              <Button
-                size="sm"
-                onClick={handleFeatureToggle}
-                className={`transition-all duration-300 ${
-                  formData.featured 
-                    ? 'bg-yellow-500 hover:bg-yellow-600' 
-                    : 'bg-gradient-primary hover:shadow-glow'
-                }`}
-              >
-                <Star className="w-4 h-4 mr-2" />
-                {formData.featured ? 'Unfeature' : 'Feature'}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
+      if (error) throw error;
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Main Editor */}
-          <div className="lg:col-span-3 space-y-6">
-            {/* Title */}
-            <div>
-              <Input
-                value={formData.title}
-                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="Enter your project title..."
-                className="text-2xl md:text-4xl font-bold border-none bg-transparent px-0 placeholder:text-muted-foreground/50 focus-visible:ring-0 focus-visible:ring-offset-0"
-              />
-            </div>
+      if (projectId) {
+        await associateProjectTags(projectId, selectedTags);
+      }
+      
+      if (!isAutoSave) {
+        toast({ title: `Project ${id ? 'updated' : 'created'} successfully` });
+      }
 
-            {/* Featured Image Preview */}
-            {formData.image_url && (
-              <Card className="bg-card/50 backdrop-blur-sm overflow-hidden">
-                <CardContent className="p-0">
-                  <img 
-                    src={formData.image_url}
-                    alt="Project preview"
-                    className="w-full h-64 object-cover"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                </CardContent>
-              </Card>
-            )}
+      if (!id && projectId) {
+        navigate(`/admin/project/edit/${projectId}`, { replace: true });
+      }
 
-            {/* Category & Tags */}
-            <Card className="bg-card/50 backdrop-blur-sm">
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Category & Tags</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                  <div>
-                    <Label htmlFor="category" className="text-sm font-medium">Select Category</Label>
-                    <Select value={formData.category_id} onValueChange={handleCategoryChange}>
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Choose a category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((category: any) => (
-                          <SelectItem key={category.id} value={category.id}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="new_category" className="text-sm font-medium">Or Create New</Label>
-                    <div className="flex gap-2 mt-1">
-                      <Input
-                        id="new_category"
-                        value={formData.category_name}
-                        onChange={(e) => setFormData(prev => ({ ...prev, category_name: e.target.value }))}
-                        placeholder="New category name"
-                      />
-                      <Button
-                        type="button"
-                        size="sm"
-                        onClick={handleCreateNewCategory}
-                        disabled={!formData.category_name.trim()}
-                      >
-                        <Plus className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
+    } catch (error) {
+      if (!isAutoSave) {
+        toast({ title: 'Error saving project', description: error.message, variant: 'destructive' });
+      }
+      console.error("Save error:", error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+  
+  // Corrected logic: only updates state and shows a toast. The debounced save handles the rest.
+  const handleFeatureToggle = () => {
+    const newFeaturedState = !formData.featured;
+    setFormData(prev => ({ ...prev, featured: newFeaturedState }));
+    toast({
+      title: newFeaturedState ? 'Project featured successfully' : 'Project unfeatured'
+    });
+  };
 
-                {/* Tags */}
-                <div>
-                  <Label htmlFor="tags" className="text-sm font-medium">Technologies & Tags</Label>
-                  <div className="flex gap-2 mt-1">
-                    <Input
-                      id="tags"
-                      value={tagInput}
-                      onChange={(e) => setTagInput(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                      placeholder="Add a tag and press Enter"
-                    />
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={handleAddTag}
-                      disabled={!tagInput.trim()}
-                    >
-                      <Plus className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  
-                  {/* Selected Tags */}
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    {selectedTags.map((tag, index) => (
-                      <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                        {tag}
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="h-4 w-4 p-0 hover:bg-destructive/20"
-                          onClick={() => handleRemoveTag(tag)}
-                        >
-                          <X className="w-3 h-3" />
-                        </Button>
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-hero flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading project...</p>
+        </div>
+      </div>
+    );
+  }
 
-            {/* Project Description */}
-            <Card className="bg-card/50 backdrop-blur-sm">
-              <CardContent className="p-6">
-                <Label htmlFor="description" className="text-lg font-semibold mb-4 block">
-                  Project Description
-                </Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Describe your project in detail. What does it do? What technologies did you use? What challenges did you overcome?
-
-You can include:
-• Key features and functionality
-• Technologies and tools used
-• Challenges faced and solutions implemented
-• What you learned from this project
-• Future improvements planned"
-                  className="min-h-[400px] border-none bg-transparent resize-none focus-visible:ring-0 focus-visible:ring-offset-0 text-lg leading-relaxed"
-                />
-              </CardContent>
-            </Card>
-
-            {/* Links Section */}
-            <Card className="bg-card/50 backdrop-blur-sm">
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Project Links & Media</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="demo_url" className="text-sm font-medium">Live Demo URL</Label>
-                    <Input
-                      id="demo_url"
-                      type="url"
-                      value={formData.demo_url}
-                      onChange={(e) => setFormData(prev => ({ ...prev, demo_url: e.target.value }))}
-                      placeholder="https://myproject.com"
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="github_url" className="text-sm font-medium">GitHub Repository</Label>
-                    <Input
-                      id="github_url"
-                      type="url"
-                      value={formData.github_url}
-                      onChange={(e) => setFormData(prev => ({ ...prev, github_url: e.target.value }))}
-                      placeholder="https://github.com/username/repo"
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="demo_video_url" className="text-sm font-medium">Demo Video URL</Label>
-                    <Input
-                      id="demo_video_url"
-                      type="url"
-                      value={formData.demo_video_url}
-                      onChange={(e) => setFormData(prev => ({ ...prev, demo_video_url: e.target.value }))}
-                      placeholder="YouTube, Vimeo, or direct video URL"
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="demo_video_type" className="text-sm font-medium">Video Type</Label>
-                    <Select value={formData.demo_video_type} onValueChange={(value) => setFormData(prev => ({ ...prev, demo_video_type: value }))}>
-                      <SelectTrigger className="mt-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="youtube">YouTube</SelectItem>
-                        <SelectItem value="vimeo">Vimeo</SelectItem>
-                        <SelectItem value="upload">Direct Upload</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Project Status */}
-            <Card className="bg-card/50 backdrop-blur-sm">
-              <CardContent className="p-6">
-                <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-                  <Folder className="w-4 h-4" />
-                  Project Status
-                </h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Featured</span>
-                    <Badge variant={formData.featured ? "default" : "secondary"}>
-                      {formData.featured ? "Featured" : "Standard"}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Category</span>
-                    <span className="text-sm font-medium">{formData.category || 'Uncategorized'}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Media & SEO */}
-            {showSettings && (
-              <Card className="bg-card/50 backdrop-blur-sm">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-                    <Settings className="w-4 h-4" />
-                    Media & Settings
-                  </h3>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="image_url" className="text-sm font-medium">Project Image</Label>
-                      <Input
-                        id="image_url"
-                        type="url"
-                        value={formData.image_url}
-                        onChange={(e) => setFormData(prev => ({ ...prev, image_url: e.target.value }))}
-                        className="mt-1"
-                        placeholder="https://example.com/image.jpg"
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="additional_images" className="text-sm font-medium">Additional Images</Label>
-                      <Textarea
-                        id="additional_images"
-                        value={formData.additional_images}
-                        onChange={(e) => setFormData(prev => ({ ...prev, additional_images: e.target.value }))}
-                        rows={3}
-                        className="mt-1"
-                        placeholder="https://example.com/img1.jpg, https://example.com/img2.jpg"
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">Separate URLs with commas</p>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="featured" className="text-sm font-medium">Featured Project</Label>
-                      <Switch
-                        id="featured"
-                        checked={formData.featured}
-                        onCheckedChange={(checked) => setFormData(prev => ({ ...prev, featured: checked }))}
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Quick Actions */}
-            <Card className="bg-card/50 backdrop-blur-sm">
-              <CardContent className="p-6">
-                <h3 className="font-semibold text-foreground mb-4">Quick Actions</h3>
-                <div className="space-y-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full justify-start"
-                    onClick={() => window.open(formData.demo_url, '_blank')}
-                    disabled={!formData.demo_url}
-                  >
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    View Live Demo
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full justify-start"
-                    onClick={() => window.open(formData.github_url, '_blank')}
-                    disabled={!formData.github_url}
-                  >
-                    <Github className="w-4 h-4 mr-2" />
-                    View on GitHub
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full justify-start"
-                    onClick={() => navigator.clipboard.writeText(formData.title)}
-                  >
-                    <Tag className="w-4 h-4 mr-2" />
-                    Copy Title
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Technology Tags */}
-            {selectedTags.length > 0 && (
-              <Card className="bg-card/50 backdrop-blur-sm">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-                    <Tag className="w-4 h-4" />
-                    Technologies
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedTags.map((tag, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  return (
+    <div className="min-h-screen bg-gradient-hero">
+      {/* Header */}
+      <div className="bg-card/80 backdrop-blur-md border-b border-border sticky top-0 z-40">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="sm" onClick={() => navigate('/admin')} className="hover:bg-primary/10">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Admin
+              </Button>
+              <div className="h-6 w-px bg-border" />
+              <div className="flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${isSaving ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`} />
+                <span className="text-sm text-muted-foreground">
+                  {isSaving ? 'Saving...' : 'Saved'}
+                </span>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <Button variant="outline" size="sm" onClick={() => setShowSettings(!showSettings)} className="hover:shadow-soft transition-all duration-300">
+                <Settings className="w-4 h-4 mr-2" />
+                Settings
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => handleSave()} disabled={isSaving} className="hover:shadow-soft transition-all duration-300">
+                <Save className="w-4 h-4 mr-2" />
+                Save
+              </Button>
+              <Button size="sm" onClick={handleFeatureToggle} className={`transition-all duration-300 ${formData.featured ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-gradient-primary hover:shadow-glow'}`}>
+                <Star className="w-4 h-4 mr-2" />
+                {formData.featured ? 'Unfeature' : 'Feature'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          <div className="lg:col-span-3 space-y-6">
+            <div>
+              <Input value={formData.title} onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))} placeholder="Enter your project title..." className="text-2xl md:text-4xl font-bold border-none bg-transparent px-0 placeholder:text-muted-foreground/50 focus-visible:ring-0 focus-visible:ring-offset-0" />
+            </div>
+            {formData.image_url && (
+              <Card className="bg-card/50 backdrop-blur-sm overflow-hidden">
+                <CardContent className="p-0">
+                  <img src={formData.image_url} alt="Project preview" className="w-full h-64 object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                </CardContent>
+              </Card>
+            )}
+            <Card className="bg-card/50 backdrop-blur-sm">
+              <CardContent className="p-6">
+                <h3 className="text-lg font-semibold mb-4">Category & Tags</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div>
+                    <Label htmlFor="category" className="text-sm font-medium">Select Category</Label>
+                    <Select value={formData.category_id} onValueChange={handleCategoryChange}>
+                      <SelectTrigger className="mt-1"><SelectValue placeholder="Choose a category" /></SelectTrigger>
+                      <SelectContent>
+                        {categories.map((category: any) => (<SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="new_category" className="text-sm font-medium">Or Create New</Label>
+                    <div className="flex gap-2 mt-1">
+                      <Input id="new_category" value={formData.category_name} onChange={(e) => setFormData(prev => ({ ...prev, category_name: e.target.value }))} placeholder="New category name" />
+                      <Button type="button" size="sm" onClick={handleCreateNewCategory} disabled={!formData.category_name.trim()}><Plus className="w-4 h-4" /></Button>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="tags" className="text-sm font-medium">Technologies & Tags</Label>
+                  <div className="flex gap-2 mt-1">
+                    <Input id="tags" value={tagInput} onChange={(e) => setTagInput(e.target.value)} onKeyPress={handleKeyPress} placeholder="Add a tag and press Enter" />
+                    <Button type="button" size="sm" onClick={handleAddTag} disabled={!tagInput.trim()}><Plus className="w-4 h-4" /></Button>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {selectedTags.map((tag, index) => (
+                      <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                        {tag}
+                        <Button type="button" variant="ghost" size="sm" className="h-4 w-4 p-0 hover:bg-destructive/20" onClick={() => handleRemoveTag(tag)}><X className="w-3 h-3" /></Button>
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="bg-card/50 backdrop-blur-sm">
+              <CardContent className="p-6">
+                <Label htmlFor="description" className="text-lg font-semibold mb-4 block">Project Description</Label>
+                <Textarea id="description" value={formData.description} onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))} placeholder="Describe your project in detail..." className="min-h-[400px] border-none bg-transparent resize-none focus-visible:ring-0 focus-visible:ring-offset-0 text-lg leading-relaxed" />
+              </CardContent>
+            </Card>
+            <Card className="bg-card/50 backdrop-blur-sm">
+              <CardContent className="p-6">
+                <h3 className="text-lg font-semibold mb-4">Project Links & Media</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="demo_url" className="text-sm font-medium">Live Demo URL</Label>
+                    <Input id="demo_url" type="url" value={formData.demo_url} onChange={(e) => setFormData(prev => ({ ...prev, demo_url: e.target.value }))} placeholder="https://myproject.com" className="mt-1" />
+                  </div>
+                  <div>
+                    <Label htmlFor="github_url" className="text-sm font-medium">GitHub Repository</Label>
+                    <Input id="github_url" type="url" value={formData.github_url} onChange={(e) => setFormData(prev => ({ ...prev, github_url: e.target.value }))} placeholder="https://github.com/username/repo" className="mt-1" />
+                  </div>
+                  <div>
+                    <Label htmlFor="demo_video_url" className="text-sm font-medium">Demo Video URL</Label>
+                    <Input id="demo_video_url" type="url" value={formData.demo_video_url} onChange={(e) => setFormData(prev => ({ ...prev, demo_video_url: e.target.value }))} placeholder="YouTube, Vimeo, or direct video URL" className="mt-1" />
+                  </div>
+                  <div>
+                    <Label htmlFor="demo_video_type" className="text-sm font-medium">Video Type</Label>
+                    <Select value={formData.demo_video_type} onValueChange={(value) => setFormData(prev => ({ ...prev, demo_video_type: value }))}><SelectTrigger className="mt-1"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="youtube">YouTube</SelectItem><SelectItem value="vimeo">Vimeo</SelectItem><SelectItem value="upload">Direct Upload</SelectItem></SelectContent></Select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          <div className="space-y-6">
+            <Card className="bg-card/50 backdrop-blur-sm">
+              <CardContent className="p-6">
+                <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2"><Folder className="w-4 h-4" /> Project Status</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Featured</span>
+                    <Badge variant={formData.featured ? "default" : "secondary"}>{formData.featured ? "Featured" : "Standard"}</Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Category</span>
+                    <span className="text-sm font-medium">{(categories.find(c => c.id === formData.category_id) as any)?.name || 'Uncategorized'}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            {showSettings && (
+              <Card className="bg-card/50 backdrop-blur-sm">
+                <CardContent className="p-6">
+                  <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2"><Settings className="w-4 h-4" /> Media & Settings</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="image_url" className="text-sm font-medium">Project Image</Label>
+                      <Input id="image_url" type="url" value={formData.image_url} onChange={(e) => setFormData(prev => ({ ...prev, image_url: e.target.value }))} className="mt-1" placeholder="https://example.com/image.jpg" />
+                    </div>
+                    <div>
+                      <Label htmlFor="additional_images" className="text-sm font-medium">Additional Images</Label>
+                      <Textarea id="additional_images" value={formData.additional_images} onChange={(e) => setFormData(prev => ({ ...prev, additional_images: e.target.value }))} rows={3} className="mt-1" placeholder="https://example.com/img1.jpg, https://example.com/img2.jpg" />
+                      <p className="text-xs text-muted-foreground mt-1">Separate URLs with commas</p>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="featured" className="text-sm font-medium">Featured Project</Label>
+                      <Switch id="featured" checked={formData.featured} onCheckedChange={(checked) => setFormData(prev => ({ ...prev, featured: checked }))} />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            <Card className="bg-card/50 backdrop-blur-sm">
+              <CardContent className="p-6">
+                <h3 className="font-semibold text-foreground mb-4">Quick Actions</h3>
+                <div className="space-y-2">
+                  <Button variant="outline" size="sm" className="w-full justify-start" onClick={() => window.open(formData.demo_url, '_blank')} disabled={!formData.demo_url}><ExternalLink className="w-4 h-4 mr-2" /> View Live Demo</Button>
+                  <Button variant="outline" size="sm" className="w-full justify-start" onClick={() => window.open(formData.github_url, '_blank')} disabled={!formData.github_url}><Github className="w-4 h-4 mr-2" /> View on GitHub</Button>
+                  <Button variant="outline" size="sm" className="w-full justify-start" onClick={() => navigator.clipboard.writeText(formData.title)}><Tag className="w-4 h-4 mr-2" /> Copy Title</Button>
+                </div>
+              </CardContent>
+            </Card>
+            {selectedTags.length > 0 && (
+              <Card className="bg-card/50 backdrop-blur-sm">
+                <CardContent className="p-6">
+                  <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2"><Tag className="w-4 h-4" /> Technologies</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedTags.map((tag, index) => (<Badge key={index} variant="secondary" className="text-xs">{tag}</Badge>))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default ProjectEditorEnhanced;
