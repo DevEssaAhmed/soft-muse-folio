@@ -317,10 +317,11 @@ const BlogEditorEnhanced: React.FC = () => {
         category_id: categoryId || null,
         series_id: formData.series_id || null,      // Include series data
         series_order: formData.series_order,        // Include series order
-        tags: selectedTags,
         published: formData.published,
         reading_time: formData.reading_time,
       };
+
+      let blogPostId = id;
 
       if (id) {
         // Update existing blog post
@@ -330,6 +331,9 @@ const BlogEditorEnhanced: React.FC = () => {
           .eq('id', id);
         
         if (error) throw error;
+        
+        // Update tags using relational approach
+        await associateBlogPostTags(id, selectedTags);
         
         if (!isAutoSave) {
           toast({ title: 'Blog post updated successfully!' });
@@ -343,6 +347,11 @@ const BlogEditorEnhanced: React.FC = () => {
           .single();
         
         if (error) throw error;
+        
+        blogPostId = data.id;
+        
+        // Associate tags using relational approach
+        await associateBlogPostTags(data.id, selectedTags);
         
         if (!isAutoSave) {
           toast({ title: 'Blog post created successfully!' });
