@@ -456,14 +456,14 @@ const BlogEditorEnhanced: React.FC = () => {
           <div className="lg:col-span-2">
             <Card>
               <CardContent className="p-6">
-                <div className="space-y-6">
+                     <div className="lg:col-span-3 space-y-6">
                   {/* Title */}
                   <div>
                     <Input
                       placeholder="Enter your blog post title..."
                       value={formData.title}
                       onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                      className="text-2xl font-bold border-none p-0 focus:ring-0 placeholder:text-gray-400"
+                       className="text-2xl md:text-4xl font-bold border-none bg-transparent px-0 placeholder:text-muted-foreground/50 focus-visible:ring-0 focus-visible:ring-offset-0"
                     />
                   </div>
 
