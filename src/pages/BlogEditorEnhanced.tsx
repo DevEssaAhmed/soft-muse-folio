@@ -147,9 +147,9 @@ const BlogEditorEnhanced: React.FC = () => {
         video_url: data.video_url || '',
         video_type: data.video_type || 'youtube',
         additional_images: data.additional_images ? data.additional_images.join(', ') : '',
-        category_id: data.category_id ? String(data.category_id) : '',
+        category_id: data.category_id || '',
         category_name: '',
-        series_id: data.series_id ? String(data.series_id) : '',        // Convert to string and ensure it exists
+        series_id: data.series_id || '',        // Load series data
         series_order: data.series_order || 1,   // Load series order
         published: data.published || false,
         reading_time: data.reading_time || 5,
@@ -221,7 +221,7 @@ const BlogEditorEnhanced: React.FC = () => {
         setCategories(prev => [...prev, newCategory]);
         setFormData(prev => ({ 
           ...prev, 
-          category_id: String(newCategory.id),
+          category_id: newCategory.id,
           category_name: ''
         }));
         toast({ title: 'Category created successfully!' });
@@ -270,7 +270,7 @@ const BlogEditorEnhanced: React.FC = () => {
       } else {
         // Successfully created in database
         setSeries(prev => [...prev, data]);
-        setFormData(prev => ({ ...prev, series_id: String(data.id) }));
+        setFormData(prev => ({ ...prev, series_id: data.id }));
         toast({ title: "Series created successfully" });
       }
       
@@ -298,7 +298,7 @@ const BlogEditorEnhanced: React.FC = () => {
     if (formData.category_name.trim()) {
       const newCategory = await createOrGetCategory(formData.category_name);
       if (newCategory) {
-        categoryId = String(newCategory.id);
+        categoryId = newCategory.id;
         setCategories(prev => [...prev, newCategory]);
         setFormData(prev => ({ ...prev, category_name: '' }));
       }
@@ -577,16 +577,19 @@ const BlogEditorEnhanced: React.FC = () => {
                   <div>
                     <Label className="text-sm font-medium">Category</Label>
                     <Select 
-                      value={formData.category_id || ""} 
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, category_id: value }))}
+                      value={formData.category_id || "none"} 
+                      onValueChange={(value) => setFormData(prev => ({ 
+                        ...prev, 
+                        category_id: value === "none" ? "" : value 
+                      }))}
                     >
                       <SelectTrigger className="mt-1">
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No Category</SelectItem>
+                        <SelectItem value="none">No Category</SelectItem>
                         {categories.map((category: any) => (
-                          <SelectItem key={category.id} value={String(category.id)}>
+                          <SelectItem key={category.id} value={category.id}>
                             {category.name}
                           </SelectItem>
                         ))}
@@ -620,16 +623,19 @@ const BlogEditorEnhanced: React.FC = () => {
                     <Label className="text-sm font-medium">Series (Optional)</Label>
                     <div className="flex gap-2 mt-1">
                       <Select 
-                        value={formData.series_id || ""} 
-                        onValueChange={(value) => setFormData(prev => ({ ...prev, series_id: value }))}
+                        value={formData.series_id || "none"} 
+                        onValueChange={(value) => setFormData(prev => ({ 
+                          ...prev, 
+                          series_id: value === "none" ? "" : value 
+                        }))}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select a series" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">No Series</SelectItem>
+                          <SelectItem value="none">No Series</SelectItem>
                           {series.map((s) => (
-                            <SelectItem key={s.id} value={String(s.id)}>
+                            <SelectItem key={s.id} value={s.id}>
                               {s.title}
                             </SelectItem>
                           ))}
@@ -676,7 +682,7 @@ const BlogEditorEnhanced: React.FC = () => {
                         </DialogContent>
                       </Dialog>
                     </div>
-                    {formData.series_id && (
+                    {formData.series_id && formData.series_id !== "none" && (
                       <div className="mt-2">
                         <Label className="text-sm">Order in Series</Label>
                         <Input
