@@ -269,69 +269,20 @@ export const getProjectTags = async (projectId: string): Promise<Tag[]> => {
   }
 };
 
-// Get all tags (from categories and existing posts/projects)
+// Get all tags from tags table
 export const getAllTags = async (): Promise<Tag[]> => {
   try {
-    // Get categories as tags
-    const { data: categories, error: categoriesError } = await supabase
-      .from('categories')
-      .select('id, name, slug, description, color')
+    const { data, error } = await supabase
+      .from('tags')
+      .select('*')
       .order('name');
 
-    const tags: Tag[] = [];
-
-    if (categories && !categoriesError) {
-      tags.push(...categories.map(cat => ({
-        id: cat.id,
-        name: cat.name,
-        slug: cat.slug,
-        description: cat.description,
-        color: cat.color
-      })));
+    if (error) {
+      console.error('Error getting all tags:', error);
+      return [];
     }
 
-    // Get unique tags from blog posts
-    const { data: blogPosts } = await supabase
-      .from('blog_posts')
-      .select('tags')
-      .not('tags', 'is', null);
-
-    // Get unique tags from projects
-    const { data: projects } = await supabase
-      .from('projects')
-      .select('tags')
-      .not('tags', 'is', null);
-
-    const allTagNames = new Set<string>();
-    
-    if (blogPosts) {
-      blogPosts.forEach(post => {
-        if (post.tags) {
-          post.tags.forEach((tag: string) => allTagNames.add(tag));
-        }
-      });
-    }
-
-    if (projects) {
-      projects.forEach(project => {
-        if (project.tags) {
-          project.tags.forEach((tag: string) => allTagNames.add(tag));
-        }
-      });
-    }
-
-    // Add tags that aren't already in categories
-    allTagNames.forEach(tagName => {
-      if (!tags.find(t => t.name.toLowerCase() === tagName.toLowerCase())) {
-        tags.push({
-          id: generateSlug(tagName),
-          name: tagName,
-          slug: generateSlug(tagName)
-        });
-      }
-    });
-
-    return tags;
+    return data || [];
   } catch (error) {
     console.error('Error in getAllTags:', error);
     return [];
