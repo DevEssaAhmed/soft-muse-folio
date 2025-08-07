@@ -103,8 +103,11 @@ const ProjectEditorEnhanced: React.FC = () => {
         featured: data.featured || false,
       });
 
-      // Load existing tags
-      setSelectedTags(data.tags || []);
+      // Load existing tags using the new relational approach
+      if (id) {
+        const tags = await getProjectTags(id);
+        setSelectedTags(tags.map(tag => tag.name));
+      }
     } catch (error) {
       toast({
         title: 'Error loading project',
