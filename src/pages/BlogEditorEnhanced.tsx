@@ -155,8 +155,11 @@ const BlogEditorEnhanced: React.FC = () => {
         reading_time: data.reading_time || 5,
       });
 
-      // Load existing tags
-      setSelectedTags(data.tags || []);
+      // Load existing tags using the new relational approach
+      if (id) {
+        const tags = await getBlogPostTags(id);
+        setSelectedTags(tags.map(tag => tag.name));
+      }
     } catch (error) {
       toast({
         title: 'Error loading blog post',
