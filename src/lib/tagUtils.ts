@@ -205,56 +205,64 @@ export const associateProjectTags = async (projectId: string, tagNames: string[]
   }
 };
 
-// Get tags for blog post (from built-in tags array)
+// Get tags for blog post from junction table
 export const getBlogPostTags = async (blogPostId: string): Promise<Tag[]> => {
   try {
     const { data, error } = await supabase
-      .from('blog_posts')
-      .select('tags')
-      .eq('id', blogPostId)
-      .single();
+      .from('blog_post_tags')
+      .select(`
+        tags (
+          id,
+          name,
+          slug,
+          description,
+          color,
+          created_at,
+          updated_at
+        )
+      `)
+      .eq('blog_post_id', blogPostId);
 
     if (error) {
       console.error('Error getting blog post tags:', error);
       return [];
     }
 
-    if (!data?.tags) return [];
+    if (!data) return [];
 
-    // Convert tag names to Tag objects
-    return data.tags.map((tagName: string) => ({
-      id: generateSlug(tagName),
-      name: tagName,
-      slug: generateSlug(tagName)
-    }));
+    return data.map((item: any) => item.tags).filter(Boolean);
   } catch (error) {
     console.error('Error in getBlogPostTags:', error);
     return [];
   }
 };
 
-// Get tags for project (from built-in tags array)
+// Get tags for project from junction table
 export const getProjectTags = async (projectId: string): Promise<Tag[]> => {
   try {
     const { data, error } = await supabase
-      .from('projects')
-      .select('tags')
-      .eq('id', projectId)
-      .single();
+      .from('project_tags')
+      .select(`
+        tags (
+          id,
+          name,
+          slug,
+          description,
+          color,
+          created_at,
+          updated_at
+        )
+      `)
+      .eq('project_id', projectId);
 
     if (error) {
       console.error('Error getting project tags:', error);
       return [];
     }
 
-    if (!data?.tags) return [];
+    if (!data) return [];
 
-    // Convert tag names to Tag objects
-    return data.tags.map((tagName: string) => ({
-      id: generateSlug(tagName),
-      name: tagName,
-      slug: generateSlug(tagName)
-    }));
+    return data.map((item: any) => item.tags).filter(Boolean);
   } catch (error) {
     console.error('Error in getProjectTags:', error);
     return [];
