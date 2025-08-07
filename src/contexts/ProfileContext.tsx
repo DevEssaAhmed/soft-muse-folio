@@ -52,13 +52,17 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setError(null);
 
       if (!profile) {
-        // Create new profile if none exists
+        // Create new profile if none exists - ensure required fields
+        const profileData = {
+          name: updates.name || 'New User',
+          username: updates.username || 'user',
+          ...updates,
+          updated_at: new Date().toISOString()
+        };
+        
         const { data, error } = await supabase
           .from('profile')
-          .insert([{
-            ...updates,
-            updated_at: new Date().toISOString()
-          }])
+          .insert([profileData])
           .select()
           .single();
 

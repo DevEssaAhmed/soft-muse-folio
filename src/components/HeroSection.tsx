@@ -15,31 +15,11 @@ interface HeroStatsData {
 
 const HeroSection = () => {
   const { profile, loading } = useProfile();
-  const [heroStats, setHeroStats] = useState<HeroStatsData>({
+  
+  const defaultStats: HeroStatsData = {
     projectsLed: { label: 'Projects Led', value: '15+' },
     hoursAnalyzed: { label: 'Hours Analyzed', value: '500+' },
     clientsServed: { label: 'Clients Served', value: '50+' }
-  });
-
-  useEffect(() => {
-    fetchHeroStats();
-  }, []);
-
-  const fetchHeroStats = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('site_settings')
-        .select('value')
-        .eq('key', 'hero_stats')
-        .single();
-
-      if (!error && data) {
-        setHeroStats(data.value);
-      }
-    } catch (error) {
-      console.error('Error fetching hero stats:', error);
-      // Keep default stats on error
-    }
   };
 
   if (loading) {
@@ -60,8 +40,8 @@ const HeroSection = () => {
     );
   }
 
-  // Parse stats if it's stored as JSON (fallback to heroStats from settings)
-  const stats = profile.stats ? (typeof profile.stats === 'string' ? JSON.parse(profile.stats) : profile.stats) : heroStats;
+  // Parse stats if it's stored as JSON (fallback to default stats)
+  const stats = profile.stats ? (typeof profile.stats === 'string' ? JSON.parse(profile.stats) : profile.stats) : defaultStats;
   
   return (
     <section className="min-h-screen bg-gradient-hero flex items-center justify-center px-6 py-20">
@@ -120,16 +100,21 @@ const HeroSection = () => {
 
               {/* Stats */}
               <div className="flex justify-center md:justify-start gap-8 mb-6">
-                {Object.entries(stats).map(([key, stat]) => (
-                  <div key={key} className="text-center">
-                    <div className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                      {typeof stat === 'object' ? stat.value : stat}
+                {Object.entries(stats).map(([key, stat]) => {
+                  const statValue = typeof stat === 'object' && stat !== null && 'value' in stat ? (stat as HeroStat).value : String(stat);
+                  const statLabel = typeof stat === 'object' && stat !== null && 'label' in stat ? (stat as HeroStat).label : key;
+                  
+                  return (
+                    <div key={key} className="text-center">
+                      <div className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                        {statValue}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {statLabel}
+                      </div>
                     </div>
-                    <div className="text-sm text-muted-foreground">
-                      {typeof stat === 'object' ? stat.label : key}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Meta info */}

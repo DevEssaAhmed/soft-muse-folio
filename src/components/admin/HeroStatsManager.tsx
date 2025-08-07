@@ -34,17 +34,17 @@ const HeroStatsManager = () => {
 
   const fetchHeroStats = async () => {
     try {
+      // Get the first profile and its stats
       const { data, error } = await supabase
-        .from('site_settings')
-        .select('value')
-        .eq('key', 'hero_stats')
-        .single();
+        .from('profile')
+        .select('stats')
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-      if (error) {
-        console.error('Error fetching hero stats:', error);
-        // Use default stats if not found
-      } else if (data) {
-        setStats(data.value);
+      if (!error && data && data.stats) {
+        const profileStats = typeof data.stats === 'string' ? JSON.parse(data.stats) : data.stats;
+        setStats(profileStats);
       }
     } catch (error) {
       console.error('Error fetching hero stats:', error);
@@ -56,17 +56,35 @@ const HeroStatsManager = () => {
   const saveHeroStats = async () => {
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('site_settings')
-        .upsert({
-          key: 'hero_stats',
-          value: stats,
-          description: 'Hero section statistics display',
-          type: 'hero_stats'
-        });
+      // Update the first profile with the new stats
+      const { data: profiles, error: fetchError } = await supabase
+        .from('profile')
+        .select('id')
+        .order('updated_at', { ascending: false })
+        .limit(1);
 
-      if (error) {
-        throw error;
+      if (fetchError) throw fetchError;
+
+      if (profiles && profiles.length > 0) {
+        const { error } = await supabase
+          .from('profile')
+          .update({ stats: stats as any })
+          .eq('id', profiles[0].id);
+
+        if (error) throw error;
+      } else {
+        // Create a new profile if none exists
+        const { error } = await supabase
+          .from('profile')
+          .insert([{
+            name: 'New User',
+            username: 'user',
+            stats: stats as any
+          }])
+          .select()
+          .single();
+
+        if (error) throw error;
       }
 
       toast.success('Hero stats saved successfully!');
