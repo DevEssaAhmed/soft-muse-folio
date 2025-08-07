@@ -20,6 +20,7 @@ import CategoriesPage from "./pages/CategoriesPage";
 import CategoryDetailPage from "./pages/CategoryDetailPage";
 import SeriesPage from "./pages/SeriesPage";
 import SeriesDetailPage from "./pages/SeriesDetailPage";
+import TagsPage from "./pages/TagsPage";
 import TagDetailPage from "./pages/TagDetailPage";
 import TagNotFoundPage from "./pages/TagNotFoundPage";
 import ProjectDetailPage from "./pages/ProjectDetailPage";
@@ -49,6 +50,7 @@ const App = () => (
                 <Route path="/categories/:slug" element={<CategoryDetailPage />} />
                 <Route path="/series" element={<SeriesPage />} />
                 <Route path="/series/:slug" element={<SeriesDetailPage />} />
+                <Route path="/tags" element={<TagsPage />} />
                 <Route path="/tags/:tagSlug" element={<TagDetailPage />} />
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/404-tag-not-found" element={<TagNotFoundPage />} />

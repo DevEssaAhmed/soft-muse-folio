@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import Navigation from '@/components/Navigation';
+import Footer from '@/components/Footer';
+import SEO from '@/components/SEO';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Search, Filter, Calendar, Eye, Heart } from 'lucide-react';
+import { ArrowLeft, Search, Filter, Calendar, Eye, Heart, Hash, Tag } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import Navigation from '@/components/Navigation';
+import { toast } from 'sonner';
 
 interface Tag {
   name: string;
@@ -148,11 +151,11 @@ const TagDetailPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-hero">
+      <div className="min-h-screen bg-background">
         <Navigation />
-        <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="pt-20 flex items-center justify-center">
           <div className="text-center">
-            <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4" />
+            <div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-4" />
             <p className="text-muted-foreground">Loading tag content...</p>
           </div>
         </div>
@@ -161,42 +164,73 @@ const TagDetailPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-hero">
+    <div className="min-h-screen bg-background">
+      <SEO 
+        title={`#${tagName} - Tag`}
+        description={`Explore ${blogPosts.length + projects.length} articles and projects tagged with "${tagName}"`}
+        url={`/tags/${tagSlug}`}
+      />
       <Navigation />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
+      <div className="pt-20">
+        <div className="max-w-7xl mx-auto px-6 py-12">
+          {/* Header */}
+          <div className="mb-12">
             <Button 
               variant="ghost" 
-              onClick={() => navigate(-1)}
-              className="self-start sm:self-center"
+              onClick={() => navigate("/tags")}
+              className="mb-6 hover:shadow-soft transition-all duration-300"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
+              Back to All Tags
             </Button>
-            <div className="text-center flex-1">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-4">
-                #{tagName}
-              </h1>
-              <p className="text-lg text-muted-foreground mb-6">
-                {blogPosts.length + projects.length} items tagged with "{tagName}"
-              </p>
+
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-4 mb-6">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-primary flex items-center justify-center text-white font-bold text-2xl shadow-soft">
+                  <Hash className="w-8 h-8" />
+                </div>
+                <div className="text-left">
+                  <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                    #{tagName}
+                  </h1>
+                  <p className="text-lg text-muted-foreground mt-2">
+                    {blogPosts.length + projects.length} {blogPosts.length + projects.length === 1 ? 'item' : 'items'} tagged
+                  </p>
+                </div>
+              </div>
+              
+              {/* Search */}
+              <div className="max-w-md mx-auto relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  placeholder="Search within tagged content..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+
+              {/* Related Tags */}
+              {relatedTags.length > 0 && (
+                <div className="mt-8">
+                  <h3 className="text-sm font-medium text-muted-foreground mb-3">Related Tags</h3>
+                  <div className="flex flex-wrap gap-2 justify-center">
+                    {relatedTags.slice(0, 10).map((tag) => (
+                      <Badge
+                        key={tag.name}
+                        variant="secondary"
+                        className="hover:bg-primary hover:text-primary-foreground cursor-pointer transition-colors"
+                        onClick={() => handleTagClick(tag.name)}
+                      >
+                        #{tag.name} ({tag.count})
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-
-          {/* Search */}
-          <div className="max-w-md mx-auto relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-            <Input
-              placeholder="Search within tagged content..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </div>
 
         {/* Content Tabs */}
         <Tabs defaultValue="all" className="space-y-8">
@@ -327,11 +361,18 @@ const TagDetailPage: React.FC = () => {
 
               {filteredBlogPosts.length === 0 && filteredProjects.length === 0 && (
                 <div className="text-center py-12">
-                  <Filter className="w-16 h-16 mx-auto text-muted-foreground/50 mb-4" />
-                  <h3 className="text-lg font-medium text-muted-foreground mb-2">No content found</h3>
-                  <p className="text-sm text-muted-foreground">
+                  <Tag className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-xl font-semibold mb-2 text-muted-foreground">No Content Found</h3>
+                  <p className="text-muted-foreground">
                     {searchTerm ? 'Try adjusting your search terms' : `No content tagged with "${tagName}"`}
                   </p>
+                  <Button 
+                    onClick={() => navigate("/tags")}
+                    variant="outline"
+                    className="mt-4"
+                  >
+                    Browse All Tags
+                  </Button>
                 </div>
               )}
             </div>
@@ -392,9 +433,9 @@ const TagDetailPage: React.FC = () => {
               </div>
             ) : (
               <div className="text-center py-12">
-                <Filter className="w-16 h-16 mx-auto text-muted-foreground/50 mb-4" />
-                <h3 className="text-lg font-medium text-muted-foreground mb-2">No articles found</h3>
-                <p className="text-sm text-muted-foreground">No articles are tagged with "{tagName}"</p>
+                <Tag className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-xl font-semibold mb-2 text-muted-foreground">No Articles Found</h3>
+                <p className="text-muted-foreground">No articles are tagged with "{tagName}"</p>
               </div>
             )}
           </TabsContent>
@@ -454,9 +495,9 @@ const TagDetailPage: React.FC = () => {
               </div>
             ) : (
               <div className="text-center py-12">
-                <Filter className="w-16 h-16 mx-auto text-muted-foreground/50 mb-4" />
-                <h3 className="text-lg font-medium text-muted-foreground mb-2">No projects found</h3>
-                <p className="text-sm text-muted-foreground">No projects are tagged with "{tagName}"</p>
+                <Tag className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-xl font-semibold mb-2 text-muted-foreground">No Projects Found</h3>
+                <p className="text-muted-foreground">No projects are tagged with "{tagName}"</p>
               </div>
             )}
           </TabsContent>
@@ -485,7 +526,9 @@ const TagDetailPage: React.FC = () => {
             </CardContent>
           </Card>
         )}
+        </div>
       </div>
+      <Footer />
     </div>
   );
 };
