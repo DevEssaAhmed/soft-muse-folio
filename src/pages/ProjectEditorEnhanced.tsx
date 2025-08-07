@@ -207,7 +207,7 @@ const ProjectEditorEnhanced: React.FC = () => {
       title: formData.title,
       description: formData.description,
       category: categoryName,
-      category_id: categoryId || null,
+      category_id: categoryId,
       image_url: formData.image_url,
       demo_url: formData.demo_url,
       demo_video_url: formData.demo_video_url,
