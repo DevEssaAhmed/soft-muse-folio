@@ -320,10 +320,6 @@ const BlogEditorEnhanced: React.FC = () => {
     }
   };
 
-  const handleAdditionalImagesUpload = (urls: string[]) => {
-    setFormData(prev => ({ ...prev, additional_images: urls.join(', ') }));
-  };
-
   const handleVideoUpload = (urls: string[]) => {
     if (urls.length > 0) {
       setFormData(prev => ({ 
