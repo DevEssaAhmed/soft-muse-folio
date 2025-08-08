@@ -36,6 +36,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { createOrGetCategory, getAllCategories, associateBlogPostTags, getBlogPostTags } from '@/lib/tagUtils';
 import FileUpload from '@/components/FileUpload';
+import RichEditor from '@/components/editor/RichEditor';
 
 const BlogEditorEnhanced: React.FC = () => {
   const navigate = useNavigate();
@@ -160,7 +161,7 @@ const BlogEditorEnhanced: React.FC = () => {
         const tags = await getBlogPostTags(id);
         setSelectedTags(tags.map(tag => tag.name));
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: 'Error loading blog post',
         description: error.message,
@@ -186,26 +187,24 @@ const BlogEditorEnhanced: React.FC = () => {
   // Auto-save functionality
   useEffect(() => {
     if (!formData.title) return;
-    
     const autoSaveTimer = setTimeout(() => {
       handleSave(true);
-    }, 5000); // Auto-save every 5 seconds
-
+    }, 5000);
     return () => clearTimeout(autoSaveTimer);
   }, [formData, selectedTags]);
 
   const handleAddTag = () => {
-    if (tagInput.trim() && !selectedTags.includes(tagInput.trim())) {
-      setSelectedTags(prev => [...prev, tagInput.trim()]);
+    if (tagInput.trim() &amp;&amp; !selectedTags.includes(tagInput.trim())) {
+      setSelectedTags(prev =&gt; [...prev, tagInput.trim()]);
       setTagInput('');
     }
   };
 
-  const handleRemoveTag = (tagToRemove: string) => {
-    setSelectedTags(prev => prev.filter(tag => tag !== tagToRemove));
+  const handleRemoveTag = (tagToRemove: string) =&gt; {
+    setSelectedTags(prev =&gt; prev.filter(tag =&gt; tag !== tagToRemove));
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = (e: React.KeyboardEvent) =&gt; {
     if (e.key === 'Enter') {
       e.preventDefault();
       handleAddTag();
@@ -214,12 +213,11 @@ const BlogEditorEnhanced: React.FC = () => {
 
   const handleCreateNewCategory = async () => {
     if (!formData.category_name.trim()) return;
-    
     try {
       const newCategory = await createOrGetCategory(formData.category_name);
       if (newCategory) {
-        setCategories(prev => [...prev, newCategory]);
-        setFormData(prev => ({ 
+        setCategories(prev =&gt; [...prev, newCategory]);
+        setFormData(prev =&gt; ({ 
           ...prev, 
           category_id: newCategory.id,
           category_name: ''
@@ -237,73 +235,46 @@ const BlogEditorEnhanced: React.FC = () => {
 
   const createNewSeries = async () => {
     if (!newSeries.title) return;
-    
     try {
-      // Generate slug if not provided
       const seriesSlug = newSeries.slug || newSeries.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-      
       const { data, error } = await supabase
         .from('series')
-        .insert([{
-          title: newSeries.title,
-          slug: seriesSlug,
-          description: newSeries.description,
-          status: 'active'
-        }])
+        .insert([{ title: newSeries.title, slug: seriesSlug, description: newSeries.description, status: 'active' }])
         .select()
         .single();
-
       if (error) {
         console.error('Error creating series:', error);
-        // Fallback to local state for demo purposes
         const mockId = (series.length + 1).toString();
-        const newSeriesItem = {
-          id: mockId,
-          title: newSeries.title,
-          slug: seriesSlug,
-          description: newSeries.description
-        };
-        
-        setSeries(prev => [...prev, newSeriesItem]);
-        setFormData(prev => ({ ...prev, series_id: mockId }));
-        toast({ title: "Series created successfully (demo mode)" });
+        const newSeriesItem = { id: mockId, title: newSeries.title, slug: seriesSlug, description: newSeries.description };
+        setSeries(prev =&gt; [...prev, newSeriesItem]);
+        setFormData(prev =&gt; ({ ...prev, series_id: mockId }));
+        toast({ title: 'Series created successfully (demo mode)' });
       } else {
-        // Successfully created in database
-        setSeries(prev => [...prev, data]);
-        setFormData(prev => ({ ...prev, series_id: data.id }));
-        toast({ title: "Series created successfully" });
+        setSeries(prev =&gt; [...prev, data]);
+        setFormData(prev =&gt; ({ ...prev, series_id: data.id }));
+        toast({ title: 'Series created successfully' });
       }
-      
       setShowNewSeriesDialog(false);
-      setNewSeries({ title: "", slug: "", description: "" });
+      setNewSeries({ title: '', slug: '', description: '' });
     } catch (error) {
       console.error('Error creating series:', error);
-      toast({ 
-        title: "Error creating series", 
-        description: "Please try again",
-        variant: "destructive" 
-      });
+      toast({ title: 'Error creating series', description: 'Please try again', variant: 'destructive' });
     }
   };
 
   const handleSave = async (isAutoSave = false) => {
     if (!formData.title.trim()) return;
-    
     setIsSaving(true);
-    
-    const additionalImagesArray = formData.additional_images.split(',').map(img => img.trim()).filter(img => img);
-    
-    // Handle category creation if needed
+    const additionalImagesArray = formData.additional_images.split(',').map(img =&gt; img.trim()).filter(img =&gt; img);
     let categoryId = formData.category_id;
     if (formData.category_name.trim()) {
       const newCategory = await createOrGetCategory(formData.category_name);
       if (newCategory) {
         categoryId = newCategory.id;
-        setCategories(prev => [...prev, newCategory]);
-        setFormData(prev => ({ ...prev, category_name: '' }));
+        setCategories(prev =&gt; [...prev, newCategory]);
+        setFormData(prev =&gt; ({ ...prev, category_name: '' }));
       }
     }
-    
     try {
       const blogData = {
         title: formData.title,
@@ -315,56 +286,31 @@ const BlogEditorEnhanced: React.FC = () => {
         video_type: formData.video_type,
         additional_images: additionalImagesArray,
         category_id: categoryId || null,
-        series_id: formData.series_id || null,      // Include series data
-        series_order: formData.series_order,        // Include series order
+        series_id: formData.series_id || null,
+        series_order: formData.series_order,
         published: formData.published,
         reading_time: formData.reading_time,
       };
 
       let blogPostId = id;
-
       if (id) {
-        // Update existing blog post
-        const { error } = await supabase
-          .from('blog_posts')
-          .update(blogData)
-          .eq('id', id);
-        
+        const { error } = await supabase.from('blog_posts').update(blogData).eq('id', id);
         if (error) throw error;
-        
-        // Update tags using relational approach
         await associateBlogPostTags(id, selectedTags);
-        
-        if (!isAutoSave) {
-          toast({ title: 'Blog post updated successfully!' });
-        }
+        if (!isAutoSave) toast({ title: 'Blog post updated successfully!' });
       } else {
-        // Create new blog post
-        const { data, error } = await supabase
-          .from('blog_posts')
-          .insert([blogData])
-          .select()
-          .single();
-        
+        const { data, error } = await supabase.from('blog_posts').insert([blogData]).select().single();
         if (error) throw error;
-        
         blogPostId = data.id;
-        
-        // Associate tags using relational approach
         await associateBlogPostTags(data.id, selectedTags);
-        
         if (!isAutoSave) {
           toast({ title: 'Blog post created successfully!' });
           navigate(`/admin/blog/edit/${data.id}`);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       if (!isAutoSave) {
-        toast({
-          title: 'Error saving blog post',
-          description: error.message,
-          variant: 'destructive',
-        });
+        toast({ title: 'Error saving blog post', description: error.message, variant: 'destructive' });
       }
       console.error('Save error:', error);
     } finally {
@@ -372,22 +318,19 @@ const BlogEditorEnhanced: React.FC = () => {
     }
   };
 
-  const handleImageUpload = (urls: string[]) => {
-    if (urls.length > 0) {
-      setFormData(prev => ({ ...prev, image_url: urls[0] }));
+  const handleImageUpload = (urls: string[]) =&gt; {
+    if (urls.length &gt; 0) {
+      setFormData(prev =&gt; ({ ...prev, image_url: urls[0] }));
     }
   };
 
-  const handleAdditionalImagesUpload = (urls: string[]) => {
-    setFormData(prev => ({ 
-      ...prev, 
-      additional_images: urls.join(', ')
-    }));
+  const handleAdditionalImagesUpload = (urls: string[]) =&gt; {
+    setFormData(prev =&gt; ({ ...prev, additional_images: urls.join(', ') }));
   };
 
-  const handleVideoUpload = (urls: string[]) => {
-    if (urls.length > 0) {
-      setFormData(prev => ({ 
+  const handleVideoUpload = (urls: string[]) =&gt; {
+    if (urls.length &gt; 0) {
+      setFormData(prev =&gt; ({ 
         ...prev, 
         video_url: urls[0],
         video_type: urls[0].includes('youtube') || urls[0].includes('vimeo') ? 'external' : 'file'
@@ -399,7 +342,7 @@ const BlogEditorEnhanced: React.FC = () => {
     <div className="min-h-screen bg-gradient-hero">
       {/* Header */}
       <div className="bg-card/80 backdrop-blur-md border-b border-border sticky top-0 z-40">
-  
+        
              <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
           <div className="flex  flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
@@ -493,37 +436,14 @@ const BlogEditorEnhanced: React.FC = () => {
                     />
                   </div>
 
-                  {/* Content Editor */}
+                  {/* Content Editor - Notion-like */}
                   <div>
                     <Label className="text-sm font-medium text-gray-600">Content</Label>
                     <div className="mt-1 border rounded-lg">
-                      {/* Toolbar */}
-                      <div className="border-b p-3 flex flex-wrap gap-1">
-                        <Button variant="ghost" size="sm" className="gap-1">
-                          <Bold className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" className="gap-1">
-                          <Italic className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" className="gap-1">
-                          <Link className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" className="gap-1">
-                          <List className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" className="gap-1">
-                          <Hash className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" className="gap-1">
-                          <Image className="w-4 h-4" />
-                        </Button>
-                      </div>
-
-                      <Textarea
+                      <RichEditor
                         value={formData.content}
-                        onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-                        className="min-h-[400px] border-none focus:ring-0 resize-none"
-                        placeholder="Write your blog post content here... (Markdown supported)"
+                        onChange={(md) => setFormData(prev => ({ ...prev, content: md }))}
+                        placeholder="Type '/' for commands. Write in Markdown/blocks..."
                       />
                     </div>
                   </div>
@@ -571,7 +491,7 @@ const BlogEditorEnhanced: React.FC = () => {
               <CardContent className="p-4">
                 <h3 className="font-semibold mb-4 flex items-center gap-2">
                   <Tag className="w-4 h-4" />
-                  Categories & Series
+                  Categories &amp; Series
                 </h3>
                 <div className="space-y-4">
                   {/* Category Selection */}
@@ -760,8 +680,9 @@ const BlogEditorEnhanced: React.FC = () => {
                     onUploadComplete={handleImageUpload}
                     maxFiles={1}
                     existingFiles={formData.image_url ? [formData.image_url] : []}
-                    simultaneousMode={true}  // Enable simultaneous mode
+                    simultaneousMode={true}
                     urlInputPlaceholder="https://example.com/image.jpg"
+                    enableImageEditing={true}
                   />
 
                   {/* Additional Images with simultaneous support */}
@@ -772,7 +693,7 @@ const BlogEditorEnhanced: React.FC = () => {
                     maxFiles={5}
                     multiple={true}
                     existingFiles={formData.additional_images ? formData.additional_images.split(', ').filter(img => img.trim()) : []}
-                    simultaneousMode={true}  // Enable simultaneous mode
+                    simultaneousMode={true}
                     urlInputPlaceholder="https://example.com/additional-image.jpg"
                   />
 
@@ -783,7 +704,7 @@ const BlogEditorEnhanced: React.FC = () => {
                     onUploadComplete={handleVideoUpload}
                     maxFiles={1}
                     existingFiles={formData.video_url ? [formData.video_url] : []}
-                    simultaneousMode={true}  // Enable simultaneous mode
+                    simultaneousMode={true}
                     urlInputPlaceholder="https://youtube.com/watch?v=... or direct video URL"
                   />
                 </div>

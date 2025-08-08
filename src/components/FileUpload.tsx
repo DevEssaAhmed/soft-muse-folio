@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Upload, X, Image as ImageIcon, Video, FileText, AlertCircle, CheckCircle, Loader2, Link, Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import Cropper from 'react-easy-crop';
 
 interface FileUploadProps {
   label?: string;
@@ -21,6 +22,9 @@ interface FileUploadProps {
   allowUrlInput?: boolean;
   urlInputPlaceholder?: string;
   simultaneousMode?: boolean; // New prop for simultaneous upload + URL
+  enableImageEditing?: boolean; // New: enable crop/compress for images
+  imageMaxWidth?: number; // New: max width for downscale
+  imageQuality?: number; // New: quality 0-1
 }
 
 interface UploadingFile {
@@ -43,7 +47,10 @@ export const FileUpload = ({
   showPreview = true,
   allowUrlInput = true, // Enable URL input by default
   urlInputPlaceholder = "Enter URL...",
-  simultaneousMode = false // Enable simultaneous mode
+  simultaneousMode = false, // Enable simultaneous mode
+  enableImageEditing = false,
+  imageMaxWidth = 1600,
+  imageQuality = 0.8,
 }: FileUploadProps) => {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -52,6 +59,18 @@ export const FileUpload = ({
   const [isDragOver, setIsDragOver] = useState(false);
   const [urlInput, setUrlInput] = useState('');
   const [activeTab, setActiveTab] = useState('upload');
+
+  // Cropper state
+  const [showCropper, setShowCropper] = useState(false);
+  const [cropSource, setCropSource] = useState<string | null>(null);
+  const [rawImageFile, setRawImageFile] = useState<File | null>(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+
+  useEffect(() => {
+    setUploadedFiles(existingFiles);
+  }, [existingFiles.join('|')]);
 
   const getBucketName = () => {
     switch (uploadType) {
@@ -83,13 +102,10 @@ export const FileUpload = ({
   };
 
   const validateFile = (file: File): string | null => {
-    // Check file size
     const maxSizeBytes = maxSizeMB * 1024 * 1024;
     if (file.size > maxSizeBytes) {
       return `File size must be less than ${maxSizeMB}MB`;
     }
-
-    // Check file type
     const acceptedTypes = accept.split(',').map(type => type.trim());
     const isValidType = acceptedTypes.some(type => {
       if (type.includes('*')) {
@@ -98,140 +114,124 @@ export const FileUpload = ({
       }
       return file.type === type;
     });
-
     if (!isValidType) {
       return `File type not supported. Accepted types: ${accept}`;
     }
-
     return null;
   };
 
   const uploadFile = async (file: File): Promise<string> => {
     const bucket = getBucketName();
     const timestamp = Date.now();
-    const fileName = `${timestamp}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+    const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const ext = safeName.includes('.') ? safeName.split('.').pop() : 'bin';
+    const fileName = `${timestamp}-${safeName}`;
 
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        try {
-          const arrayBuffer = e.target?.result as ArrayBuffer;
-          
-          const { data, error } = await supabase.storage
-            .from(bucket)
-            .upload(fileName, arrayBuffer, {
-              contentType: file.type,
-              upsert: true
-            });
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .upload(fileName, file, {
+        contentType: file.type || `application/octet-stream`,
+        upsert: true,
+      });
 
-          if (error) throw error;
-
-          const { data: urlData } = supabase.storage
-            .from(bucket)
-            .getPublicUrl(fileName);
-
-          resolve(urlData.publicUrl);
-        } catch (error) {
-          console.error('Upload error:', error);
-          reject(error);
-        }
-      };
-      
-      reader.onerror = () => reject(new Error('Failed to read file'));
-      reader.readAsArrayBuffer(file);
-    });
+    if (error) throw error;
+    const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(fileName);
+    return urlData.publicUrl;
   };
 
-  const handleFiles = async (fileList: FileList | File[]) => {
-    const files = Array.from(fileList);
-    
-    // Validate files first
-    const validationErrors: string[] = [];
-    files.forEach((file, index) => {
-      const error = validateFile(file);
-      if (error) {
-        validationErrors.push(`File ${index + 1}: ${error}`);
-      }
-    });
+  const handleFilesUpload = async (files: FileList | File[]) => {
+    const filesArr = Array.from(files);
 
+    // Validate
+    const validationErrors: string[] = [];
+    filesArr.forEach((file, index) => {
+      const error = validateFile(file);
+      if (error) validationErrors.push(`File ${index + 1}: ${error}`);
+    });
     if (validationErrors.length > 0) {
       toast.error(validationErrors.join('\n'));
       return;
     }
 
     // Check total file limit
-    const totalFiles = uploadedFiles.length + files.length;
+    const totalFiles = uploadedFiles.length + filesArr.length;
     if (totalFiles > maxFiles) {
-      toast.error(`Maximum ${maxFiles} files allowed. Currently have ${uploadedFiles.length}, trying to add ${files.length}`);
+      toast.error(`Maximum ${maxFiles} files allowed. Currently have ${uploadedFiles.length}, trying to add ${filesArr.length}`);
       return;
     }
 
     setUploading(true);
-
-    // Initialize uploading files state
-    const newUploadingFiles: UploadingFile[] = files.map(file => ({
-      file,
-      progress: 0,
-      status: 'uploading' as const
-    }));
-
-    setUploadingFiles(newUploadingFiles);
-
-    // Upload files with individual progress tracking
-    const uploadPromises = files.map(async (file, index) => {
-      try {
-        const url = await uploadFile(file);
-        
-        // Update individual file status
-        setUploadingFiles(prev => prev.map((uploadingFile, i) => 
-          i === index ? { ...uploadingFile, progress: 100, status: 'completed', url } : uploadingFile
-        ));
-        
-        return url;
-      } catch (error) {
-        // Update individual file status to error
-        setUploadingFiles(prev => prev.map((uploadingFile, i) => 
-          i === index ? { ...uploadingFile, status: 'error', error: error.message } : uploadingFile
-        ));
-        return null;
-      }
-    });
+    setUploadingFiles(filesArr.map(f => ({ file: f, progress: 0, status: 'uploading' })));
 
     try {
-      const urls = await Promise.all(uploadPromises);
-      const newFiles = [...uploadedFiles, ...urls.filter(Boolean)].slice(0, maxFiles);
+      const urls: (string | null)[] = [];
+      for (let i = 0; i < filesArr.length; i++) {
+        try {
+          const url = await uploadFile(filesArr[i]);
+          urls.push(url);
+          setUploadingFiles(prev => prev.map((u, idx) => idx === i ? { ...u, status: 'completed', progress: 100, url } : u));
+        } catch (err: any) {
+          setUploadingFiles(prev => prev.map((u, idx) => idx === i ? { ...u, status: 'error', error: err.message } : u));
+          urls.push(null);
+        }
+      }
+      const newFiles = [...uploadedFiles, ...urls.filter(Boolean) as string[]].slice(0, maxFiles);
       setUploadedFiles(newFiles);
       onUploadComplete(newFiles);
-      toast.success(`${urls.length} file(s) uploaded successfully`);
-      
-      // Clear uploading files after a delay
-      setTimeout(() => setUploadingFiles([]), 2000);
+      toast.success(`${urls.filter(Boolean).length} file(s) uploaded successfully`);
     } catch (error) {
       console.error('Upload error:', error);
       toast.error('Failed to upload files');
     } finally {
       setUploading(false);
+      setTimeout(() => setUploadingFiles([]), 1500);
     }
   };
 
-  const handleFileInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const onFileInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (files) {
-      handleFiles(files);
+    if (!files || files.length === 0) return;
+
+    if (uploadType === 'image' && enableImageEditing) {
+      if (files.length === 1) {
+        const file = files[0];
+        const objectUrl = URL.createObjectURL(file);
+        setRawImageFile(file);
+        setCropSource(objectUrl);
+        setShowCropper(true);
+      } else {
+        // Multiple files: just compress to max width maintaining aspect via canvas
+        const processed = await Promise.all(Array.from(files).map(async (f) => await compressImageFile(f, imageMaxWidth, imageQuality)));
+        await handleFilesUpload(processed as File[]);
+      }
+    } else {
+      await handleFilesUpload(files);
     }
+
     // Reset input
     event.target.value = '';
   };
 
-  const handleDrop = useCallback((event: React.DragEvent) => {
+  const onDropHandler = useCallback(async (event: React.DragEvent) => {
     event.preventDefault();
     setIsDragOver(false);
-    
     const files = event.dataTransfer.files;
-    if (files) {
-      handleFiles(files);
+    if (!files || files.length === 0) return;
+    if (uploadType === 'image' && enableImageEditing) {
+      if (files.length === 1) {
+        const file = files[0];
+        const objectUrl = URL.createObjectURL(file);
+        setRawImageFile(file);
+        setCropSource(objectUrl);
+        setShowCropper(true);
+      } else {
+        const processed = await Promise.all(Array.from(files).map(async (f) => await compressImageFile(f, imageMaxWidth, imageQuality)));
+        await handleFilesUpload(processed as File[]);
+      }
+    } else {
+      await handleFilesUpload(files);
     }
-  }, []);
+  }, [enableImageEditing, imageMaxWidth, imageQuality, uploadType, uploadedFiles.length, maxFiles]);
 
   const handleDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
@@ -267,17 +267,14 @@ export const FileUpload = ({
       toast.error('Please enter a URL');
       return;
     }
-
     if (!validateUrl(urlInput.trim())) {
       toast.error('Please enter a valid URL');
       return;
     }
-
     if (uploadedFiles.length >= maxFiles) {
       toast.error(`Maximum ${maxFiles} files allowed`);
       return;
     }
-
     const newFiles = [...uploadedFiles, urlInput.trim()].slice(0, maxFiles);
     setUploadedFiles(newFiles);
     onUploadComplete(newFiles);
@@ -299,6 +296,91 @@ export const FileUpload = ({
     }
   };
 
+  // Image processing helpers
+  const loadImageToCanvas = (image: HTMLImageElement, maxWidth: number) => {
+    const ratio = image.width > maxWidth ? maxWidth / image.width : 1;
+    const width = Math.round(image.width * ratio);
+    const height = Math.round(image.height * ratio);
+    const canvas = document.createElement('canvas');
+    canvas.width = width; canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Failed to get canvas context');
+    ctx.drawImage(image, 0, 0, width, height);
+    return canvas;
+  };
+
+  const fileFromBlob = (blob: Blob, originalName: string, type: string) => {
+    const base = originalName.replace(/\.[^.]+$/, '');
+    const ext = type.includes('webp') ? 'webp' : (type.split('/')[1] || 'jpg');
+    return new File([blob], `${base}.${ext}`, { type });
+  };
+
+  const compressImageFile = async (file: File, maxWidth: number, quality: number): Promise<File> => {
+    const img = document.createElement('img');
+    const objectUrl = URL.createObjectURL(file);
+    await new Promise((res, rej) => { img.onload = res as any; img.onerror = rej as any; img.src = objectUrl; });
+    const canvas = loadImageToCanvas(img, maxWidth);
+    return await new Promise<File>((resolve, reject) => {
+      canvas.toBlob((blob) => {
+        if (!blob) return reject(new Error('Compression failed'));
+        const out = fileFromBlob(blob, file.name, 'image/webp');
+        resolve(out);
+      }, 'image/webp', quality);
+    });
+  };
+
+  const getCroppedImg = async (file: File, cropPixels: { x: number; y: number; width: number; height: number }, quality: number, maxWidth: number): Promise<File> => {
+    const image = document.createElement('img');
+    const objectUrl = URL.createObjectURL(file);
+    await new Promise((res, rej) => { image.onload = res as any; image.onerror = rej as any; image.src = objectUrl; });
+
+    const canvas = document.createElement('canvas');
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+
+    // crop at original resolution
+    const cropW = cropPixels.width * scaleX;
+    const cropH = cropPixels.height * scaleY;
+
+    canvas.width = cropW;
+    canvas.height = cropH;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Canvas 2D context not available');
+    ctx.drawImage(
+      image,
+      cropPixels.x * scaleX,
+      cropPixels.y * scaleY,
+      cropW,
+      cropH,
+      0,
+      0,
+      cropW,
+      cropH
+    );
+
+    // Downscale if wider than maxWidth
+    let outCanvas = canvas;
+    if (cropW > maxWidth) {
+      const ratio = maxWidth / cropW;
+      const w = Math.round(cropW * ratio);
+      const h = Math.round(cropH * ratio);
+      const dCanvas = document.createElement('canvas');
+      dCanvas.width = w; dCanvas.height = h;
+      const dctx = dCanvas.getContext('2d');
+      if (!dctx) throw new Error('Canvas 2D context not available');
+      dctx.drawImage(canvas, 0, 0, w, h);
+      outCanvas = dCanvas;
+    }
+
+    return await new Promise<File>((resolve, reject) => {
+      outCanvas.toBlob((blob) => {
+        if (!blob) return reject(new Error('Crop failed'));
+        const out = fileFromBlob(blob, file.name, 'image/webp');
+        resolve(out);
+      }, 'image/webp', quality);
+    });
+  };
+
   const renderUploadArea = () => (
     <div
       className={`
@@ -306,7 +388,7 @@ export const FileUpload = ({
         ${isDragOver ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'}
         ${uploading ? 'pointer-events-none opacity-50' : ''}
       `}
-      onDrop={handleDrop}
+      onDrop={onDropHandler}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
     >
@@ -323,7 +405,7 @@ export const FileUpload = ({
         type="file"
         accept={getAcceptTypes()}
         multiple={multiple}
-        onChange={handleFileInput}
+        onChange={onFileInputChange}
         disabled={uploading || uploadedFiles.length >= maxFiles}
         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
       />
@@ -337,7 +419,7 @@ export const FileUpload = ({
         <Upload className="w-4 h-4 mr-2" />
         Choose Files
       </Button>
-      
+      {enableImageEditing && uploadType === 'image' && <p className="text-[11px] text-muted-foreground mt-2">Client-side crop &amp; compression enabled</p>}
       {maxFiles > 1 && (
         <p className="text-xs text-muted-foreground mt-1">
           {uploadedFiles.length} / {maxFiles} files uploaded
@@ -513,6 +595,43 @@ export const FileUpload = ({
             <span>{uploadProgress}%</span>
           </div>
           <Progress value={uploadProgress} className="h-2" />
+        </div>
+      )}
+
+      {/* Cropper Modal */}
+      {showCropper && cropSource && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+          <div className="bg-background rounded-lg shadow-xl w-full max-w-2xl overflow-hidden">
+            <div className="p-4 border-b"><h4 className="font-semibold">Crop image</h4></div>
+            <div className="relative w-full h-[60vh] bg-black">
+              <Cropper
+                image={cropSource}
+                crop={crop}
+                zoom={zoom}
+                aspect={16/9}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={(_, pixels) => setCroppedAreaPixels(pixels)}
+              />
+            </div>
+            <div className="p-4 flex items-center justify-end gap-2 border-t">
+              <Button variant="outline" onClick={() => { setShowCropper(false); setCropSource(null); setRawImageFile(null); }}>Cancel</Button>
+              <Button onClick={async () => {
+                if (!rawImageFile || !croppedAreaPixels) return;
+                try {
+                  const processed = await getCroppedImg(rawImageFile, croppedAreaPixels, imageQuality, imageMaxWidth);
+                  await handleFilesUpload([processed]);
+                } catch (e: any) {
+                  toast.error(e.message || 'Failed to process image');
+                } finally {
+                  setShowCropper(false);
+                  if (cropSource) URL.revokeObjectURL(cropSource);
+                  setCropSource(null);
+                  setRawImageFile(null);
+                }
+              }}>Apply &amp; Upload</Button>
+            </div>
+          </div>
         </div>
       )}
     </div>
