@@ -432,11 +432,11 @@ const BlogEditorEnhanced: React.FC = () => {
                   {/* Content Editor - Notion-like */}
                   <div>
                     <Label className="text-sm font-medium text-gray-600">Content</Label>
-                    <div className="mt-1 border rounded-lg">
-                      <RichEditor
+                    <div className="mt-1">
+                      <NotionEditor
                         value={formData.content}
                         onChange={(md) => setFormData(prev => ({ ...prev, content: md }))}
-                        placeholder="Type '/' for commands. Write in Markdown/blocks..."
+                        placeholder="Type '/' for commands or start writing your blog post..."
                       />
                     </div>
                   </div>
