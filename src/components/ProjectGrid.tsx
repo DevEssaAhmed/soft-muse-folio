@@ -14,11 +14,20 @@ const ProjectGrid = () => {
 
   const fetchProjects = async () => {
     try {
-      const { data } = await supabase
-        .from("projects")
-        .select("*")
-        .order("created_at", { ascending: false });
-      
+      // const { data } = await supabase
+      //   .from("projects")
+      //   .select("*")
+      //   .order("created_at", { ascending: false });
+           const { data } = await supabase
+  .from("projects")
+  .select("*, categories(name)")
+  .order("created_at", { ascending: false })
+  
+
+
+
+
+
       if (data) {
         setProjects(data);
         
@@ -87,7 +96,7 @@ const ProjectGrid = () => {
                 description={project.description}
                 image={project.image_url || "/placeholder.svg"}
                 tags={project.tags || []}
-                category={project.category_id || "Uncategorized"}
+                category={project.categories?.name|| "Uncategorized"}
                 demoUrl={project.demo_url}
                 githubUrl={project.github_url}
                 views={project.views || 0}
