@@ -246,8 +246,8 @@ const BlogEditorEnhanced: React.FC = () => {
         console.error('Error creating series:', error);
         const mockId = (series.length + 1).toString();
         const newSeriesItem = { id: mockId, title: newSeries.title, slug: seriesSlug, description: newSeries.description };
-        setSeries(prev =&gt; [...prev, newSeriesItem]);
-        setFormData(prev =&gt; ({ ...prev, series_id: mockId }));
+        setSeries(prev => [...prev, newSeriesItem]);
+        setFormData(prev => ({ ...prev, series_id: mockId }));
         toast({ title: 'Series created successfully (demo mode)' });
       } else {
         setSeries(prev =&gt; [...prev, data]);
