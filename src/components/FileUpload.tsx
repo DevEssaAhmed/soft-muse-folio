@@ -646,7 +646,7 @@ export const FileUpload = ({
                   setCropSource(null);
                   setRawImageFile(null);
                 }
-              }}>Apply &amp; Upload</Button>
+              }}>Apply & Upload</Button>
             </div>
           </div>
         </div>
