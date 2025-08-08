@@ -1,21 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  ArrowRight,
-  Eye,
-  Heart,
-  ExternalLink,
-  Github,
-} from "lucide-react";
+import { ArrowRight, Eye, Heart, ExternalLink, Github } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface RecentProjectsProps {
@@ -24,14 +12,14 @@ interface RecentProjectsProps {
 
 const RecentProjects = ({ showAll = false }: RecentProjectsProps) => {
   const navigate = useNavigate();
-  const [projects, setProjects] = useState<any[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
+  const [projects, setProjects] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [loading, setLoading] = useState(true);
 
   const handleTagClick = (e: React.MouseEvent, tag: string) => {
     e.stopPropagation();
-    const tagSlug = tag.toLowerCase().replace(/\s+/g, "-");
+    const tagSlug = tag.toLowerCase().replace(/\s+/g, '-');
     navigate(`/tags/${encodeURIComponent(tagSlug)}`);
   };
 
@@ -41,31 +29,26 @@ const RecentProjects = ({ showAll = false }: RecentProjectsProps) => {
 
   const fetchProjects = async () => {
     try {
+      // const { data } = await supabase
+      //   .from("projects")
+      //   .select("*")
+      //   .order("created_at", { ascending: false })
+      //   .limit(showAll ? 50 : 6);
       const { data } = await supabase
-        .from("projects")
-        .select(
-          `
-          *,
-          categories(name),
-          projects_tags (
-            tags (
-              name
-            )
-          )
-        `
-        )
-        .order("created_at", { ascending: false })
-        .limit(showAll ? 50 : 6);
+  .from("projects")
+  .select("*, categories(name)")
+  .order("created_at", { ascending: false })
+  .limit(showAll ? 50 : 6);
 
       if (data) {
         setProjects(data);
-
-        // Fetch and map category names
+        
+        // Extract unique categories dynamically - fetch from categories table
         const { data: categoriesData } = await supabase
-          .from("categories")
-          .select("name")
-          .order("name");
-        const categoryNames = categoriesData?.map((cat) => cat.name) || [];
+          .from('categories')
+          .select('name')
+          .order('name');
+        const categoryNames = categoriesData?.map(cat => cat.name) || [];
         setCategories(["All", ...categoryNames]);
       }
     } catch (error) {
@@ -75,14 +58,12 @@ const RecentProjects = ({ showAll = false }: RecentProjectsProps) => {
     }
   };
 
-  const filteredProjects =
-    selectedCategory === "All"
-      ? projects.slice(0, showAll ? projects.length : 4)
-      : projects
-          .filter(
-            (project) => project.categories?.name === selectedCategory
-          )
-          .slice(0, showAll ? projects.length : 4);
+  const filteredProjects = selectedCategory === "All" 
+    ? projects.slice(0, showAll ? projects.length : 4)
+    : projects.filter(project => {
+        // Filter by category_id for now
+        return project.category_id || false;
+      }).slice(0, showAll ? projects.length : 4);
 
   if (loading) {
     return (
@@ -109,7 +90,7 @@ const RecentProjects = ({ showAll = false }: RecentProjectsProps) => {
               Discover my latest work in data analysis, visualization, and machine learning
             </p>
           </div>
-          <Button
+          <Button 
             onClick={() => navigate("/projects")}
             className="hidden md:flex bg-gradient-primary hover:shadow-soft transition-all duration-300"
           >
@@ -139,14 +120,10 @@ const RecentProjects = ({ showAll = false }: RecentProjectsProps) => {
         )}
 
         {/* Projects Grid */}
-        <div
-          className={`grid md:grid-cols-2 ${
-            showAll ? "lg:grid-cols-3" : "lg:grid-cols-2"
-          } gap-8 animate-fade-up delay-300`}
-        >
+        <div className={`grid md:grid-cols-2 ${showAll ? 'lg:grid-cols-3' : 'lg:grid-cols-2'} gap-8 animate-fade-up delay-300`}>
           {filteredProjects.map((project, index) => (
-            <Card
-              key={project.id}
+            <Card 
+              key={project.id} 
               className="group hover:shadow-soft transition-all duration-300 cursor-pointer bg-card/50 backdrop-blur-sm border-primary/20"
               onClick={() => navigate(`/projects/${project.id}`)}
               style={{ animationDelay: `${index * 100}ms` }}
@@ -165,9 +142,14 @@ const RecentProjects = ({ showAll = false }: RecentProjectsProps) => {
               </div>
               <CardHeader>
                 <div className="flex items-center justify-between">
+                  {/* <Badge variant="outline" className="mb-2 w-fit">
+                    {project.category_id || "Uncategorized"}
+                  </Badge> */}
+                  
                   <Badge variant="outline" className="mb-2 w-fit">
-                    {project.categories?.name || "Uncategorized"}
-                  </Badge>
+  {project.categories?.name || "Uncategorized"}
+</Badge>
+
                 </div>
                 <CardTitle className="group-hover:text-primary transition-colors line-clamp-2">
                   {project.title}
@@ -179,14 +161,14 @@ const RecentProjects = ({ showAll = false }: RecentProjectsProps) => {
               <CardContent>
                 {/* Tags */}
                 <div className="flex flex-wrap gap-1 mb-4">
-                  {project.projects_tags?.slice(0, 3).map((ptag) => (
-                    <Badge
-                      key={ptag.tags.name}
-                      variant="secondary"
+                  {project.tags?.slice(0, 3).map((tag) => (
+                    <Badge 
+                      key={tag} 
+                      variant="secondary" 
                       className="text-xs cursor-pointer hover:bg-secondary/80 transition-colors"
-                      onClick={(e) => handleTagClick(e, ptag.tags.name)}
+                      onClick={(e) => handleTagClick(e, tag)}
                     >
-                      {ptag.tags.name}
+                      {tag}
                     </Badge>
                   ))}
                 </div>
@@ -210,7 +192,7 @@ const RecentProjects = ({ showAll = false }: RecentProjectsProps) => {
                         variant="outline"
                         onClick={(e) => {
                           e.stopPropagation();
-                          window.open(project.demo_url, "_blank");
+                          window.open(project.demo_url, '_blank');
                         }}
                         className="opacity-0 group-hover:opacity-100 transition-all duration-300"
                       >
@@ -223,7 +205,7 @@ const RecentProjects = ({ showAll = false }: RecentProjectsProps) => {
                         variant="outline"
                         onClick={(e) => {
                           e.stopPropagation();
-                          window.open(project.github_url, "_blank");
+                          window.open(project.github_url, '_blank');
                         }}
                         className="opacity-0 group-hover:opacity-100 transition-all duration-300"
                       >
@@ -239,9 +221,9 @@ const RecentProjects = ({ showAll = false }: RecentProjectsProps) => {
 
         {/* View More Button (Mobile) */}
         <div className="text-center mt-12 md:hidden">
-          <Button
+          <Button 
             onClick={() => navigate("/projects")}
-            variant="outline"
+            variant="outline" 
             size="lg"
             className="hover:bg-primary/5 hover:border-primary/30 transition-all duration-300"
           >
