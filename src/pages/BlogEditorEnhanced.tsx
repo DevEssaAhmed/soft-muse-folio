@@ -146,7 +146,6 @@ const BlogEditorEnhanced: React.FC = () => {
         image_url: data.image_url || '',
         video_url: data.video_url || '',
         video_type: data.video_type || 'youtube',
-        additional_images: data.additional_images ? data.additional_images.join(', ') : '',
         category_id: data.category_id || '',
         category_name: '',
         series_id: data.series_id || '',        // Load series data
