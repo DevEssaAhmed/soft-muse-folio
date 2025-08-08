@@ -15,7 +15,7 @@ import { TableCell } from "@tiptap/extension-table-cell";
 import { TableHeader } from "@tiptap/extension-table-header";
 import { CodeBlockLowlight } from "@tiptap/extension-code-block-lowlight";
 import { Markdown } from "tiptap-markdown";
-import { lowlight } from "lowlight/lib/core";
+import { createLowlight } from "lowlight";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import "./editor-styles.css";
