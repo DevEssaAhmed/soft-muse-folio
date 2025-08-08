@@ -194,14 +194,14 @@ const BlogEditorEnhanced: React.FC = () => {
   }, [formData, selectedTags]);
 
   const handleAddTag = () => {
-    if (tagInput.trim() &amp;&amp; !selectedTags.includes(tagInput.trim())) {
-      setSelectedTags(prev =&gt; [...prev, tagInput.trim()]);
+    if (tagInput.trim() && !selectedTags.includes(tagInput.trim())) {
+      setSelectedTags(prev => [...prev, tagInput.trim()]);
       setTagInput('');
     }
   };
 
-  const handleRemoveTag = (tagToRemove: string) =&gt; {
-    setSelectedTags(prev =&gt; prev.filter(tag =&gt; tag !== tagToRemove));
+  const handleRemoveTag = (tagToRemove: string) => {
+    setSelectedTags(prev => prev.filter(tag => tag !== tagToRemove));
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) =&gt; {
