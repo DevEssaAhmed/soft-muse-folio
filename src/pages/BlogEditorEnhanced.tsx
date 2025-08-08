@@ -36,7 +36,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { createOrGetCategory, getAllCategories, associateBlogPostTags, getBlogPostTags } from '@/lib/tagUtils';
 import FileUpload from '@/components/FileUpload';
-import RichEditor from '@/components/editor/RichEditor';
+import NotionEditor from '@/components/editor/NotionEditor';
+import NotionToolbar from '@/components/editor/NotionToolbar';
 
 const BlogEditorEnhanced: React.FC = () => {
   const navigate = useNavigate();
