@@ -4,9 +4,6 @@ import StarterKit from "@tiptap/starter-kit";
 import { Image } from "@tiptap/extension-image";
 import { Link } from "@tiptap/extension-link";
 import { Placeholder } from "@tiptap/extension-placeholder";
-import { Underline } from "@tiptap/extension-underline";
-import { TextStyle } from "@tiptap/extension-text-style";
-import { Color } from "@tiptap/extension-color";
 import { TaskList } from "@tiptap/extension-task-list";
 import { TaskItem } from "@tiptap/extension-task-item";
 import { Table } from "@tiptap/extension-table";
@@ -27,9 +24,7 @@ import {
   Code, 
   Image as ImageIcon,
   Table as TableIcon,
-  Minus,
-  GripVertical,
-  Plus
+  Minus
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -46,7 +41,6 @@ const NotionEditor: React.FC<NotionEditorProps> = ({
   onChange, 
   placeholder = "Type '/' for commands or start writing..." 
 }) => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Image upload handler
   const uploadImage = useCallback(async (file: File): Promise<string | null> => {
@@ -194,14 +188,7 @@ const NotionEditor: React.FC<NotionEditorProps> = ({
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        bulletList: { keepMarks: true, keepAttributes: false },
-        orderedList: { keepMarks: true, keepAttributes: false },
         codeBlock: false, // Use CodeBlockLowlight instead
-        horizontalRule: {
-          HTMLAttributes: {
-            class: 'notion-hr',
-          },
-        },
       }),
       Slash.configure({
         suggestion: {
@@ -219,26 +206,11 @@ const NotionEditor: React.FC<NotionEditorProps> = ({
         transformCopiedText: true,
         transformPastedText: true,
       }),
-      Image.configure({
-        HTMLAttributes: {
-          class: 'notion-image',
-        },
-        allowBase64: false,
-      }),
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: {
-          class: 'notion-link',
-        },
-      }),
       Placeholder.configure({
         placeholder,
         showOnlyWhenEditable: true,
         showOnlyCurrent: false,
       }),
-      Underline,
-      TextStyle,
-      Color,
       TaskList.configure({
         HTMLAttributes: {
           class: 'notion-task-list',
@@ -256,21 +228,9 @@ const NotionEditor: React.FC<NotionEditorProps> = ({
           class: 'notion-table',
         },
       }),
-      TableRow.configure({
-        HTMLAttributes: {
-          class: 'notion-table-row',
-        },
-      }),
-      TableHeader.configure({
-        HTMLAttributes: {
-          class: 'notion-table-header',
-        },
-      }),
-      TableCell.configure({
-        HTMLAttributes: {
-          class: 'notion-table-cell',
-        },
-      }),
+      TableRow,
+      TableHeader,
+      TableCell,
       CodeBlockLowlight.configure({
         lowlight: createLowlight(),
         HTMLAttributes: {
@@ -280,7 +240,7 @@ const NotionEditor: React.FC<NotionEditorProps> = ({
     ],
     editorProps: {
       attributes: {
-        class: "notion-editor-content focus:outline-none",
+        class: "notion-editor-content focus:outline-none prose prose-lg max-w-none p-8",
         "data-placeholder": placeholder,
       },
       handleDrop: (view, event, slice, moved) => {
@@ -308,25 +268,6 @@ const NotionEditor: React.FC<NotionEditorProps> = ({
         }
         return false;
       },
-      handlePaste: (view, event, slice) => {
-        const items = Array.from(event.clipboardData?.items || []);
-        const images = items.filter(item => item.type.includes('image'));
-        
-        if (images.length > 0) {
-          event.preventDefault();
-          images.forEach(async (item) => {
-            const file = item.getAsFile();
-            if (file) {
-              const src = await uploadImage(file);
-              if (src) {
-                editor?.chain().focus().setImage({ src }).run();
-              }
-            }
-          });
-          return true;
-        }
-        return false;
-      },
     },
     content: value,
     onUpdate({ editor }) {
@@ -342,82 +283,6 @@ const NotionEditor: React.FC<NotionEditorProps> = ({
     }
   }, [editor, value]);
 
-  // Add drag handles to blocks
-  const addDragHandles = useCallback(() => {
-    if (!editor) return;
-    
-    const editorElement = document.querySelector('.notion-editor-content');
-    if (!editorElement) return;
-
-    // Remove existing handles
-    document.querySelectorAll('.notion-drag-handle').forEach(handle => handle.remove());
-
-    // Add drag handles to each block
-    const blocks = editorElement.querySelectorAll('p, h1, h2, h3, ul, ol, blockquote, pre, table, hr');
-    blocks.forEach((block, index) => {
-      if (block.closest('.notion-drag-handle')) return;
-      
-      const handle = document.createElement('button');
-      handle.className = 'notion-drag-handle drag-handle';
-      handle.innerHTML = '⋮⋮';
-      handle.draggable = true;
-      handle.title = 'Drag to move';
-      
-      // Position the handle
-      const blockElement = block as HTMLElement;
-      blockElement.style.position = 'relative';
-      blockElement.appendChild(handle);
-      
-      // Add drag functionality
-      handle.addEventListener('dragstart', (e) => {
-        e.dataTransfer?.setData('text/plain', index.toString());
-      });
-    });
-  }, [editor]);
-
-  // Add plus buttons for new blocks
-  const addPlusButtons = useCallback(() => {
-    if (!editor) return;
-    
-    const editorElement = document.querySelector('.notion-editor-content');
-    if (!editorElement) return;
-
-    // Remove existing plus buttons
-    document.querySelectorAll('.notion-plus-button').forEach(btn => btn.remove());
-
-    // Add plus buttons between blocks
-    const blocks = editorElement.querySelectorAll('p, h1, h2, h3, ul, ol, blockquote, pre, table, hr');
-    blocks.forEach((block) => {
-      const plusButton = document.createElement('button');
-      plusButton.className = 'notion-plus-button plus-button';
-      plusButton.innerHTML = '+';
-      plusButton.title = 'Add block';
-      
-      const blockElement = block as HTMLElement;
-      blockElement.style.position = 'relative';
-      blockElement.appendChild(plusButton);
-      
-      plusButton.addEventListener('click', () => {
-        setIsMenuOpen(true);
-        // Focus at the end of current block
-        const pos = editor.view.posAtDOM(block, 0);
-        editor.chain().focus().setTextSelection(pos).run();
-      });
-    });
-  }, [editor]);
-
-  // Update handles when content changes
-  useEffect(() => {
-    if (editor) {
-      const timeout = setTimeout(() => {
-        addDragHandles();
-        addPlusButtons();
-      }, 100);
-      
-      return () => clearTimeout(timeout);
-    }
-  }, [editor, addDragHandles, addPlusButtons]);
-
   if (!editor) return null;
 
   return (
@@ -426,7 +291,7 @@ const NotionEditor: React.FC<NotionEditorProps> = ({
         <div className="relative">
           <EditorContent 
             editor={editor} 
-            className="notion-editor-wrapper"
+            className="notion-editor-wrapper min-h-[500px]"
           />
           
           {/* Slash Command Menu */}
@@ -456,7 +321,7 @@ const NotionEditor: React.FC<NotionEditorProps> = ({
           
           {/* Drag & Drop Indicator */}
           <div className="absolute top-4 right-4 text-xs text-muted-foreground bg-background/80 rounded px-2 py-1 pointer-events-none">
-            Type "/" for commands • Drag blocks to reorder
+            Type "/" for commands
           </div>
         </div>
       </div>
