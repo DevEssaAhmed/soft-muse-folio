@@ -476,7 +476,26 @@ export type Database = {
         Args: { input_text: string }
         Returns: string
       }
+       // Add the new RPC function here
+      get_all_tags_with_counts: {
+        Args: Record<PropertyKey, never>; // This function takes no arguments
+        Returns: {
+          name: string;
+          total_count: number;
+          article_count: number;
+          project_count: number;
+        }[];
+      }
+       // Add the new RPC function here
+      get_related_tags: {
+        Args: { p_tag_name: string }
+        Returns: {
+          name: string
+          count: number
+        }[]
+      }
     }
+    
     Enums: {
       [_ in never]: never
     }

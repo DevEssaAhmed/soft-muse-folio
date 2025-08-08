@@ -160,56 +160,56 @@ const fetchTagContent = async () => {
     setLoading(false);
   }
 };
-  const fetchRelatedTags = async (currentTag: string) => {
-    try {
-      // Get all blog posts and projects to analyze tags
-      const { data: allBlogPosts } = await supabase
-        .from('blog_posts')
-        .select('tags')
-        .eq('published', true);
+  // const fetchRelatedTags = async (currentTag: string) => {
+  //   try {
+  //     // Get all blog posts and projects to analyze tags
+  //     const { data: allBlogPosts } = await supabase
+  //       .from('blog_posts')
+  //       .select('tags')
+  //       .eq('published', true);
 
-      const { data: allProjects } = await supabase
-        .from('projects')
-        .select('tags');
+  //     const { data: allProjects } = await supabase
+  //       .from('projects')
+  //       .select('tags');
 
-      // Combine and count all tags, excluding the current tag
-      const tagCounts: { [key: string]: number } = {};
+  //     // Combine and count all tags, excluding the current tag
+  //     const tagCounts: { [key: string]: number } = {};
       
-      [...(allBlogPosts || []), ...(allProjects || [])].forEach(item => {
-        if (item.tags && item.tags.includes(currentTag)) {
-          item.tags.forEach((tag: string) => {
-            if (tag !== currentTag) {
-              tagCounts[tag] = (tagCounts[tag] || 0) + 1;
-            }
-          });
-        }
-      });
+  //     [...(allBlogPosts || []), ...(allProjects || [])].forEach(item => {
+  //       if (item.tags && item.tags.includes(currentTag)) {
+  //         item.tags.forEach((tag: string) => {
+  //           if (tag !== currentTag) {
+  //             tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+  //           }
+  //         });
+  //       }
+  //     });
 
-      // Convert to array and sort by count
-      const relatedTagsArray = Object.entries(tagCounts)
-        .map(([name, count]) => ({ name, count }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 10); // Top 10 related tags
+  //     // Convert to array and sort by count
+  //     const relatedTagsArray = Object.entries(tagCounts)
+  //       .map(([name, count]) => ({ name, count }))
+  //       .sort((a, b) => b.count - a.count)
+  //       .slice(0, 10); // Top 10 related tags
 
-      setRelatedTags(relatedTagsArray);
-    } catch (error) {
-      console.error('Error fetching related tags:', error);
-    }
-  };
-// const fetchRelatedTags = async (currentTag: string) => {
-//   try {
-//     const { data, error } = await supabase
-//       .rpc<RelatedTag[], GetRelatedTagsParams>('get_related_tags', { p_tag_name: currentTag });
+  //     setRelatedTags(relatedTagsArray);
+  //   } catch (error) {
+  //     console.error('Error fetching related tags:', error);
+  //   }
+  // };
+const fetchRelatedTags = async (currentTag: string) => {
+  try {
+    const { data, error } = await supabase
+      .rpc('get_related_tags', { p_tag_name: currentTag });
 
-//     if (error) throw error;
+    if (error) throw error;
     
-//     setRelatedTags(data || []);
+    setRelatedTags(data || []);
 
-//   } catch (error) {
-//     console.error('Error fetching related tags:', error);
-//     toast.error('Failed to load related tags.');
-//   }
-// };
+  } catch (error) {
+    console.error('Error fetching related tags:', error);
+    toast.error('Failed to load related tags.');
+  }
+};
   const handleTagClick = (tag: string) => {
     const tagSlug = tag.toLowerCase().replace(/\s+/g, '-');
     navigate(`/tags/${encodeURIComponent(tagSlug)}`);

@@ -31,69 +31,96 @@ const TagsPage = () => {
     fetchTags();
   }, []);
 
-  const fetchTags = async () => {
-    try {
-      // Get all blog posts and projects to analyze tags
-      const [{ data: blogPosts }, { data: projects }] = await Promise.all([
-        supabase
-          .from('blog_posts')
-          .select('tags')
-          .eq('published', true)
-          .not('tags', 'is', null),
-        supabase
-          .from('projects')
-          .select('tags')
-          .not('tags', 'is', null)
-      ]);
+  // const fetchTags = async () => {
+  //   try {
+  //     // Get all blog posts and projects to analyze tags
+  //     const [{ data: blogPosts }, { data: projects }] = await Promise.all([
+  //       supabase
+  //         .from('blog_posts')
+  //         .select('tags')
+  //         .eq('published', true)
+  //         .not('tags', 'is', null),
+  //       supabase
+  //         .from('projects')
+  //         .select('tags')
+  //         .not('tags', 'is', null)
+  //     ]);
 
-      // Count tags across content
-      const tagCounts: { [key: string]: { articles: number; projects: number } } = {};
+  //     // Count tags across content
+  //     const tagCounts: { [key: string]: { articles: number; projects: number } } = {};
       
-      // Count from blog posts
-      blogPosts?.forEach(post => {
-        if (post.tags) {
-          post.tags.forEach((tag: string) => {
-            if (!tagCounts[tag]) {
-              tagCounts[tag] = { articles: 0, projects: 0 };
-            }
-            tagCounts[tag].articles++;
-          });
-        }
-      });
+  //     // Count from blog posts
+  //     blogPosts?.forEach(post => {
+  //       if (post.tags) {
+  //         post.tags.forEach((tag: string) => {
+  //           if (!tagCounts[tag]) {
+  //             tagCounts[tag] = { articles: 0, projects: 0 };
+  //           }
+  //           tagCounts[tag].articles++;
+  //         });
+  //       }
+  //     });
 
-      // Count from projects
-      projects?.forEach(project => {
-        if (project.tags) {
-          project.tags.forEach((tag: string) => {
-            if (!tagCounts[tag]) {
-              tagCounts[tag] = { articles: 0, projects: 0 };
-            }
-            tagCounts[tag].projects++;
-          });
-        }
-      });
+  //     // Count from projects
+  //     projects?.forEach(project => {
+  //       if (project.tags) {
+  //         project.tags.forEach((tag: string) => {
+  //           if (!tagCounts[tag]) {
+  //             tagCounts[tag] = { articles: 0, projects: 0 };
+  //           }
+  //           tagCounts[tag].projects++;
+  //         });
+  //       }
+  //     });
 
-      // Convert to TagInfo array
-      const tagInfoArray: TagInfo[] = Object.entries(tagCounts)
-        .map(([name, counts]) => ({
-          name,
-          slug: name.toLowerCase().replace(/\s+/g, '-'),
-          count: counts.articles + counts.projects,
-          articleCount: counts.articles,
-          projectCount: counts.projects,
-          trending: counts.articles + counts.projects >= 3 // Consider tags with 3+ items as trending
-        }))
-        .sort((a, b) => b.count - a.count);
+  //     // Convert to TagInfo array
+  //     const tagInfoArray: TagInfo[] = Object.entries(tagCounts)
+  //       .map(([name, counts]) => ({
+  //         name,
+  //         slug: name.toLowerCase().replace(/\s+/g, '-'),
+  //         count: counts.articles + counts.projects,
+  //         articleCount: counts.articles,
+  //         projectCount: counts.projects,
+  //         trending: counts.articles + counts.projects >= 3 // Consider tags with 3+ items as trending
+  //       }))
+  //       .sort((a, b) => b.count - a.count);
 
-      setTags(tagInfoArray);
-    } catch (error) {
-      console.error('Error fetching tags:', error);
-      toast.error('Failed to load tags');
-    } finally {
-      setLoading(false);
-    }
-  };
+  //     setTags(tagInfoArray);
+  //   } catch (error) {
+  //     console.error('Error fetching tags:', error);
+  //     toast.error('Failed to load tags');
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+const fetchTags = async () => {
+  try {
+    // Get all tags and their counts in a single efficient query
+    // This query uses a custom RPC function or a more complex query
+    const { data: tagData, error: tagError } = await supabase.rpc('get_all_tags_with_counts');
 
+    if (tagError) throw tagError;
+
+    // The RPC function should return data in the format of your TagInfo[]
+    // If not, you may need to map it here
+    const tagInfoArray = tagData.map(tag => ({
+      name: tag.name,
+      slug: tag.name.toLowerCase().replace(/\s+/g, '-'),
+      count: tag.total_count,
+      articleCount: tag.article_count,
+      projectCount: tag.project_count,
+      trending: tag.total_count >= 3,
+    })).sort((a, b) => b.count - a.count);
+
+    setTags(tagInfoArray);
+
+  } catch (error) {
+    console.error('Error fetching tags:', error);
+    toast.error('Failed to load tags');
+  } finally {
+    setLoading(false);
+  }
+};
   const handleTagClick = (slug: string) => {
     navigate(`/tags/${encodeURIComponent(slug)}`);
   };
