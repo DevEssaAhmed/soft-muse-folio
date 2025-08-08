@@ -65,7 +65,7 @@ const ProjectEditor: React.FC = () => {
       setFormData({
         title: data.title || '',
         description: data.description || '',
-        category: data.category || '',
+        category: data.category_id || '',
         image_url: data.image_url || '',
         demo_url: data.demo_url || '',
         demo_video_url: data.demo_video_url || '',

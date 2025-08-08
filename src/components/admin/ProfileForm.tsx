@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import ProfileAvatarUpload from "@/components/ProfileAvatarUpload";
 
 interface ProfileFormProps {
   profile?: any;
@@ -157,12 +158,9 @@ const ProfileForm = ({ profile, onClose, onSuccess }: ProfileFormProps) => {
             </div>
 
             <div>
-              <Label htmlFor="avatar_url">Avatar URL</Label>
-              <Input
-                id="avatar_url"
-                type="url"
-                value={formData.avatar_url}
-                onChange={(e) => setFormData({...formData, avatar_url: e.target.value})}
+              <ProfileAvatarUpload
+                currentAvatarUrl={formData.avatar_url}
+                onAvatarUpdate={(newAvatarUrl) => setFormData({...formData, avatar_url: newAvatarUrl})}
               />
             </div>
 

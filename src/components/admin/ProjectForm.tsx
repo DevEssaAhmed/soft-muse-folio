@@ -5,10 +5,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import FileUpload from "@/components/FileUpload";
+import MediaPreview from "@/components/MediaPreview";
+import { getAllCategories } from "@/lib/tagUtils";
 
 interface ProjectFormProps {
   project?: any;
@@ -18,37 +21,42 @@ interface ProjectFormProps {
 
 const ProjectForm = ({ project, onClose, onSuccess }: ProjectFormProps) => {
   const { toast } = useToast();
+  const [categories, setCategories] = useState([]);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    category: "",
+    category_id: "",
     image_url: "",
     additional_images: [] as string[],
     demo_url: "",
     demo_video_url: "",
     demo_video_type: "",
     github_url: "",
-    tags: "",
     featured: false,
   });
 
   useEffect(() => {
+    loadCategories();
     if (project) {
       setFormData({
         title: project.title || "",
         description: project.description || "",
-        category: project.category || "",
+        category_id: project.category_id || "",
         image_url: project.image_url || "",
         additional_images: project.additional_images || [],
         demo_url: project.demo_url || "",
         demo_video_url: project.demo_video_url || "",
         demo_video_type: project.demo_video_type || "",
         github_url: project.github_url || "",
-        tags: project.tags ? project.tags.join(", ") : "",
         featured: project.featured || false,
       });
     }
   }, [project]);
+
+  const loadCategories = async () => {
+    const allCategories = await getAllCategories();
+    setCategories(allCategories);
+  };
 
   const handleImageUpload = (urls: string[]) => {
     if (urls.length > 0) {
@@ -70,14 +78,41 @@ const ProjectForm = ({ project, onClose, onSuccess }: ProjectFormProps) => {
     }
   };
 
+  const handleRemoveImage = (index: number) => {
+    if (index === -1) {
+      // Remove main image
+      setFormData(prev => ({ ...prev, image_url: "" }));
+    } else {
+      // Remove from additional images
+      setFormData(prev => ({
+        ...prev,
+        additional_images: prev.additional_images.filter((_, i) => i !== index)
+      }));
+    }
+  };
+
+  const handleRemoveVideo = () => {
+    setFormData(prev => ({ 
+      ...prev, 
+      demo_video_url: "",
+      demo_video_type: "youtube"
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const tagsArray = formData.tags.split(",").map(tag => tag.trim()).filter(tag => tag);
-    
     const projectData = {
-      ...formData,
-      tags: tagsArray,
+      title: formData.title,
+      description: formData.description,
+      category_id: formData.category_id || null,
+      image_url: formData.image_url || null,
+      additional_images: formData.additional_images,
+      demo_url: formData.demo_url || null,
+      demo_video_url: formData.demo_video_url || null,
+      demo_video_type: formData.demo_video_type,
+      github_url: formData.github_url || null,
+      featured: formData.featured,
     };
 
     try {
@@ -139,12 +174,18 @@ const ProjectForm = ({ project, onClose, onSuccess }: ProjectFormProps) => {
 
             <div>
               <Label htmlFor="category">Category</Label>
-              <Input
-                id="category"
-                value={formData.category}
-                onChange={(e) => setFormData({...formData, category: e.target.value})}
-                required
-              />
+              <Select value={formData.category_id} onValueChange={(value) => setFormData({...formData, category_id: value})}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category: any) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Media Uploads */}
@@ -159,6 +200,18 @@ const ProjectForm = ({ project, onClose, onSuccess }: ProjectFormProps) => {
                 maxFiles={1}
                 existingFiles={formData.image_url ? [formData.image_url] : []}
               />
+              
+              {/* Preview main image */}
+              {formData.image_url && (
+                <div>
+                  <Label>Current Project Image</Label>
+                  <MediaPreview 
+                    files={[formData.image_url]} 
+                    type="image" 
+                    onRemove={() => handleRemoveImage(-1)}
+                  />
+                </div>
+              )}
 
               {/* Additional Images */}
               <FileUpload
@@ -168,6 +221,18 @@ const ProjectForm = ({ project, onClose, onSuccess }: ProjectFormProps) => {
                 maxFiles={5}
                 existingFiles={formData.additional_images}
               />
+              
+              {/* Preview additional images */}
+              {formData.additional_images.length > 0 && (
+                <div>
+                  <Label>Additional Images</Label>
+                  <MediaPreview 
+                    files={formData.additional_images} 
+                    type="image" 
+                    onRemove={handleRemoveImage}
+                  />
+                </div>
+              )}
 
               {/* Demo Video Upload */}
               <FileUpload
@@ -177,6 +242,18 @@ const ProjectForm = ({ project, onClose, onSuccess }: ProjectFormProps) => {
                 maxFiles={1}
                 existingFiles={formData.demo_video_url ? [formData.demo_video_url] : []}
               />
+              
+              {/* Preview demo video */}
+              {formData.demo_video_url && (
+                <div>
+                  <Label>Demo Video</Label>
+                  <MediaPreview 
+                    files={[formData.demo_video_url]} 
+                    type="video" 
+                    onRemove={handleRemoveVideo}
+                  />
+                </div>
+              )}
 
               {/* Fallback URL Input */}
               <div>
@@ -211,15 +288,6 @@ const ProjectForm = ({ project, onClose, onSuccess }: ProjectFormProps) => {
               />
             </div>
 
-            <div>
-              <Label htmlFor="tags">Tags (comma-separated)</Label>
-              <Input
-                id="tags"
-                value={formData.tags}
-                onChange={(e) => setFormData({...formData, tags: e.target.value})}
-                placeholder="React, TypeScript, Tailwind"
-              />
-            </div>
 
             <div className="flex items-center space-x-2">
               <Switch

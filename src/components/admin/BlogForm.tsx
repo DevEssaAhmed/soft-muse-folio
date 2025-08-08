@@ -11,6 +11,7 @@ import { X, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import FileUpload from "@/components/FileUpload";
+import MediaPreview from "@/components/MediaPreview";
 
 interface BlogFormProps {
   blogPost?: any;
@@ -161,6 +162,27 @@ const BlogForm = ({ blogPost, onClose, onSuccess }: BlogFormProps) => {
         video_type: urls[0].includes('youtube') || urls[0].includes('vimeo') ? 'external' : 'file'
       }));
     }
+  };
+
+  const handleRemoveImage = (index: number) => {
+    if (index === -1) {
+      // Remove main image
+      setFormData(prev => ({ ...prev, image_url: "" }));
+    } else {
+      // Remove from additional images
+      setFormData(prev => ({
+        ...prev,
+        additional_images: prev.additional_images.filter((_, i) => i !== index)
+      }));
+    }
+  };
+
+  const handleRemoveVideo = () => {
+    setFormData(prev => ({ 
+      ...prev, 
+      video_url: "",
+      video_type: ""
+    }));
   };
 
   const createNewSeries = async () => {
@@ -409,6 +431,18 @@ const BlogForm = ({ blogPost, onClose, onSuccess }: BlogFormProps) => {
                 maxFiles={1}
                 existingFiles={formData.image_url ? [formData.image_url] : []}
               />
+              
+              {/* Preview featured image */}
+              {formData.image_url && (
+                <div>
+                  <Label>Current Featured Image</Label>
+                  <MediaPreview 
+                    files={[formData.image_url]} 
+                    type="image" 
+                    onRemove={() => handleRemoveImage(-1)}
+                  />
+                </div>
+              )}
 
               {/* Additional Images */}
               <FileUpload
@@ -418,6 +452,18 @@ const BlogForm = ({ blogPost, onClose, onSuccess }: BlogFormProps) => {
                 maxFiles={5}
                 existingFiles={formData.additional_images}
               />
+              
+              {/* Preview additional images */}
+              {formData.additional_images.length > 0 && (
+                <div>
+                  <Label>Additional Images</Label>
+                  <MediaPreview 
+                    files={formData.additional_images} 
+                    type="image" 
+                    onRemove={handleRemoveImage}
+                  />
+                </div>
+              )}
 
               {/* Video Upload */}
               <FileUpload
@@ -427,6 +473,18 @@ const BlogForm = ({ blogPost, onClose, onSuccess }: BlogFormProps) => {
                 maxFiles={1}
                 existingFiles={formData.video_url ? [formData.video_url] : []}
               />
+              
+              {/* Preview video */}
+              {formData.video_url && (
+                <div>
+                  <Label>Current Video</Label>
+                  <MediaPreview 
+                    files={[formData.video_url]} 
+                    type="video" 
+                    onRemove={handleRemoveVideo}
+                  />
+                </div>
+              )}
 
               {/* Fallback URL Input */}
               <div>

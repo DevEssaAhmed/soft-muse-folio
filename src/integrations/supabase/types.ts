@@ -41,7 +41,7 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "tags"
             referencedColumns: ["id"]
-          }
+          },
         ]
       }
       blog_posts: {
@@ -125,7 +125,7 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "series"
             referencedColumns: ["id"]
-          }
+          },
         ]
       }
       categories: {
@@ -257,77 +257,6 @@ export type Database = {
         }
         Relationships: []
       }
-      projects: {
-        Row: {
-          additional_images: string[] | null
-          category: string
-          category_id: string | null
-          comments: number | null
-          created_at: string
-          demo_url: string | null
-          demo_video_type: string | null
-          demo_video_url: string | null
-          description: string
-          featured: boolean | null
-          github_url: string | null
-          id: string
-          image_url: string | null
-          likes: number | null
-          tags: string[] | null
-          title: string
-          updated_at: string
-          views: number | null
-        }
-        Insert: {
-          additional_images?: string[] | null
-          category: string
-          category_id?: string | null
-          comments?: number | null
-          created_at?: string
-          demo_url?: string | null
-          demo_video_type?: string | null
-          demo_video_url?: string | null
-          description: string
-          featured?: boolean | null
-          github_url?: string | null
-          id?: string
-          image_url?: string | null
-          likes?: number | null
-          tags?: string[] | null
-          title: string
-          updated_at?: string
-          views?: number | null
-        }
-        Update: {
-          additional_images?: string[] | null
-          category?: string
-          category_id?: string | null
-          comments?: number | null
-          created_at?: string
-          demo_url?: string | null
-          demo_video_type?: string | null
-          demo_video_url?: string | null
-          description?: string
-          featured?: boolean | null
-          github_url?: string | null
-          id?: string
-          image_url?: string | null
-          likes?: number | null
-          tags?: string[] | null
-          title?: string
-          updated_at?: string
-          views?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "projects_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "categories"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
       project_tags: {
         Row: {
           project_id: string
@@ -355,7 +284,82 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "tags"
             referencedColumns: ["id"]
-          }
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          additional_images: string[] | null
+          category_id: string | null
+          comments: number | null
+          created_at: string
+          demo_url: string | null
+          demo_video_type: string | null
+          demo_video_url: string | null
+          description: string
+          featured: boolean | null
+          github_url: string | null
+          id: string
+          image_url: string | null
+          likes: number | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+          views: number | null
+        }
+        Insert: {
+          additional_images?: string[] | null
+          category_id?: string | null
+          comments?: number | null
+          created_at?: string
+          demo_url?: string | null
+          demo_video_type?: string | null
+          demo_video_url?: string | null
+          description: string
+          featured?: boolean | null
+          github_url?: string | null
+          id?: string
+          image_url?: string | null
+          likes?: number | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          views?: number | null
+        }
+        Update: {
+          additional_images?: string[] | null
+          category_id?: string | null
+          comments?: number | null
+          created_at?: string
+          demo_url?: string | null
+          demo_video_type?: string | null
+          demo_video_url?: string | null
+          description?: string
+          featured?: boolean | null
+          github_url?: string | null
+          id?: string
+          image_url?: string | null
+          likes?: number | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_projects_category"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
         ]
       }
       series: {
@@ -406,36 +410,30 @@ export type Database = {
       site_settings: {
         Row: {
           created_at: string
+          description: string | null
           id: string
-          logo_image_url: string | null
-          logo_text: string | null
-          logo_type: string | null
-          primary_color: string | null
-          site_description: string | null
-          site_title: string | null
+          key: string
+          type: string | null
           updated_at: string
+          value: Json
         }
         Insert: {
           created_at?: string
+          description?: string | null
           id?: string
-          logo_image_url?: string | null
-          logo_text?: string | null
-          logo_type?: string | null
-          primary_color?: string | null
-          site_description?: string | null
-          site_title?: string | null
+          key: string
+          type?: string | null
           updated_at?: string
+          value: Json
         }
         Update: {
           created_at?: string
+          description?: string | null
           id?: string
-          logo_image_url?: string | null
-          logo_text?: string | null
-          logo_type?: string | null
-          primary_color?: string | null
-          site_description?: string | null
-          site_title?: string | null
+          key?: string
+          type?: string | null
           updated_at?: string
+          value?: Json
         }
         Relationships: []
       }
@@ -455,7 +453,7 @@ export type Database = {
           description?: string | null
           id?: string
           name: string
-          slug?: string
+          slug: string
           updated_at?: string
         }
         Update: {
@@ -474,7 +472,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_slug: {
+        Args: { input_text: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

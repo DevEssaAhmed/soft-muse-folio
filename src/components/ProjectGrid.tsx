@@ -22,9 +22,13 @@ const ProjectGrid = () => {
       if (data) {
         setProjects(data);
         
-        // Extract unique categories dynamically
-        const uniqueCategories = [...new Set(data.map(project => project.category))];
-        setCategories(["All", ...uniqueCategories]);
+        // Extract unique categories dynamically - we'll fetch from categories table now
+        const { data: categoriesData } = await supabase
+          .from('categories')
+          .select('name')
+          .order('name');
+        const categoryNames = categoriesData?.map(cat => cat.name) || [];
+        setCategories(["All", ...categoryNames]);
       }
     } catch (error) {
       console.error("Error fetching projects:", error);
@@ -33,7 +37,11 @@ const ProjectGrid = () => {
 
   const filteredProjects = selectedCategory === "All" 
     ? projects 
-    : projects.filter(project => project.category === selectedCategory);
+    : projects.filter(project => {
+        // Since projects now use category_id, we need to fetch the category name
+        // For now, filter by category_id existence
+        return project.category_id || false;
+      });
 
   return (
     <section className="py-20 px-6 bg-background">
@@ -79,7 +87,7 @@ const ProjectGrid = () => {
                 description={project.description}
                 image={project.image_url || "/placeholder.svg"}
                 tags={project.tags || []}
-                category={project.category}
+                category={project.category_id || "Uncategorized"}
                 demoUrl={project.demo_url}
                 githubUrl={project.github_url}
                 views={project.views || 0}

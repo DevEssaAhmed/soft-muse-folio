@@ -34,7 +34,7 @@ interface Project {
   id: string;
   title: string;
   description: string;
-  category: string;
+  category_id?: string;
   tags: string[];
   created_at: string;
   views?: number;

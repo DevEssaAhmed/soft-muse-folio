@@ -24,34 +24,29 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setLoading(true);
       setError(null);
 
-      // For now, skip the Supabase call and use default profile
-      // This will help get the app running quickly
-      // const defaultProfile = {
-      //   id: 'default',
-      //   name: 'Alex Chen',
-      //   username: 'alexchen',
-      //   title: 'Full Stack Developer',
-      //   bio: 'Passionate developer specializing in web applications, data science, and modern technologies. Welcome to my portfolio!',
-      //   email: 'alex@example.com',
-      //   avatar_url: '/placeholder.svg',
-      //   github_url: 'https://github.com/alexchen',
-      //   linkedin_url: 'https://linkedin.com/in/alexchen',
-      //   website_url: null,
-      //   location: 'San Francisco, CA',
-      //   skills: ['JavaScript', 'React', 'Node.js', 'Python', 'TypeScript', 'Vue.js'],
-      //   stats: {
-      //     projectsLed: { label: 'Projects Led', value: '15+' },
-      //     hoursAnalyzed: { label: 'Hours Analyzed', value: '500+' },
-      //     clientsServed: { label: 'Clients Served', value: '50+' }
-      //   },
-      //   created_at: new Date().toISOString(),
-      //   updated_at: new Date().toISOString()
-      // };
-      
-      // setProfile(defaultProfile);
+      // Default profile for fallback
+      const defaultProfile = {
+        id: 'default',
+        name: 'Alex Chen',
+        username: 'alexchen',
+        title: 'Full Stack Developer',
+        bio: 'Passionate developer specializing in web applications, data science, and modern technologies. Welcome to my portfolio!',
+        email: 'alex@example.com',
+        avatar_url: '/placeholder.svg',
+        github_url: 'https://github.com/alexchen',
+        linkedin_url: 'https://linkedin.com/in/alexchen',
+        website_url: null,
+        location: 'San Francisco, CA',
+        skills: ['JavaScript', 'React', 'Node.js', 'Python', 'TypeScript', 'Vue.js'],
+        stats: {
+          projectsLed: { label: 'Projects Led', value: '15+' },
+          hoursAnalyzed: { label: 'Hours Analyzed', value: '500+' },
+          clientsServed: { label: 'Clients Served', value: '50+' }
+        },
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
 
-      // Uncomment the code below once the database connection is verified
-      
       // Get the most recent profile (we only allow one profile)
       const { data, error } = await supabase
         .from('profile')

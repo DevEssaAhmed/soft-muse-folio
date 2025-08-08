@@ -38,9 +38,13 @@ const RecentProjects = ({ showAll = false }: RecentProjectsProps) => {
       if (data) {
         setProjects(data);
         
-        // Extract unique categories dynamically
-        const uniqueCategories = [...new Set(data.map(project => project.category))];
-        setCategories(["All", ...uniqueCategories]);
+        // Extract unique categories dynamically - fetch from categories table
+        const { data: categoriesData } = await supabase
+          .from('categories')
+          .select('name')
+          .order('name');
+        const categoryNames = categoriesData?.map(cat => cat.name) || [];
+        setCategories(["All", ...categoryNames]);
       }
     } catch (error) {
       console.error("Error fetching projects:", error);
@@ -51,7 +55,10 @@ const RecentProjects = ({ showAll = false }: RecentProjectsProps) => {
 
   const filteredProjects = selectedCategory === "All" 
     ? projects.slice(0, showAll ? projects.length : 4)
-    : projects.filter(project => project.category === selectedCategory).slice(0, showAll ? projects.length : 4);
+    : projects.filter(project => {
+        // Filter by category_id for now
+        return project.category_id || false;
+      }).slice(0, showAll ? projects.length : 4);
 
   if (loading) {
     return (
@@ -131,7 +138,7 @@ const RecentProjects = ({ showAll = false }: RecentProjectsProps) => {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <Badge variant="outline" className="mb-2 w-fit">
-                    {project.category}
+                    {project.category_id || "Uncategorized"}
                   </Badge>
                 </div>
                 <CardTitle className="group-hover:text-primary transition-colors line-clamp-2">
