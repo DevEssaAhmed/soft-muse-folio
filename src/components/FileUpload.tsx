@@ -243,7 +243,24 @@ export const FileUpload = ({
     setIsDragOver(false);
   }, []);
 
-  const removeFile = (index: number) => {
+  const removeFile = async (index: number) => {
+    const fileUrl = uploadedFiles[index];
+    // Try removing from Supabase storage if this is a Supabase public URL
+    try {
+      const pubMarker = '/storage/v1/object/public/';
+      if (fileUrl && fileUrl.includes(pubMarker)) {
+        const after = fileUrl.split(pubMarker)[1]; // e.g. images/123-name.webp
+        const bucketName = after.split('/')[0];
+        const objectPath = after.substring(bucketName.length + 1);
+        // Only attempt delete if bucket matches expected for this uploadType
+        const expectedBucket = getBucketName();
+        if (bucketName === expectedBucket) {
+          await supabase.storage.from(bucketName).remove([objectPath]);
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to delete from storage (ignoring):', e);
+    }
     const newFiles = uploadedFiles.filter((_, i) => i !== index);
     setUploadedFiles(newFiles);
     onUploadComplete(newFiles);
