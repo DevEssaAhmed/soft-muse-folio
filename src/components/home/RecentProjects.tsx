@@ -27,37 +27,66 @@ const RecentProjects = ({ showAll = false }: RecentProjectsProps) => {
     fetchProjects();
   }, []);
 
-  const fetchProjects = async () => {
-    try {
-      // const { data } = await supabase
-      //   .from("projects")
-      //   .select("*")
-      //   .order("created_at", { ascending: false })
-      //   .limit(showAll ? 50 : 6);
-      const { data } = await supabase
-  .from("projects")
-  .select("*, categories(name)")
-  .order("created_at", { ascending: false })
-  .limit(showAll ? 50 : 6);
+  // const fetchProjects = async () => {
+  //   try {
+  //     // const { data } = await supabase
+  //     //   .from("projects")
+  //     //   .select("*")
+  //     //   .order("created_at", { ascending: false })
+  //     //   .limit(showAll ? 50 : 6);
+  //     const { data } = await supabase
+  // .from("projects")
+  // .select("*, categories(name)")
+  // .order("created_at", { ascending: false })
+  // .limit(showAll ? 50 : 6);
 
-      if (data) {
-        setProjects(data);
+  //     if (data) {
+  //       setProjects(data);
         
-        // Extract unique categories dynamically - fetch from categories table
-        const { data: categoriesData } = await supabase
-          .from('categories')
-          .select('name')
-          .order('name');
-        const categoryNames = categoriesData?.map(cat => cat.name) || [];
-        setCategories(["All", ...categoryNames]);
-      }
-    } catch (error) {
-      console.error("Error fetching projects:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  //       // Extract unique categories dynamically - fetch from categories table
+  //       const { data: categoriesData } = await supabase
+  //         .from('categories')
+  //         .select('name')
+  //         .order('name');
+  //       const categoryNames = categoriesData?.map(cat => cat.name) || [];
+  //       setCategories(["All", ...categoryNames]);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching projects:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+const fetchProjects = async () => {
+  try {
+    const { data } = await supabase
+      .from("projects")
+      .select("*, categories(name), project_tags(tags(name))") // <--- This line is changed
+      .order("created_at", { ascending: false })
+      .limit(showAll ? 50 : 6);
 
+    if (data) {
+      // Process the data to simplify the tags array
+      const projectsWithTags = data.map(project => ({
+        ...project,
+        tags: project.project_tags.map(pt => pt.tags.name)
+      }));
+
+      setProjects(projectsWithTags);
+      
+      const { data: categoriesData } = await supabase
+        .from('categories')
+        .select('name')
+        .order('name');
+      const categoryNames = categoriesData?.map(cat => cat.name) || [];
+      setCategories(["All", ...categoryNames]);
+    }
+  } catch (error) {
+    console.error("Error fetching projects:", error);
+  } finally {
+    setLoading(false);
+  }
+};
   const filteredProjects = selectedCategory === "All" 
     ? projects.slice(0, showAll ? projects.length : 4)
     : projects.filter(project => {
