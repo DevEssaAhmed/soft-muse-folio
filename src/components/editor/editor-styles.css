@@ -1,206 +1,360 @@
-/* TipTap Editor Styles */
+/* Notion-like Editor Styles */
 
-/* Task List Styling */
-.ProseMirror .task-list {
-  list-style: none;
-  padding-left: 0;
+/* Base Editor Styles */
+.notion-editor {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  line-height: 1.6;
+  color: rgb(55, 53, 47);
 }
 
-.ProseMirror .task-item {
-  display: flex;
-  align-items: flex-start;
-  margin: 0.5rem 0;
-}
-
-.ProseMirror .task-item input[type="checkbox"] {
-  margin-right: 0.5rem;
-  margin-top: 0.25rem;
-  cursor: pointer;
-  accent-color: hsl(var(--primary));
-}
-
-.ProseMirror .task-item > div {
-  flex: 1;
-}
-
-/* Table Styling */
-.ProseMirror table {
-  border-collapse: collapse;
-  margin: 1rem 0;
-  overflow: hidden;
-  table-layout: fixed;
-  width: 100%;
-}
-
-.ProseMirror table td,
-.ProseMirror table th {
-  border: 1px solid hsl(var(--border));
-  box-sizing: border-box;
-  min-width: 1rem;
-  padding: 6px 8px;
-  position: relative;
-  vertical-align: top;
-}
-
-.ProseMirror table th {
-  background-color: hsl(var(--muted));
-  font-weight: 600;
-  text-align: left;
-}
-
-.ProseMirror table .selectedCell:after {
-  background: hsl(var(--primary) / 0.2);
-  content: "";
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  pointer-events: none;
-  position: absolute;
-  z-index: 2;
-}
-
-.ProseMirror table .column-resize-handle {
-  background-color: hsl(var(--primary));
-  bottom: -2px;
-  position: absolute;
-  right: -2px;
-  top: 0;
-  width: 4px;
-  pointer-events: none;
-}
-
-.ProseMirror table p {
-  margin: 0;
-}
-
-/* Image Styling */
-.ProseMirror img {
-  max-width: 100%;
-  height: auto;
-  border-radius: 0.5rem;
-  margin: 1rem 0;
-  cursor: pointer;
-}
-
-.ProseMirror img.ProseMirror-selectednode {
-  outline: 2px solid hsl(var(--primary));
-  outline-offset: 2px;
-}
-
-/* Code Block Styling */
-.ProseMirror pre {
-  background: hsl(var(--muted));
-  border-radius: 0.5rem;
-  color: hsl(var(--foreground));
-  font-family: ui-monospace, SFMono-Regular, 'SF Mono', monospace;
-  margin: 1rem 0;
-  padding: 1rem;
-  overflow-x: auto;
-}
-
-.ProseMirror pre code {
-  background: none;
-  font-size: 0.875rem;
+.notion-editor .ProseMirror {
+  outline: none;
   padding: 0;
+  min-height: 500px;
 }
 
-/* Blockquote Styling */
-.ProseMirror blockquote {
-  border-left: 4px solid hsl(var(--primary));
-  padding-left: 1rem;
-  margin: 1rem 0;
-  font-style: italic;
-  color: hsl(var(--muted-foreground));
+/* Block Elements */
+.notion-editor .ProseMirror > * {
+  margin-top: 0;
+  margin-bottom: 2px;
+  padding: 3px 2px;
+  position: relative;
 }
 
-/* Link Styling */
-.ProseMirror a {
-  color: hsl(var(--primary));
+.notion-editor .ProseMirror > *:hover .drag-handle {
+  opacity: 1;
+}
+
+/* Notion-like Drag Handle */
+.drag-handle {
+  position: absolute;
+  left: -40px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  cursor: grab;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: rgb(120, 119, 116);
+  background: transparent;
+  border: none;
+  z-index: 10;
+}
+
+.drag-handle:hover {
+  background: rgb(55, 53, 47, 0.08);
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+/* Plus Button for New Blocks */
+.plus-button {
+  position: absolute;
+  left: -40px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
   cursor: pointer;
-  text-decoration: underline;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: rgb(120, 119, 116);
+  background: transparent;
+  border: none;
+  z-index: 10;
 }
 
-.ProseMirror a:hover {
-  opacity: 0.8;
+.plus-button:hover {
+  background: rgb(55, 53, 47, 0.08);
 }
 
-/* Placeholder Styling */
-.ProseMirror p.is-editor-empty:first-child::before {
-  color: hsl(var(--muted-foreground));
-  content: attr(data-placeholder);
+/* Headings */
+.notion-editor h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 2rem 0 4px 0;
+  color: rgb(55, 53, 47);
+  line-height: 1.2;
+}
+
+.notion-editor h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 1.4rem 0 2px 0;
+  color: rgb(55, 53, 47);
+  line-height: 1.3;
+}
+
+.notion-editor h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 1rem 0 2px 0;
+  color: rgb(55, 53, 47);
+  line-height: 1.3;
+}
+
+/* Paragraphs */
+.notion-editor p {
+  margin: 1px 0;
+  color: rgb(55, 53, 47);
+  font-size: 16px;
+  line-height: 1.5;
+  min-height: 1.5em;
+}
+
+.notion-editor p.is-empty::before {
+  content: '';
   float: left;
   height: 0;
   pointer-events: none;
 }
 
-/* General Editor Styling */
-.ProseMirror {
+/* Lists */
+.notion-editor ul {
+  margin: 1px 0;
+  padding-left: 26px;
+}
+
+.notion-editor ol {
+  margin: 1px 0;
+  padding-left: 26px;
+}
+
+.notion-editor li {
+  margin: 0;
+  color: rgb(55, 53, 47);
+  line-height: 1.5;
+}
+
+/* Task Lists */
+.notion-editor .task-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 1px 0;
+}
+
+.notion-editor .task-item {
+  display: flex;
+  align-items: flex-start;
+  margin: 2px 0;
+}
+
+.notion-editor .task-item input[type="checkbox"] {
+  margin: 0 8px 0 0;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: rgb(35, 131, 226);
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+/* Blockquotes */
+.notion-editor blockquote {
+  margin: 4px 0;
+  padding-left: 16px;
+  border-left: 3px solid rgb(235, 87, 87);
+  color: rgb(120, 119, 116);
+  font-style: normal;
+  background: transparent;
+}
+
+/* Code Blocks */
+.notion-editor pre {
+  background: rgb(247, 246, 243);
+  border-radius: 3px;
+  padding: 16px;
+  margin: 4px 0;
+  font-family: 'SFMono-Regular', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  font-size: 14px;
+  line-height: 1.4;
+  overflow-x: auto;
+  color: rgb(55, 53, 47);
+}
+
+/* Inline Code */
+.notion-editor code {
+  background: rgb(247, 246, 243);
+  color: rgb(235, 87, 87);
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-family: 'SFMono-Regular', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  font-size: 85%;
+}
+
+/* Links */
+.notion-editor a {
+  color: rgb(35, 131, 226);
+  text-decoration: underline;
+  text-decoration-color: rgba(35, 131, 226, 0.4);
+  text-underline-offset: 2px;
+  transition: text-decoration-color 0.2s ease;
+}
+
+.notion-editor a:hover {
+  text-decoration-color: rgb(35, 131, 226);
+}
+
+/* Images */
+.notion-editor img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 3px;
+  margin: 8px 0;
+  box-shadow: rgba(15, 15, 15, 0.1) 0px 0px 0px 1px, rgba(15, 15, 15, 0.1) 0px 2px 4px;
+}
+
+/* Tables */
+.notion-editor table {
+  border-collapse: collapse;
+  margin: 8px 0;
+  width: 100%;
+  box-shadow: rgba(15, 15, 15, 0.1) 0px 0px 0px 1px;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.notion-editor th {
+  background: rgb(247, 246, 243);
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 500;
+  color: rgb(120, 119, 116);
+  border-bottom: 1px solid rgba(55, 53, 47, 0.16);
+}
+
+.notion-editor td {
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(55, 53, 47, 0.16);
+  color: rgb(55, 53, 47);
+}
+
+/* Slash Command Menu */
+.slash-menu {
+  background: white;
+  border-radius: 6px;
+  box-shadow: rgba(15, 15, 15, 0.05) 0px 0px 0px 1px, rgba(15, 15, 15, 0.1) 0px 3px 6px, rgba(15, 15, 15, 0.2) 0px 9px 24px;
+  padding: 4px;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 50;
+}
+
+.slash-menu-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+  color: rgb(55, 53, 47);
+}
+
+.slash-menu-item:hover,
+.slash-menu-item.selected {
+  background: rgb(35, 131, 226, 0.1);
+}
+
+.slash-menu-item-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 12px;
+  flex-shrink: 0;
+  color: rgb(120, 119, 116);
+}
+
+.slash-menu-item-content {
+  flex: 1;
+}
+
+.slash-menu-item-title {
+  font-weight: 500;
+  color: rgb(55, 53, 47);
+}
+
+.slash-menu-item-description {
+  font-size: 12px;
+  color: rgb(120, 119, 116);
+}
+
+/* Empty State */
+.notion-editor .is-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: rgb(120, 119, 116);
+  pointer-events: none;
+  height: 0;
+}
+
+/* Focus States */
+.notion-editor .ProseMirror:focus-within {
   outline: none;
-  padding: 1.5rem;
-  min-height: 500px;
-  font-size: 1rem;
-  line-height: 1.6;
 }
 
-.ProseMirror h1,
-.ProseMirror h2,
-.ProseMirror h3,
-.ProseMirror h4,
-.ProseMirror h5,
-.ProseMirror h6 {
-  line-height: 1.3;
-  margin-top: 1.5rem;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
+/* Selection */
+.notion-editor .ProseMirror ::selection {
+  background: rgba(35, 131, 226, 0.2);
 }
 
-.ProseMirror h1 {
-  font-size: 2rem;
+/* Dark Mode Support */
+.dark .notion-editor {
+  color: rgb(255, 255, 255);
 }
 
-.ProseMirror h2 {
-  font-size: 1.5rem;
+.dark .notion-editor h1,
+.dark .notion-editor h2,
+.dark .notion-editor h3 {
+  color: rgb(255, 255, 255);
 }
 
-.ProseMirror h3 {
-  font-size: 1.25rem;
+.dark .notion-editor p,
+.dark .notion-editor li {
+  color: rgba(255, 255, 255, 0.9);
 }
 
-.ProseMirror ul,
-.ProseMirror ol {
-  padding-left: 1.5rem;
-  margin: 1rem 0;
+.dark .notion-editor pre,
+.dark .notion-editor code {
+  background: rgb(37, 37, 37);
+  color: rgb(255, 255, 255);
 }
 
-.ProseMirror li {
-  margin: 0.25rem 0;
+.dark .notion-editor blockquote {
+  color: rgba(255, 255, 255, 0.7);
 }
 
-.ProseMirror p {
-  margin: 1rem 0;
+.dark .slash-menu {
+  background: rgb(32, 32, 32);
+  box-shadow: rgba(15, 15, 15, 0.2) 0px 0px 0px 1px, rgba(15, 15, 15, 0.4) 0px 3px 6px, rgba(15, 15, 15, 0.6) 0px 9px 24px;
 }
 
-.ProseMirror p:first-child {
-  margin-top: 0;
+.dark .slash-menu-item {
+  color: rgb(255, 255, 255);
 }
 
-.ProseMirror p:last-child {
-  margin-bottom: 0;
+.dark .slash-menu-item:hover,
+.dark .slash-menu-item.selected {
+  background: rgba(255, 255, 255, 0.1);
 }
 
-/* Dark mode adjustments */
-@media (prefers-color-scheme: dark) {
-  .ProseMirror pre {
-    background: hsl(var(--muted));
-  }
-  
-  .ProseMirror table td,
-  .ProseMirror table th {
-    border-color: hsl(var(--border));
-  }
-  
-  .ProseMirror table th {
-    background-color: hsl(var(--muted));
-  }
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.slash-menu {
+  animation: fadeIn 0.1s ease-out;
 }
