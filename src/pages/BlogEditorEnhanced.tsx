@@ -318,19 +318,19 @@ const BlogEditorEnhanced: React.FC = () => {
     }
   };
 
-  const handleImageUpload = (urls: string[]) =&gt; {
-    if (urls.length &gt; 0) {
-      setFormData(prev =&gt; ({ ...prev, image_url: urls[0] }));
+  const handleImageUpload = (urls: string[]) => {
+    if (urls.length > 0) {
+      setFormData(prev => ({ ...prev, image_url: urls[0] }));
     }
   };
 
-  const handleAdditionalImagesUpload = (urls: string[]) =&gt; {
-    setFormData(prev =&gt; ({ ...prev, additional_images: urls.join(', ') }));
+  const handleAdditionalImagesUpload = (urls: string[]) => {
+    setFormData(prev => ({ ...prev, additional_images: urls.join(', ') }));
   };
 
-  const handleVideoUpload = (urls: string[]) =&gt; {
-    if (urls.length &gt; 0) {
-      setFormData(prev =&gt; ({ 
+  const handleVideoUpload = (urls: string[]) => {
+    if (urls.length > 0) {
+      setFormData(prev => ({ 
         ...prev, 
         video_url: urls[0],
         video_type: urls[0].includes('youtube') || urls[0].includes('vimeo') ? 'external' : 'file'
