@@ -229,6 +229,7 @@ test_plan:
     - "Frontend UI components working correctly"
   stuck_tasks:
     - "Admin Panel CRUD Operations"
+- "Notion-like editor and client-side image editing"
   test_all: true
   test_priority: "authentication_fix_required"
 
