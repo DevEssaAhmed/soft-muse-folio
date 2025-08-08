@@ -281,7 +281,6 @@ const BlogEditorEnhanced: React.FC = () => {
         image_url: formData.image_url,
         video_url: formData.video_url,
         video_type: formData.video_type,
-        additional_images: additionalImagesArray,
         category_id: categoryId || null,
         series_id: formData.series_id || null,
         series_order: formData.series_order,
