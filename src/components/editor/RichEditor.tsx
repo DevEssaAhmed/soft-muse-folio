@@ -15,7 +15,7 @@ import TableCell from "@tiptap/extension-table-cell";
 import TableHeader from "@tiptap/extension-table-header";
 import { lowlight } from "lowlight/lib/core";
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
-import Markdown from "@tiptap/extension-markdown";
+import { Markdown } from "tiptap-markdown";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Bold, Italic, Strikethrough, Underline as UnderlineIcon, List, ListOrdered, Quote, Code, Image as ImageIcon, Table as TableIcon, CheckSquare, Link as LinkIcon, Heading1, Heading2, Heading3 } from "lucide-react";
