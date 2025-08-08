@@ -1,0 +1,206 @@
+/* TipTap Editor Styles */
+
+/* Task List Styling */
+.ProseMirror .task-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.ProseMirror .task-item {
+  display: flex;
+  align-items: flex-start;
+  margin: 0.5rem 0;
+}
+
+.ProseMirror .task-item input[type="checkbox"] {
+  margin-right: 0.5rem;
+  margin-top: 0.25rem;
+  cursor: pointer;
+  accent-color: hsl(var(--primary));
+}
+
+.ProseMirror .task-item > div {
+  flex: 1;
+}
+
+/* Table Styling */
+.ProseMirror table {
+  border-collapse: collapse;
+  margin: 1rem 0;
+  overflow: hidden;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.ProseMirror table td,
+.ProseMirror table th {
+  border: 1px solid hsl(var(--border));
+  box-sizing: border-box;
+  min-width: 1rem;
+  padding: 6px 8px;
+  position: relative;
+  vertical-align: top;
+}
+
+.ProseMirror table th {
+  background-color: hsl(var(--muted));
+  font-weight: 600;
+  text-align: left;
+}
+
+.ProseMirror table .selectedCell:after {
+  background: hsl(var(--primary) / 0.2);
+  content: "";
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 2;
+}
+
+.ProseMirror table .column-resize-handle {
+  background-color: hsl(var(--primary));
+  bottom: -2px;
+  position: absolute;
+  right: -2px;
+  top: 0;
+  width: 4px;
+  pointer-events: none;
+}
+
+.ProseMirror table p {
+  margin: 0;
+}
+
+/* Image Styling */
+.ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+  cursor: pointer;
+}
+
+.ProseMirror img.ProseMirror-selectednode {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+/* Code Block Styling */
+.ProseMirror pre {
+  background: hsl(var(--muted));
+  border-radius: 0.5rem;
+  color: hsl(var(--foreground));
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', monospace;
+  margin: 1rem 0;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+.ProseMirror pre code {
+  background: none;
+  font-size: 0.875rem;
+  padding: 0;
+}
+
+/* Blockquote Styling */
+.ProseMirror blockquote {
+  border-left: 4px solid hsl(var(--primary));
+  padding-left: 1rem;
+  margin: 1rem 0;
+  font-style: italic;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Link Styling */
+.ProseMirror a {
+  color: hsl(var(--primary));
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.ProseMirror a:hover {
+  opacity: 0.8;
+}
+
+/* Placeholder Styling */
+.ProseMirror p.is-editor-empty:first-child::before {
+  color: hsl(var(--muted-foreground));
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* General Editor Styling */
+.ProseMirror {
+  outline: none;
+  padding: 1.5rem;
+  min-height: 500px;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.ProseMirror h1,
+.ProseMirror h2,
+.ProseMirror h3,
+.ProseMirror h4,
+.ProseMirror h5,
+.ProseMirror h6 {
+  line-height: 1.3;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.ProseMirror h1 {
+  font-size: 2rem;
+}
+
+.ProseMirror h2 {
+  font-size: 1.5rem;
+}
+
+.ProseMirror h3 {
+  font-size: 1.25rem;
+}
+
+.ProseMirror ul,
+.ProseMirror ol {
+  padding-left: 1.5rem;
+  margin: 1rem 0;
+}
+
+.ProseMirror li {
+  margin: 0.25rem 0;
+}
+
+.ProseMirror p {
+  margin: 1rem 0;
+}
+
+.ProseMirror p:first-child {
+  margin-top: 0;
+}
+
+.ProseMirror p:last-child {
+  margin-bottom: 0;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .ProseMirror pre {
+    background: hsl(var(--muted));
+  }
+  
+  .ProseMirror table td,
+  .ProseMirror table th {
+    border-color: hsl(var(--border));
+  }
+  
+  .ProseMirror table th {
+    background-color: hsl(var(--muted));
+  }
+}
