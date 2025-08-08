@@ -685,18 +685,6 @@ const BlogEditorEnhanced: React.FC = () => {
                     enableImageEditing={true}
                   />
 
-                  {/* Additional Images with simultaneous support */}
-                  <FileUpload
-                    label="Additional Images"
-                    uploadType="image"
-                    onUploadComplete={handleAdditionalImagesUpload}
-                    maxFiles={5}
-                    multiple={true}
-                    existingFiles={formData.additional_images ? formData.additional_images.split(', ').filter(img => img.trim()) : []}
-                    simultaneousMode={true}
-                    urlInputPlaceholder="https://example.com/additional-image.jpg"
-                  />
-
                   {/* Video Upload with simultaneous support */}
                   <FileUpload
                     label="Video (Optional)"
