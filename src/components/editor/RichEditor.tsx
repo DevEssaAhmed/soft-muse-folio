@@ -134,7 +134,7 @@ const RichEditor: React.FC<RichEditorProps> = ({
         },
       }),
       CodeBlockLowlight.configure({
-        lowlight,
+        lowlight: createLowlight(),
         HTMLAttributes: {
           class: 'rounded-lg bg-gray-100 dark:bg-gray-800 p-4 my-4',
         },
