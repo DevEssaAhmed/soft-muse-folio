@@ -250,8 +250,8 @@ const BlogEditorEnhanced: React.FC = () => {
         setFormData(prev => ({ ...prev, series_id: mockId }));
         toast({ title: 'Series created successfully (demo mode)' });
       } else {
-        setSeries(prev =&gt; [...prev, data]);
-        setFormData(prev =&gt; ({ ...prev, series_id: data.id }));
+        setSeries(prev => [...prev, data]);
+        setFormData(prev => ({ ...prev, series_id: data.id }));
         toast({ title: 'Series created successfully' });
       }
       setShowNewSeriesDialog(false);
