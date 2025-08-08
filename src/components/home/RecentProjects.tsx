@@ -190,7 +190,7 @@ const fetchProjects = async () => {
               <CardContent>
                 {/* Tags */}
                 <div className="flex flex-wrap gap-1 mb-4">
-                  {project.tags?.slice(0, 3).map((tag) => (
+                  {project.tags?.slice(0, 5).map((tag) => (
                     <Badge 
                       key={tag} 
                       variant="secondary" 

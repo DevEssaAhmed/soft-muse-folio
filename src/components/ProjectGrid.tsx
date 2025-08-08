@@ -47,19 +47,18 @@ const fetchProjects = async () => {
   try {
     const { data } = await supabase
       .from("projects")
-      .select(`
-        *,
-        categories(name),
-        projects_tags (
-          tags (
-            name
-          )
-        )
-      `)
-      .order("created_at", { ascending: false });
+      .select("*, categories(name), project_tags(tags(name))") // <--- This line is changed
+      .order("created_at", { ascending: false })
+     
 
     if (data) {
-      setProjects(data);
+      // Process the data to simplify the tags array
+      const projectsWithTags = data.map(project => ({
+        ...project,
+        tags: project.project_tags.map(pt => pt.tags.name)
+      }));
+
+      setProjects(projectsWithTags);
 
       // Extract unique categories dynamically from categories table
       const { data: categoriesData } = await supabase
