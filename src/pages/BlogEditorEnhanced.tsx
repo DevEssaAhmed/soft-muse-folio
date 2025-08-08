@@ -204,7 +204,7 @@ const BlogEditorEnhanced: React.FC = () => {
     setSelectedTags(prev => prev.filter(tag => tag !== tagToRemove));
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) =&gt; {
+  const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       handleAddTag();
