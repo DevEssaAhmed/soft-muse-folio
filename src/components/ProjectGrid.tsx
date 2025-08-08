@@ -12,37 +12,70 @@ const ProjectGrid = () => {
     fetchProjects();
   }, []);
 
-  const fetchProjects = async () => {
-    try {
-      // const { data } = await supabase
-      //   .from("projects")
-      //   .select("*")
-      //   .order("created_at", { ascending: false });
-           const { data } = await supabase
-  .from("projects")
-  .select("*, categories(name)")
-  .order("created_at", { ascending: false })
+  // const fetchProjects = async () => {
+  //   try {
+  //     // const { data } = await supabase
+  //     //   .from("projects")
+  //     //   .select("*")
+  //     //   .order("created_at", { ascending: false });
+  //          const { data } = await supabase
+  // .from("projects")
+  // .select("*, categories(name)")
+  // .order("created_at", { ascending: false })
   
 
 
 
 
 
-      if (data) {
-        setProjects(data);
+  //     if (data) {
+  //       setProjects(data);
         
-        // Extract unique categories dynamically - we'll fetch from categories table now
-        const { data: categoriesData } = await supabase
-          .from('categories')
-          .select('name')
-          .order('name');
-        const categoryNames = categoriesData?.map(cat => cat.name) || [];
-        setCategories(["All", ...categoryNames]);
-      }
-    } catch (error) {
-      console.error("Error fetching projects:", error);
+  //       // Extract unique categories dynamically - we'll fetch from categories table now
+  //       const { data: categoriesData } = await supabase
+  //         .from('categories')
+  //         .select('name')
+  //         .order('name');
+  //       const categoryNames = categoriesData?.map(cat => cat.name) || [];
+  //       setCategories(["All", ...categoryNames]);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching projects:", error);
+  //   }
+  // };
+const fetchProjects = async () => {
+  try {
+    const { data } = await supabase
+      .from("projects")
+      .select(`
+        *,
+        categories(name),
+        projects_tags (
+          tags (
+            name
+          )
+        )
+      `)
+      .order("created_at", { ascending: false });
+
+    if (data) {
+      setProjects(data);
+
+      // Extract unique categories dynamically from categories table
+      const { data: categoriesData } = await supabase
+        .from("categories")
+        .select("name")
+        .order("name");
+
+      const categoryNames = categoriesData?.map((cat) => cat.name) || [];
+      setCategories(["All", ...categoryNames]);
     }
-  };
+  } catch (error) {
+    console.error("Error fetching projects:", error);
+  }
+};s
+
+
 
   const filteredProjects = selectedCategory === "All" 
     ? projects 
