@@ -73,7 +73,7 @@ const fetchProjects = async () => {
   } catch (error) {
     console.error("Error fetching projects:", error);
   }
-};s
+}
 
 
 
