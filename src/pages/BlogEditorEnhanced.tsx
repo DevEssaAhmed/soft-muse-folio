@@ -491,7 +491,7 @@ const BlogEditorEnhanced: React.FC = () => {
               <CardContent className="p-4">
                 <h3 className="font-semibold mb-4 flex items-center gap-2">
                   <Tag className="w-4 h-4" />
-                  Categories &amp; Series
+                  Categories & Series
                 </h3>
                 <div className="space-y-4">
                   {/* Category Selection */}
