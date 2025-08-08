@@ -64,7 +64,6 @@ const BlogEditorEnhanced: React.FC = () => {
     image_url: '',
     video_url: '',
     video_type: 'youtube',
-    additional_images: '',
     category_id: '',
     category_name: '', // For new category creation
     series_id: '',      // Added series support
