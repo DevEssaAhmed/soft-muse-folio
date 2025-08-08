@@ -43,6 +43,16 @@ interface Project {
   demo_url?: string;
   github_url?: string;
 }
+// Define the type for the data returned by your RPC function
+interface RelatedTag {
+  name: string;
+  count: number;
+}
+// Define the type for the parameters passed to your RPC function
+interface GetRelatedTagsParams {
+  p_tag_name: string;
+}
+
 
 const TagDetailPage: React.FC = () => {
   const { tagSlug } = useParams<{ tagSlug: string }>();
@@ -60,43 +70,96 @@ const TagDetailPage: React.FC = () => {
     }
   }, [tagSlug]);
 
-  const fetchTagContent = async () => {
-    if (!tagSlug) return;
+  // const fetchTagContent = async () => {
+  //   if (!tagSlug) return;
     
-    setLoading(true);
-    try {
-      // Decode the tag name from slug
-      const decodedTag = decodeURIComponent(tagSlug.replace(/-/g, ' '));
-      setTagName(decodedTag);
+  //   setLoading(true);
+  //   try {
+  //     // Decode the tag name from slug
+  //     const decodedTag = decodeURIComponent(tagSlug.replace(/-/g, ' '));
+  //     setTagName(decodedTag);
 
-      // Fetch blog posts with this tag
-      const { data: blogData } = await supabase
-        .from('blog_posts')
-        .select('*')
-        .contains('tags', [decodedTag])
-        .eq('published', true)
-        .order('created_at', { ascending: false });
+  //     // Fetch blog posts with this tag
+  //     const { data: blogData } = await supabase
+  //       .from('blog_posts')
+  //       .select('*')
+  //       .contains('tags', [decodedTag])
+  //       .eq('published', true)
+  //       .order('created_at', { ascending: false });
 
-      // Fetch projects with this tag
-      const { data: projectData } = await supabase
-        .from('projects')
-        .select('*')
-        .contains('tags', [decodedTag])
-        .order('created_at', { ascending: false });
+  //     // Fetch projects with this tag
+  //     const { data: projectData } = await supabase
+  //       .from('projects')
+  //       .select('*')
+  //       .contains('tags', [decodedTag])
+  //       .order('created_at', { ascending: false });
 
-      setBlogPosts(blogData || []);
-      setProjects(projectData || []);
+  //     setBlogPosts(blogData || []);
+  //     setProjects(projectData || []);
 
-      // Generate related tags based on content with the same tag
-      await fetchRelatedTags(decodedTag);
+  //     // Generate related tags based on content with the same tag
+  //     await fetchRelatedTags(decodedTag);
       
-    } catch (error) {
-      console.error('Error fetching tag content:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  //   } catch (error) {
+  //     console.error('Error fetching tag content:', error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+const fetchTagContent = async () => {
+  if (!tagSlug) return;
+  
+  setLoading(true);
+  try {
+    const decodedTag = decodeURIComponent(tagSlug.replace(/-/g, ' '));
+    setTagName(decodedTag);
 
+    // First, get the ID of the current tag
+    const { data: tagData, error: tagError } = await supabase
+      .from('tags')
+      .select('id')
+      .eq('name', decodedTag)
+      .single();
+
+    if (tagError || !tagData) {
+      console.error('Tag not found:', tagError?.message);
+      setBlogPosts([]);
+      setProjects([]);
+      setLoading(false);
+      return;
+    }
+
+    const tagId = tagData.id;
+
+    // Fetch blog posts using the join table
+    const { data: blogPostTagData } = await supabase
+      .from('blog_post_tags')
+      .select('blog_posts(*)') // Select all columns from the linked blog_posts table
+      .eq('tag_id', tagId);
+    
+    // Extract the blog posts from the nested response
+    const blogPostsWithTags = blogPostTagData?.map(item => item.blog_posts) || [];
+    setBlogPosts(blogPostsWithTags);
+
+    // Fetch projects using the join table
+    const { data: projectTagData } = await supabase
+      .from('project_tags')
+      .select('projects(*)') // Select all columns from the linked projects table
+      .eq('tag_id', tagId);
+      
+    // Extract the projects from the nested response
+    const projectsWithTags = projectTagData?.map(item => item.projects) || [];
+    setProjects(projectsWithTags);
+
+    await fetchRelatedTags(decodedTag);
+    
+  } catch (error) {
+    console.error('Error fetching tag content:', error);
+    toast.error('Failed to load content for this tag.');
+  } finally {
+    setLoading(false);
+  }
+};
   const fetchRelatedTags = async (currentTag: string) => {
     try {
       // Get all blog posts and projects to analyze tags
@@ -133,7 +196,20 @@ const TagDetailPage: React.FC = () => {
       console.error('Error fetching related tags:', error);
     }
   };
+// const fetchRelatedTags = async (currentTag: string) => {
+//   try {
+//     const { data, error } = await supabase
+//       .rpc<RelatedTag[], GetRelatedTagsParams>('get_related_tags', { p_tag_name: currentTag });
 
+//     if (error) throw error;
+    
+//     setRelatedTags(data || []);
+
+//   } catch (error) {
+//     console.error('Error fetching related tags:', error);
+//     toast.error('Failed to load related tags.');
+//   }
+// };
   const handleTagClick = (tag: string) => {
     const tagSlug = tag.toLowerCase().replace(/\s+/g, '-');
     navigate(`/tags/${encodeURIComponent(tagSlug)}`);
