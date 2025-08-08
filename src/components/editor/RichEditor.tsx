@@ -18,6 +18,7 @@ import { Markdown } from "tiptap-markdown";
 import { lowlight } from "lowlight";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import "./editor-styles.css";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
