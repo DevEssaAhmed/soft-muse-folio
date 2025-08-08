@@ -29,12 +29,17 @@ const RecentProjects = ({ showAll = false }: RecentProjectsProps) => {
 
   const fetchProjects = async () => {
     try {
+      // const { data } = await supabase
+      //   .from("projects")
+      //   .select("*")
+      //   .order("created_at", { ascending: false })
+      //   .limit(showAll ? 50 : 6);
       const { data } = await supabase
-        .from("projects")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(showAll ? 50 : 6);
-      
+  .from("projects")
+  .select("*, categories(name)")
+  .order("created_at", { ascending: false })
+  .limit(showAll ? 50 : 6);
+
       if (data) {
         setProjects(data);
         
@@ -137,9 +142,14 @@ const RecentProjects = ({ showAll = false }: RecentProjectsProps) => {
               </div>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <Badge variant="outline" className="mb-2 w-fit">
+                  {/* <Badge variant="outline" className="mb-2 w-fit">
                     {project.category_id || "Uncategorized"}
-                  </Badge>
+                  </Badge> */}
+                  
+                  <Badge variant="outline" className="mb-2 w-fit">
+  {project.categories?.name || "Uncategorized"}
+</Badge>
+
                 </div>
                 <CardTitle className="group-hover:text-primary transition-colors line-clamp-2">
                   {project.title}
