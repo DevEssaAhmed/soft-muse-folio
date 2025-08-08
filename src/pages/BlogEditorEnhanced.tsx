@@ -265,7 +265,7 @@ const BlogEditorEnhanced: React.FC = () => {
   const handleSave = async (isAutoSave = false) => {
     if (!formData.title.trim()) return;
     setIsSaving(true);
-    const additionalImagesArray = formData.additional_images.split(',').map(img =&gt; img.trim()).filter(img =&gt; img);
+    const additionalImagesArray = formData.additional_images.split(',').map(img => img.trim()).filter(img => img);
     let categoryId = formData.category_id;
     if (formData.category_name.trim()) {
       const newCategory = await createOrGetCategory(formData.category_name);
