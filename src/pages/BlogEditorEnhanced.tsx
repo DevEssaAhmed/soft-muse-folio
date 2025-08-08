@@ -271,8 +271,8 @@ const BlogEditorEnhanced: React.FC = () => {
       const newCategory = await createOrGetCategory(formData.category_name);
       if (newCategory) {
         categoryId = newCategory.id;
-        setCategories(prev =&gt; [...prev, newCategory]);
-        setFormData(prev =&gt; ({ ...prev, category_name: '' }));
+        setCategories(prev => [...prev, newCategory]);
+        setFormData(prev => ({ ...prev, category_name: '' }));
       }
     }
     try {
