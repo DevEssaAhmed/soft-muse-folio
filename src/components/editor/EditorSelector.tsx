@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { 
   Wand2, 
   Code2, 
-  Switch,
+  Twitch,
   Sparkles,
   Zap
 } from 'lucide-react';
@@ -26,7 +26,7 @@ const EditorSelector: React.FC<EditorSelectorProps> = ({
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-foreground flex items-center gap-2">
-            <Switch className="w-4 h-4" />
+            <Twitch className="w-4 h-4" />
             Editor Type
           </h3>
           <Badge variant="secondary" className="text-xs">

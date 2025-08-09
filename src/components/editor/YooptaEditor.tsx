@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useCallback } from 'react';
 import YooptaEditor, { createYooptaEditor, YooptaContentValue } from '@yoopta/editor';
-import { YooptaPlugin } from '@yoopta/editor';
+import type { YooptaPlugin } from '@yoopta/editor';
 
 // Core plugins
 import Paragraph from '@yoopta/paragraph';
@@ -26,8 +26,8 @@ import LinkTool, { DefaultLinkToolRender } from '@yoopta/link-tool';
 // Marks
 import { Bold, Italic, CodeMark, Underline, Strike, Highlight } from '@yoopta/marks';
 
-// Exports
-import { serializeHtml, serializeMarkdown } from '@yoopta/exports';
+// Exports (namespaces)
+import { html, markdown, plainText } from '@yoopta/exports';
 
 // Supabase for uploads
 import { supabase } from '@/integrations/supabase/client';
@@ -50,15 +50,15 @@ const YooptaAdvancedEditor: React.FC<YooptaAdvancedEditorProps> = ({
 }) => {
   const [isUploading, setIsUploading] = useState(false);
 
-  // Upload handler for images and files
+  // Upload helper returns a string URL (keeps original behaviour)
   const uploadToSupabase = useCallback(async (file: File, type: 'image' | 'file' | 'video'): Promise<string> => {
     try {
       setIsUploading(true);
-      
+
       const timestamp = Date.now();
       const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
       const fileName = `${type}-${timestamp}-${safeName}`;
-      
+
       const bucket = type === 'image' ? 'images' : type === 'video' ? 'videos' : 'files';
 
       const { data, error } = await supabase.storage
@@ -69,24 +69,24 @@ const YooptaAdvancedEditor: React.FC<YooptaAdvancedEditorProps> = ({
         });
 
       if (error) throw error;
-      
+
       const { data: urlData } = supabase.storage
         .from(bucket)
         .getPublicUrl(fileName);
-      
+
       toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} uploaded successfully`);
       return urlData.publicUrl;
-    } catch (error) {
-      console.error(`${type} upload error:`, error);
+    } catch (err) {
+      console.error(`${type} upload error:`, err);
       toast.error(`Failed to upload ${type}`);
-      throw error;
+      throw err;
     } finally {
       setIsUploading(false);
     }
   }, []);
 
-  // Configure plugins with upload handlers
-  const plugins: YooptaPlugin[] = useMemo(() => [
+  // Use a permissive plugin array type so TS doesn't demand specific generics
+  const plugins: YooptaPlugin<any, any>[] = useMemo(() => [
     Paragraph.extend({
       options: {
         HTMLAttributes: {
@@ -94,7 +94,6 @@ const YooptaAdvancedEditor: React.FC<YooptaAdvancedEditorProps> = ({
         },
       },
     }),
-    
     HeadingOne.extend({
       options: {
         HTMLAttributes: {
@@ -102,7 +101,6 @@ const YooptaAdvancedEditor: React.FC<YooptaAdvancedEditorProps> = ({
         },
       },
     }),
-    
     HeadingTwo.extend({
       options: {
         HTMLAttributes: {
@@ -110,7 +108,6 @@ const YooptaAdvancedEditor: React.FC<YooptaAdvancedEditorProps> = ({
         },
       },
     }),
-    
     HeadingThree.extend({
       options: {
         HTMLAttributes: {
@@ -118,7 +115,6 @@ const YooptaAdvancedEditor: React.FC<YooptaAdvancedEditorProps> = ({
         },
       },
     }),
-
     Blockquote.extend({
       options: {
         HTMLAttributes: {
@@ -126,7 +122,6 @@ const YooptaAdvancedEditor: React.FC<YooptaAdvancedEditorProps> = ({
         },
       },
     }),
-
     BulletedList.extend({
       options: {
         HTMLAttributes: {
@@ -134,7 +129,6 @@ const YooptaAdvancedEditor: React.FC<YooptaAdvancedEditorProps> = ({
         },
       },
     }),
-
     NumberedList.extend({
       options: {
         HTMLAttributes: {
@@ -142,7 +136,6 @@ const YooptaAdvancedEditor: React.FC<YooptaAdvancedEditorProps> = ({
         },
       },
     }),
-
     TodoList.extend({
       options: {
         HTMLAttributes: {
@@ -150,7 +143,6 @@ const YooptaAdvancedEditor: React.FC<YooptaAdvancedEditorProps> = ({
         },
       },
     }),
-
     Code.extend({
       options: {
         HTMLAttributes: {
@@ -159,10 +151,13 @@ const YooptaAdvancedEditor: React.FC<YooptaAdvancedEditorProps> = ({
       },
     }),
 
+    // Image plugin: onUpload must return an object (e.g. { src: string })
     Image.extend({
       options: {
-        async onUpload(file: File) {
-          return await uploadToSupabase(file, 'image');
+        async onUpload(file: File): Promise<{ src: string }> {
+          const url = await uploadToSupabase(file, 'image');
+          // map string -> object expected by image plugin type
+          return { src: url };
         },
         HTMLAttributes: {
           className: 'rounded-lg max-w-full h-auto my-6 shadow-soft',
@@ -170,10 +165,12 @@ const YooptaAdvancedEditor: React.FC<YooptaAdvancedEditorProps> = ({
       },
     }),
 
+    // Video plugin: return object shape expected by plugin (at minimum { src: string })
     Video.extend({
       options: {
-        async onUpload(file: File) {
-          return await uploadToSupabase(file, 'video');
+        async onUpload(file: File): Promise<{ src: string }> {
+          const url = await uploadToSupabase(file, 'video');
+          return { src: url };
         },
         HTMLAttributes: {
           className: 'rounded-lg max-w-full my-6 shadow-soft',
@@ -181,10 +178,12 @@ const YooptaAdvancedEditor: React.FC<YooptaAdvancedEditorProps> = ({
       },
     }),
 
+    // File plugin: expected { src: string } (per TS error), so wrap url
     File.extend({
       options: {
-        async onUpload(file: File) {
-          return await uploadToSupabase(file, 'file');
+        async onUpload(file: File): Promise<{ src: string }> {
+          const url = await uploadToSupabase(file, 'file');
+          return { src: url };
         },
         HTMLAttributes: {
           className: 'bg-muted/50 border border-border rounded-lg p-4 my-4 hover:bg-muted/70 transition-colors',
@@ -199,7 +198,6 @@ const YooptaAdvancedEditor: React.FC<YooptaAdvancedEditorProps> = ({
         },
       },
     }),
-
     Table.extend({
       options: {
         HTMLAttributes: {
@@ -207,7 +205,6 @@ const YooptaAdvancedEditor: React.FC<YooptaAdvancedEditorProps> = ({
         },
       },
     }),
-
     Divider.extend({
       options: {
         HTMLAttributes: {
@@ -215,7 +212,6 @@ const YooptaAdvancedEditor: React.FC<YooptaAdvancedEditorProps> = ({
         },
       },
     }),
-
     Accordion.extend({
       options: {
         HTMLAttributes: {
@@ -223,7 +219,6 @@ const YooptaAdvancedEditor: React.FC<YooptaAdvancedEditorProps> = ({
         },
       },
     }),
-
     Link.extend({
       options: {
         HTMLAttributes: {
@@ -231,7 +226,6 @@ const YooptaAdvancedEditor: React.FC<YooptaAdvancedEditorProps> = ({
         },
       },
     }),
-
     Embed.extend({
       options: {
         HTMLAttributes: {
@@ -262,21 +256,25 @@ const YooptaAdvancedEditor: React.FC<YooptaAdvancedEditorProps> = ({
 
   const editor = useMemo(() => createYooptaEditor(), []);
 
-  // Helper functions for export
+  // Export helpers using the exports namespaces
   const exportAsMarkdown = useCallback(() => {
-    if (value) {
-      const markdown = serializeMarkdown(editor, value);
-      return markdown;
+    if (!value) return '';
+    try {
+      return markdown.serialize(editor, value) ?? '';
+    } catch (err) {
+      console.error('Markdown serialization error:', err);
+      return '';
     }
-    return '';
   }, [editor, value]);
 
   const exportAsHtml = useCallback(() => {
-    if (value) {
-      const html = serializeHtml(editor, value);
-      return html;
+    if (!value) return '';
+    try {
+      return html.serialize(editor, value) ?? '';
+    } catch (err) {
+      console.error('HTML serialization error:', err);
+      return '';
     }
-    return '';
   }, [editor, value]);
 
   return (
@@ -289,7 +287,7 @@ const YooptaAdvancedEditor: React.FC<YooptaAdvancedEditorProps> = ({
           </div>
         </div>
       )}
-      
+
       <YooptaEditor
         editor={editor}
         plugins={plugins}
@@ -304,8 +302,9 @@ const YooptaAdvancedEditor: React.FC<YooptaAdvancedEditorProps> = ({
           backgroundColor: 'transparent',
         }}
       />
-      
-      <style jsx global>{`
+
+      {/* Replaced `jsx global` style block with a plain <style> tag so TS types match */}
+      <style>{`
         .yoopta-editor-container .yoopta-editor {
           background: transparent !important;
           border: none !important;
