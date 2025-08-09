@@ -411,7 +411,23 @@ const ProjectEditorEnhanced: React.FC = () => {
             <Card className="bg-card/50 backdrop-blur-sm">
               <CardContent className="p-6">
                 <Label htmlFor="description" className="text-lg font-semibold mb-4 block">Project Description</Label>
-                <Textarea id="description" value={formData.description} onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))} placeholder="Describe your project in detail..." className="min-h-[400px] border-none bg-transparent resize-none focus-visible:ring-0 focus-visible:ring-offset-0 text-lg leading-relaxed" />
+                
+                {selectedEditor === 'yoopta' ? (
+                  <YooptaAdvancedEditor
+                    value={yooptaContent}
+                    onChange={setYooptaContent}
+                    placeholder="Describe your project in detail using the advanced editor..."
+                    className="min-h-[400px] border rounded-lg bg-background/50 p-4"
+                  />
+                ) : (
+                  <Textarea 
+                    id="description" 
+                    value={formData.description} 
+                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))} 
+                    placeholder="Describe your project in detail..." 
+                    className="min-h-[400px] border-none bg-transparent resize-none focus-visible:ring-0 focus-visible:ring-offset-0 text-lg leading-relaxed" 
+                  />
+                )}
               </CardContent>
             </Card>
             <Card className="bg-card/50 backdrop-blur-sm">
