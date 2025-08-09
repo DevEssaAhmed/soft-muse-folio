@@ -47,6 +47,8 @@ const ProjectEditorEnhanced: React.FC = () => {
   const [categories, setCategories] = useState([]);
   const [tagInput, setTagInput] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedEditor, setSelectedEditor] = useState<'yoopta' | 'tiptap'>('yoopta');
+  const [yooptaContent, setYooptaContent] = useState<YooptaContentValue>({});
 
   const [formData, setFormData] = useState({
     title: '',
