@@ -113,7 +113,7 @@ const ProjectDetailPage = () => {
       <div className="pt-20">
         <div className="max-w-6xl mx-auto px-6 py-8">
           <Button variant="ghost" onClick={() => navigate("/projects")} className="mb-6 hover:shadow-soft transition-all duration-300"> <ArrowLeft className="w-4 h-4 mr-2" /> Back to Projects </Button>
-          {project.image_url &amp;&amp; (
+          {project.image_url && (
             <div className="relative mb-8 rounded-2xl overflow-hidden shadow-glow">
               <img src={project.image_url} alt={project.title} className="w-full h-64 lg:h-96 object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
