@@ -235,7 +235,7 @@ const HashnodeEditor: React.FC<{
           border-top: 2px solid #E5E7EB;
           margin: 30px 0;
         }
-      `}</style>
+      `}} />
     </div>
   );
 };
