@@ -17,6 +17,27 @@ import YooptaAdvancedEditor from '@/components/editor/YooptaEditor';
 import { YooptaContentValue, createYooptaEditor } from '@yoopta/editor';
 import { markdown as yooptaMarkdown } from '@yoopta/exports';
 
+
+
+
+
+
+// Helper function to safely serialize Yoopta content to Markdown
+const safeSerializeMarkdown = (editor: ReturnType<typeof createYooptaEditor>, content: YooptaContentValue): string => {
+  try {
+    if (!content || typeof content !== 'object' || Object.keys(content).length === 0) {
+      return '';
+    }
+    // FIX: The correct method name is 'serialize', not 'stringify'.
+    return yooptaMarkdown.serialize(editor, content);
+  } catch (error) {
+    console.error('Failed to serialize content to Markdown:', error);
+    return ''; // Return empty string on failure
+  }
+};
+
+
+
 const ProjectEditorEnhanced: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -352,59 +373,14 @@ const ProjectEditorEnhanced: React.FC = () => {
                     <Label htmlFor="image_url" className="text-sm font-medium">Project Image</Label>
                     <Input id="image_url" type="url" value={formData.image_url} onChange={(e) => setFormData(prev => ({ ...prev, image_url: e.target.value }))} className="mt-1" placeholder="https://example.com/image.jpg" />
                   </div>
-                  <div>
-                    <Label htmlFor="additional_images" className="text-sm font-medium">Additional Images</Label>
-                    <Textarea id="additional_images" value={formData.additional_images} onChange={(e) => setFormData(prev => ({ ...prev, additional_images: e.target.value }))} rows={3} className="mt-1" placeholder="https://example.com/img1.jpg, https://example.com/img2.jpg" />
-                    <p className="text-xs text-muted-foreground mt-1">Separate URLs with commas</p>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="featured" className="text-sm font-medium">Featured Project</Label>
-                    <Switch id="featured" checked={formData.featured} onCheckedChange={(checked) => setFormData(prev => ({ ...prev, featured: checked }))} />
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-            <Card className="bg-card/50 backdrop-blur-sm">
-              <CardContent className="p-6">
-                <h3 className="font-semibold text-foreground mb-4">Quick Actions</h3>
-                <div className="space-y-2">
-                  <Button variant="outline" size="sm" className="w-full justify-start" onClick={() => window.open(formData.demo_url, '_blank')} disabled={!formData.demo_url}><ExternalLink className="w-4 h-4 mr-2" /> View Live Demo</Button>
-                  <Button variant="outline" size="sm" className="w-full justify-start" onClick={() => window.open(formData.github_url, '_blank')} disabled={!formData.github_url}><Github className="w-4 h-4 mr-2" /> View on GitHub</Button>
-                  <Button variant="outline" size="sm" className="w-full justify-start" onClick={() => navigator.clipboard.writeText(formData.title)}><Tag className="w-4 h-4 mr-2" /> Copy Title</Button>
-                </div>
-              </CardContent>
-            </Card>
-            {selectedTags.length &gt; 0 &amp;&amp; (
-              <Card className="bg-card/50 backdrop-blur-sm">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2"><Tag className="w-4 h-4" /> Technologies</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedTags.map((tag, index) =&gt; (<Badge key={index} variant="secondary" className="text-xs">{tag}</Badge>))}
-                  </div>
-                </CardContent>
-              </Card>
+                  
+                  </CardContent>
+</Card>
+// Additional settings can be added here
             )}
           </div>
         </div>
       </div>
     </div>
   );
-};
-
-function createParagraphFromText(text: string): YooptaContentValue {
-  const id = Date.now().toString();
-  return {
-    [id]: {
-      id,
-      type: 'Paragraph',
-      value: [ { id: id + '-1', type: 'paragraph', children: [{ text }] } ],
-      meta: { order: 0, depth: 0 }
-    }
-  };
 }
-
-function safeSerializeMarkdown(editor: ReturnType&lt;typeof createYooptaEditor&gt;, value: YooptaContentValue): string {
-  try { return yooptaMarkdown.serialize(editor, value) || ''; } catch { return ''; }
-}
-
-export default ProjectEditorEnhanced;

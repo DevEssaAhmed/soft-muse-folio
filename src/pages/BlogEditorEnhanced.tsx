@@ -455,7 +455,7 @@ const BlogEditorEnhanced: React.FC = () => {
                           </DialogHeader>
                           <div className="space-y-4">
                             <div>
-                              <Label htmlFor="series-title">Title *</nLabel>
+                              <Label htmlFor="series-title">Title *</Label>
                               <Input id="series-title" value={newSeries.title} onChange={(e) => setNewSeries({ ...newSeries, title: e.target.value })} required />
                             </div>
                             <div>
