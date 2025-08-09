@@ -410,7 +410,14 @@ const ProjectEditorEnhanced: React.FC = () => {
             </Card>
             <Card className="bg-card/50 backdrop-blur-sm">
               <CardContent className="p-6">
-                <Label htmlFor="description" className="text-lg font-semibold mb-4 block">Project Description</Label>
+                <div className="flex items-center justify-between mb-4">
+                  <Label htmlFor="description" className="text-lg font-semibold">Project Description</Label>
+                  <EditorSelector
+                    selectedEditor={selectedEditor}
+                    onEditorChange={setSelectedEditor}
+                    className="w-auto"
+                  />
+                </div>
                 
                 {selectedEditor === 'yoopta' ? (
                   <YooptaAdvancedEditor
