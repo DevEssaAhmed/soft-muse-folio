@@ -38,6 +38,9 @@ import { createOrGetCategory, getAllCategories, associateBlogPostTags, getBlogPo
 import FileUpload from '@/components/FileUpload';
 import NotionEditor from '@/components/editor/NotionEditor';
 import NotionToolbar from '@/components/editor/NotionToolbar';
+import YooptaAdvancedEditor from '@/components/editor/YooptaEditor';
+import EditorSelector from '@/components/editor/EditorSelector';
+import { YooptaContentValue } from '@yoopta/editor';
 
 const BlogEditorEnhanced: React.FC = () => {
   const navigate = useNavigate();
