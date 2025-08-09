@@ -255,3 +255,119 @@ cd /app && git stash && git pull
 **Last Updated**: January 8, 2025  
 **Project Status**: Notion Editor Complete, Auth Issues Pending  
 **Agent Context**: This file should be read completely before any modifications
+
+
+## Yoopta-only Editor Revamp Plan (July 2025)
+
+DECISIONS (confirmed by user)
+- Single editor: Yoopta only (remove all other editors)
+- Storage format: Save Markdown (not Yoopta JSON)
+- Package cleanup: Remove TipTap, Slate and any legacy editor deps from package.json
+- UI: Full-screen, Notion-like canvas with drag & drop block editing (Hashnode/Notion style), not a constrained textarea layout
+- For now: Leave content logic as-is; this document captures the final spec and execution plan
+
+Scope Overview
+- Phase 1 (Spec): Define how we’ll save Markdown while using Yoopta as the only editor. Captured here.
+- Phase 2 (Removal/Cleanup): Remove legacy editors and unused deps; ensure routes build and run with Yoopta-only.
+- Phase 3 (UI Revamp): Implement full-width Notion-like editing surface for Blog and Project editors with Yoopta blocks, media, and drag/drop.
+
+DATA MODEL AND CONTENT RULES
+- Blog posts
+  - Field used: blog_posts.content (string)
+  - New rule: store Markdown string in blog_posts.content
+- Projects
+  - Field used: projects.description (string) OR projects.content if exists
+  - New rule: store Markdown string in the chosen field (final decision during implementation; preference: projects.content if present, else projects.description)
+- Compatibility notes
+  - Existing content that is plain text or HTML is left untouched for now.
+  - Editor will operate on its internal Yoopta state in UI; on Save we serialize to Markdown and store to DB.
+  - Initial version: one-way save (Yoopta -> Markdown). Later enhancement can add Markdown -> Yoopta parsing if needed.
+
+YOOPTA EDITOR CONFIG (authoring experience)
+- Plugins (enabled): Paragraph, Headings (H1/H2/H3), Lists (bulleted/numbered/todo), Blockquote, Code, Divider, Image, Video, File, Callout, Table, Accordion, Link, Embed
+- Tools: @yoopta/action-menu-list (slash/command menu), @yoopta/toolbar (floating/inline toolbar), @yoopta/link-tool
+- Marks: Bold, Italic, Underline, Strike, Code, Highlight
+- Drag & Drop: Built-in via Yoopta + @dnd-kit; allow reordering of blocks fluidly
+- Media Uploads: Use Supabase Storage buckets (images/videos/files) with existing upload helper; preserve simultaneous URL inputs from FileUpload component where applicable
+
+SAVE/LOAD STRATEGY
+- Save:
+  - Maintain Yoopta editor state in component.
+  - On save, serialize to Markdown using @yoopta/exports markdown.serialize(editor, value) and write the Markdown string to DB.
+  - Keep existing associated metadata (tags/categories/series) as implemented.
+- Load (for this iteration):
+  - Leave as-is per user’s instruction.
+  - When opening an existing entity, we won’t attempt Markdown -> Yoopta conversion yet; content hydration approach will be defined in a later pass if needed. The editing surface will start from empty or retained state as decided during UI implementation.
+
+FILES/ROUTES TO TARGET
+- Editors to consolidate to Yoopta-only in these pages:
+  - /src/pages/BlogEditorV2.tsx
+  - /src/pages/ProjectEditorV2.tsx
+- Editors/components to remove (Phase 2):
+  - /src/components/editor/NotionEditor.tsx
+  - /src/components/editor/NotionToolbar.tsx
+  - /src/components/editor/RichEditor.tsx
+  - /src/components/editor/EditorSelector.tsx
+  - Legacy pages (to be removed or archived if unused routes):
+    - /src/pages/BlogEditor.tsx
+    - /src/pages/ProjectEditor.tsx
+    - /src/pages/BlogEditorEnhanced.tsx
+    - /src/pages/ProjectEditorEnhanced.tsx
+- Routes to continue using (Yoopta-only):
+  - /admin/blog/new, /admin/blog/edit/:id → BlogEditorV2
+  - /admin/project/new, /admin/project/edit/:id → ProjectEditorV2
+
+PACKAGE CLEANUP (Phase 2)
+- Remove TipTap stack (no longer used once Yoopta-only):
+  - @tiptap/core, @tiptap/react, @tiptap/starter-kit and all @tiptap/extension-* packages
+  - @tiptap/pm, @tiptap/suggestion
+- Remove Slate stack if not used elsewhere:
+  - slate, slate-react
+- Keep only Yoopta + required UI deps:
+  - @yoopta/* (editor, plugins, marks, toolbar, action-menu-list, exports)
+  - dnd-kit packages already present
+- Potential shared viewer deps (evaluate usage before removal):
+  - highlight.js/lowlight may be needed for read-only code rendering elsewhere; only remove if not used outside editors.
+
+UI REVAMP SPEC (Phase 3)
+- Layout
+  - Full screen, distraction-free editor canvas; max width grows to near full, with comfortable horizontal padding
+  - Sticky minimal header with: Back to Admin, Save/Publish, Status indicator (Saving…/Saved)
+  - Secondary controls (category/series/tags/media) in a side panel that can be toggled; editor occupies primary attention
+- Blocks & Interactions
+  - Slash command to insert blocks; quick-insert plus on empty lines
+  - Drag handles on left of blocks for reordering; drop targets show subtle highlights
+  - Inline toolbar on text selection for quick marks/links
+- Media
+  - Drag-and-drop images/videos into the canvas (uploads via Supabase) and URL embeds
+- Accessibility & Mobile
+  - Keyboard-first workflow; accessible toolbar; responsive layout scales down elegantly
+
+ACCEPTANCE CRITERIA
+- Both blog and project editors:
+  - Use only Yoopta, with drag/drop blocks and slash menu
+  - Save action serializes Yoopta doc to Markdown and stores in DB field as specified
+  - File uploads work via Supabase Storage; URL entries still supported
+  - UI fills the screen and feels like a modern Notion/Hashnode editor
+  - No TipTap or Slate imports remain in code; build passes after package cleanup
+
+TESTING PLAN
+- Build verification (vite build) after removal of legacy editors and deps
+- Manual smoke tests for:
+  - Creating/editing posts/projects
+  - Adding blocks via slash menu
+  - Reordering blocks (drag/drop)
+  - Uploading images/videos and inserting via URL
+  - Saving to Markdown and reloading page (for now, no MD->Yoopta hydration)
+
+IMPLEMENTATION ORDER (for execution)
+1) Phase 2: Remove legacy editor components, update imports, clean routes, and prune package.json
+2) Ensure BlogEditorV2/ProjectEditorV2 render Yoopta editor in full-width layout (Phase 3 initial UI)
+3) Wire Save to markdown.serialize(editor, value) and persist to DB (keeping tag/category/series logic)
+4) Verify uploads and URL inserts still work
+5) Polish interactions (drag handles, inline toolbar visibility, placeholders, spacing)
+
+NOTES/OPEN ITEMS
+- MD->Yoopta hydration is intentionally deferred per user instruction; we can add later if needed
+- If existing content must remain viewable/editable, we can temporarily display the Markdown below the editor or keep read-only preview until hydration is implemented
+- Confirm which projects field to use for Markdown (description vs content) during execution
