@@ -116,6 +116,35 @@ const ProjectEditorEnhanced: React.FC = () => {
         const tags = await getProjectTags(id);
         setSelectedTags(tags.map(tag => tag.name));
       }
+      // Handle Yoopta content for projects
+      if (data.description) {
+        try {
+          const parsedContent = JSON.parse(data.description);
+          if (parsedContent && typeof parsedContent === 'object') {
+            setYooptaContent(parsedContent);
+          } else {
+            // Old text content - create basic Yoopta structure
+            setYooptaContent({
+              [Date.now()]: {
+                id: Date.now().toString(),
+                type: 'Paragraph',
+                value: [{ id: Date.now().toString(), type: 'paragraph', children: [{ text: data.description }] }],
+                meta: { order: 0, depth: 0 }
+              }
+            });
+          }
+        } catch (e) {
+          // Plain text content
+          setYooptaContent({
+            [Date.now()]: {
+              id: Date.now().toString(),
+              type: 'Paragraph',
+              value: [{ id: Date.now().toString(), type: 'paragraph', children: [{ text: data.description || '' }] }],
+              meta: { order: 0, depth: 0 }
+            }
+          });
+        }
+      }
     } catch (error) {
       toast({
         title: 'Error loading project',
