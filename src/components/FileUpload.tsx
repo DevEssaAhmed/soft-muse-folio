@@ -425,4 +425,7 @@ export const FileUpload = ({
         </div>
       )}
     </div>
+  );
+};
+
 export default FileUpload;
