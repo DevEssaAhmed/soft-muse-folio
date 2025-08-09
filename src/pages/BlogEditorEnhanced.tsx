@@ -313,7 +313,7 @@ const BlogEditorEnhanced: React.FC = () => {
         title: formData.title,
         slug: formData.slug,
         excerpt: formData.excerpt,
-        content: formData.content,
+        content: selectedEditor === 'yoopta' ? JSON.stringify(yooptaContent) : formData.content,
         image_url: formData.image_url,
         video_url: formData.video_url,
         video_type: formData.video_type,
