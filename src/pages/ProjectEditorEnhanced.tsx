@@ -33,6 +33,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { createOrGetCategory, getAllCategories, associateProjectTags, getProjectTags } from '@/lib/tagUtils';
 import { useDebounce } from '@/hooks/use-debouncer'; // Assuming you created this hook
+import YooptaAdvancedEditor from '@/components/editor/YooptaEditor';
+import EditorSelector from '@/components/editor/EditorSelector';
+import { YooptaContentValue } from '@yoopta/editor';
 
 const ProjectEditorEnhanced: React.FC = () => {
   const navigate = useNavigate();
