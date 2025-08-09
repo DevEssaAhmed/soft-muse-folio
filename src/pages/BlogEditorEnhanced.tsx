@@ -464,15 +464,31 @@ const BlogEditorEnhanced: React.FC = () => {
                     />
                   </div>
 
-                  {/* Content Editor - Notion-like */}
+                  {/* Content Editor - Notion-like with Editor Selection */}
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">Content</Label>
-                    <div className="mt-1">
-                      <NotionEditor
-                        value={formData.content}
-                        onChange={(md) => setFormData(prev => ({ ...prev, content: md }))}
-                        placeholder="Type '/' for commands or start writing your blog post..."
+                    <div className="flex items-center justify-between mb-4">
+                      <Label className="text-sm font-medium text-gray-600">Content</Label>
+                      <EditorSelector
+                        selectedEditor={selectedEditor}
+                        onEditorChange={setSelectedEditor}
+                        className="w-auto"
                       />
+                    </div>
+                    <div className="mt-1">
+                      {selectedEditor === 'yoopta' ? (
+                        <YooptaAdvancedEditor
+                          value={yooptaContent}
+                          onChange={setYooptaContent}
+                          placeholder="Type '/' for commands or start writing your blog post..."
+                          className="min-h-[500px] border rounded-lg bg-background/50 p-4"
+                        />
+                      ) : (
+                        <NotionEditor
+                          value={formData.content}
+                          onChange={(md) => setFormData(prev => ({ ...prev, content: md }))}
+                          placeholder="Type '/' for commands or start writing your blog post..."
+                        />
+                      )}
                     </div>
                   </div>
                 </div>
