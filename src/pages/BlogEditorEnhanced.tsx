@@ -53,6 +53,8 @@ const BlogEditorEnhanced: React.FC = () => {
   const [series, setSeries] = useState<any[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedEditor, setSelectedEditor] = useState<'yoopta' | 'tiptap'>('yoopta');
+  const [yooptaContent, setYooptaContent] = useState<YooptaContentValue>({});
   const [showNewSeriesDialog, setShowNewSeriesDialog] = useState(false);
   const [newSeries, setNewSeries] = useState({
     title: '',
