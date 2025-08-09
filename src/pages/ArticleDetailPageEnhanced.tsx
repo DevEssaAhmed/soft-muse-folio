@@ -195,7 +195,7 @@ const ArticleDetailPageEnhanced = () => {
           </div>
           <h1 className="text-4xl lg:text-5xl font-bold leading-tight mb-6">{article.title}</h1>
           <p className="text-xl text-muted-foreground leading-relaxed mb-8">{article.excerpt}</p>
-          {article.video_url &amp;&amp; renderVideoEmbed(article.video_url, article.video_type)}
+          {article.video_url && renderVideoEmbed(article.video_url, article.video_type)}
           <div className="mb-8">{renderContent(article.content)}</div>
         </div>
       </div>
