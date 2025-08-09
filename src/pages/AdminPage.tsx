@@ -480,6 +480,7 @@ const AdminPage = () => {
           <TabsContent value="settings">
             <div className="space-y-6">
               <HeroStatsManager />
+              <SEOSettings />
             </div>
           </TabsContent>
 
