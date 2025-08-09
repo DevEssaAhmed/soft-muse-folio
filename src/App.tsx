@@ -11,8 +11,6 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AdminPage from "./pages/AdminPage";
-import BlogEditorV2 from "./pages/BlogEditorV2";
-import ProjectEditorV2 from "./pages/ProjectEditorV2";
 import ProjectsPage from "./pages/ProjectsPage";
 import ArticlesPage from "./pages/ArticlesPage";
 import ArticleDetailPageEnhanced from "./pages/ArticleDetailPageEnhanced";
@@ -27,6 +25,8 @@ import ProjectDetailPage from "./pages/ProjectDetailPage";
 import AboutPage from "./pages/AboutPage";
 import ProfileManagePage from "./pages/ProfileManagePage";
 import LoginForm from "./components/auth/LoginForm";
+import BlogEditorEnhanced from "./pages/BlogEditorEnhanced";
+import ProjectEditorEnhanced from "./pages/ProjectEditorEnhanced";
 
 const queryClient = new QueryClient();
 
@@ -57,10 +57,10 @@ const App = () => (
                 <Route path="/admin/login" element={<LoginForm />} />
                 <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
                 <Route path="/admin/profile" element={<ProtectedRoute><ProfileManagePage /></ProtectedRoute>} />
-                <Route path="/admin/blog/new" element={<ProtectedRoute><BlogEditorV2 /></ProtectedRoute>} />
-                <Route path="/admin/blog/edit/:id" element={<ProtectedRoute><BlogEditorV2 /></ProtectedRoute>} />
-                <Route path="/admin/project/new" element={<ProtectedRoute><ProjectEditorV2 /></ProtectedRoute>} />
-                <Route path="/admin/project/edit/:id" element={<ProtectedRoute><ProjectEditorV2 /></ProtectedRoute>} />
+                <Route path="/admin/blog/new" element={<ProtectedRoute><BlogEditorEnhanced /></ProtectedRoute>} />
+                <Route path="/admin/blog/edit/:id" element={<ProtectedRoute><BlogEditorEnhanced /></ProtectedRoute>} />
+                <Route path="/admin/project/new" element={<ProtectedRoute><ProjectEditorEnhanced /></ProtectedRoute>} />
+                <Route path="/admin/project/edit/:id" element={<ProtectedRoute><ProjectEditorEnhanced /></ProtectedRoute>} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

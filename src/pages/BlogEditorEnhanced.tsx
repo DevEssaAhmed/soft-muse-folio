@@ -19,13 +19,8 @@ import {
   Save, 
   Eye, 
   Settings, 
-  Image, 
-  Bold, 
-  Italic, 
-  Link, 
-  List, 
+  Image as ImageIcon, 
   Hash,
-  Globe,
   Calendar,
   Clock,
   Tag,
@@ -36,11 +31,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { createOrGetCategory, getAllCategories, associateBlogPostTags, getBlogPostTags } from '@/lib/tagUtils';
 import FileUpload from '@/components/FileUpload';
-import NotionEditor from '@/components/editor/NotionEditor';
-import NotionToolbar from '@/components/editor/NotionToolbar';
 import YooptaAdvancedEditor from '@/components/editor/YooptaEditor';
-import EditorSelector from '@/components/editor/EditorSelector';
-import { YooptaContentValue } from '@yoopta/editor';
+import { YooptaContentValue, createYooptaEditor } from '@yoopta/editor';
+import { markdown as yooptaMarkdown } from '@yoopta/exports';
 
 const BlogEditorEnhanced: React.FC = () => {
   const navigate = useNavigate();
@@ -53,7 +46,6 @@ const BlogEditorEnhanced: React.FC = () => {
   const [series, setSeries] = useState<any[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [selectedEditor, setSelectedEditor] = useState<'yoopta' | 'tiptap'>('yoopta');
   const [yooptaContent, setYooptaContent] = useState<YooptaContentValue>({});
   const [showNewSeriesDialog, setShowNewSeriesDialog] = useState(false);
   const [newSeries, setNewSeries] = useState({
@@ -66,24 +58,23 @@ const BlogEditorEnhanced: React.FC = () => {
     title: '',
     slug: '',
     excerpt: '',
-    content: '',
     image_url: '',
     video_url: '',
     video_type: 'youtube',
     category_id: '',
-    category_name: '', // For new category creation
-    series_id: '',      // Added series support
-    series_order: 1,    // Added series order
+    category_name: '',
+    series_id: '',
+    series_order: 1,
     published: false,
     reading_time: 5,
   });
 
+  const yooptaEditor = createYooptaEditor();
+
   useEffect(() => {
     loadCategories();
-    loadSeries(); // Load series data
-    if (id) {
-      fetchBlogPost();
-    }
+    loadSeries();
+    if (id) fetchBlogPost();
   }, [id]);
 
   const loadCategories = async () => {
@@ -93,7 +84,6 @@ const BlogEditorEnhanced: React.FC = () => {
 
   const loadSeries = async () => {
     try {
-      // Fetch series from database
       const { data: seriesData, error: seriesError } = await supabase
         .from('series')
         .select('*')
@@ -101,7 +91,6 @@ const BlogEditorEnhanced: React.FC = () => {
 
       if (seriesError) {
         console.error('Error fetching series:', seriesError);
-        // Fall back to mock data if database fails
         setSeries([
           { id: '1', title: 'React Mastery', slug: 'react-mastery' },
           { id: '2', title: 'Python for Data Science', slug: 'python-data-science' },
@@ -112,8 +101,7 @@ const BlogEditorEnhanced: React.FC = () => {
         setSeries(seriesData || []);
       }
     } catch (error) {
-      console.error("Error loading series:", error);
-      // Use fallback mock data
+      console.error('Error loading series:', error);
       setSeries([
         { id: '1', title: 'React Mastery', slug: 'react-mastery' },
         { id: '2', title: 'Python for Data Science', slug: 'python-data-science' },
@@ -128,17 +116,7 @@ const BlogEditorEnhanced: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from('blog_posts')
-        .select(`
-          *,
-          categories (
-            id,
-            name
-          ),
-          series (
-            id,
-            title
-          )
-        `)
+        .select(`*, categories (id, name), series (id, title)`) 
         .eq('id', id)
         .single();
 
@@ -148,59 +126,38 @@ const BlogEditorEnhanced: React.FC = () => {
         title: data.title || '',
         slug: data.slug || '',
         excerpt: data.excerpt || '',
-        content: data.content || '',
         image_url: data.image_url || '',
         video_url: data.video_url || '',
         video_type: data.video_type || 'youtube',
         category_id: data.category_id || '',
         category_name: '',
-        series_id: data.series_id || '',        // Load series data
-        series_order: data.series_order || 1,   // Load series order
+        series_id: data.series_id || '',
+        series_order: data.series_order || 1,
         published: data.published || false,
         reading_time: data.reading_time || 5,
       });
 
-      // Load existing tags using the new relational approach
+      // Load existing tags
       if (id) {
         const tags = await getBlogPostTags(id);
         setSelectedTags(tags.map(tag => tag.name));
       }
 
-      // Handle Yoopta content - if content is in old format, migrate it
+      // Hydrate Yoopta content (if JSON), otherwise start minimal paragraph
       if (data.content) {
         try {
-          const parsedContent = JSON.parse(data.content);
-          if (parsedContent && typeof parsedContent === 'object') {
-            setYooptaContent(parsedContent);
+          const parsed = JSON.parse(data.content);
+          if (parsed && typeof parsed === 'object') {
+            setYooptaContent(parsed);
           } else {
-            // Old markdown content - create basic Yoopta structure
-            setYooptaContent({
-              [Date.now()]: {
-                id: Date.now().toString(),
-                type: 'Paragraph',
-                value: [{ id: Date.now().toString(), type: 'paragraph', children: [{ text: data.content }] }],
-                meta: { order: 0, depth: 0 }
-              }
-            });
+            setYooptaContent(createParagraphFromText(data.content));
           }
         } catch (e) {
-          // Plain text content
-          setYooptaContent({
-            [Date.now()]: {
-              id: Date.now().toString(),
-              type: 'Paragraph',
-              value: [{ id: Date.now().toString(), type: 'paragraph', children: [{ text: data.content || '' }] }],
-              meta: { order: 0, depth: 0 }
-            }
-          });
+          setYooptaContent(createParagraphFromText(data.content));
         }
       }
     } catch (error: any) {
-      toast({
-        title: 'Error loading blog post',
-        description: error.message,
-        variant: 'destructive',
-      });
+      toast({ title: 'Error loading blog post', description: error.message, variant: 'destructive' });
       navigate('/admin');
     } finally {
       setIsLoading(false);
@@ -210,22 +167,10 @@ const BlogEditorEnhanced: React.FC = () => {
   // Auto-generate slug from title
   useEffect(() => {
     if (formData.title && !id) {
-      const slug = formData.title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
+      const slug = formData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
       setFormData(prev => ({ ...prev, slug }));
     }
   }, [formData.title, id]);
-
-  // Auto-save functionality
-  useEffect(() => {
-    if (!formData.title) return;
-    const autoSaveTimer = setTimeout(() => {
-      handleSave(true);
-    }, 5000);
-    return () => clearTimeout(autoSaveTimer);
-  }, [formData, selectedTags]);
 
   const handleAddTag = () => {
     if (tagInput.trim() && !selectedTags.includes(tagInput.trim())) {
@@ -251,19 +196,11 @@ const BlogEditorEnhanced: React.FC = () => {
       const newCategory = await createOrGetCategory(formData.category_name);
       if (newCategory) {
         setCategories(prev => [...prev, newCategory]);
-        setFormData(prev => ({ 
-          ...prev, 
-          category_id: newCategory.id,
-          category_name: ''
-        }));
+        setFormData(prev => ({ ...prev, category_id: newCategory.id, category_name: '' }));
         toast({ title: 'Category created successfully!' });
       }
     } catch (error) {
-      toast({
-        title: 'Error creating category',
-        description: 'Failed to create new category',
-        variant: 'destructive',
-      });
+      toast({ title: 'Error creating category', description: 'Failed to create new category', variant: 'destructive' });
     }
   };
 
@@ -296,32 +233,28 @@ const BlogEditorEnhanced: React.FC = () => {
     }
   };
 
-  const handleSave = async (isAutoSave = false) => {
+  const handleSave = async () => {
     if (!formData.title.trim()) return;
     setIsSaving(true);
-    let categoryId = formData.category_id;
-    if (formData.category_name.trim()) {
-      const newCategory = await createOrGetCategory(formData.category_name);
-      if (newCategory) {
-        categoryId = newCategory.id;
-        setCategories(prev => [...prev, newCategory]);
-        setFormData(prev => ({ ...prev, category_name: '' }));
-      }
-    }
+
     try {
+      // Serialize Yoopta to Markdown for reading_time, save JSON in DB (Yoopta recommended)
+      const md = safeSerializeMarkdown(yooptaEditor, yooptaContent);
+      const readingTime = estimateReadingTime(md);
+
       const blogData = {
         title: formData.title,
         slug: formData.slug,
         excerpt: formData.excerpt,
-        content: selectedEditor === 'yoopta' ? JSON.stringify(yooptaContent) : formData.content,
+        content: JSON.stringify(yooptaContent),
         image_url: formData.image_url,
         video_url: formData.video_url,
         video_type: formData.video_type,
-        category_id: categoryId || null,
+        category_id: formData.category_id || null,
         series_id: formData.series_id || null,
         series_order: formData.series_order,
         published: formData.published,
-        reading_time: formData.reading_time,
+        reading_time: readingTime,
       };
 
       let blogPostId = id;
@@ -329,21 +262,17 @@ const BlogEditorEnhanced: React.FC = () => {
         const { error } = await supabase.from('blog_posts').update(blogData).eq('id', id);
         if (error) throw error;
         await associateBlogPostTags(id, selectedTags);
-        if (!isAutoSave) toast({ title: 'Blog post updated successfully!' });
+        toast({ title: 'Blog post updated successfully!' });
       } else {
         const { data, error } = await supabase.from('blog_posts').insert([blogData]).select().single();
         if (error) throw error;
         blogPostId = data.id;
         await associateBlogPostTags(data.id, selectedTags);
-        if (!isAutoSave) {
-          toast({ title: 'Blog post created successfully!' });
-          navigate(`/admin/blog/edit/${data.id}`);
-        }
+        toast({ title: 'Blog post created successfully!' });
+        navigate(`/admin/blog/edit/${data.id}`);
       }
     } catch (error: any) {
-      if (!isAutoSave) {
-        toast({ title: 'Error saving blog post', description: error.message, variant: 'destructive' });
-      }
+      toast({ title: 'Error saving blog post', description: error.message, variant: 'destructive' });
       console.error('Save error:', error);
     } finally {
       setIsSaving(false);
@@ -351,9 +280,7 @@ const BlogEditorEnhanced: React.FC = () => {
   };
 
   const handleImageUpload = (urls: string[]) => {
-    if (urls.length > 0) {
-      setFormData(prev => ({ ...prev, image_url: urls[0] }));
-    }
+    if (urls.length > 0) setFormData(prev => ({ ...prev, image_url: urls[0] }));
   };
 
   const handleVideoUpload = (urls: string[]) => {
@@ -366,20 +293,24 @@ const BlogEditorEnhanced: React.FC = () => {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-hero flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading post...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-hero">
-      {/* Header */}
       <div className="bg-card/80 backdrop-blur-md border-b border-border sticky top-0 z-40">
-        
-             <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
-          <div className="flex  flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate('/admin')}
-                className="gap-2"
-              >
+              <Button variant="ghost" size="sm" onClick={() => navigate('/admin')} className="gap-2">
                 <ArrowLeft className="w-4 h-4" />
                 Back to Admin
               </Button>
@@ -387,32 +318,16 @@ const BlogEditorEnhanced: React.FC = () => {
                 {id ? 'Editing' : 'Creating'} Blog Post
               </div>
             </div>
-            
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowSettings(!showSettings)}
-                className="gap-2"
-              >
+              <Button variant="outline" size="sm" onClick={() => setShowSettings(!showSettings)} className="gap-2">
                 <Settings className="w-4 h-4" />
                 Settings
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2"
-                disabled={!formData.title}
-              >
+              <Button variant="outline" size="sm" className="gap-2" disabled={!formData.title}>
                 <Eye className="w-4 h-4" />
                 Preview
               </Button>
-              <Button
-                size="sm"
-                onClick={() => handleSave()}
-                disabled={isSaving || !formData.title}
-                className="gap-2"
-              >
+              <Button size="sm" onClick={handleSave} disabled={isSaving || !formData.title} className="gap-2">
                 <Save className="w-4 h-4" />
                 {isSaving ? 'Saving...' : id ? 'Update' : 'Publish'}
               </Button>
@@ -421,84 +336,39 @@ const BlogEditorEnhanced: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Editor */}
           <div className="lg:col-span-2">
             <Card>
-              <CardContent className="p-6">
-                     <div className="lg:col-span-3 space-y-6">
-                  {/* Title */}
-                  <div>
-                    <Input
-                      placeholder="Enter your blog post title..."
-                      value={formData.title}
-                      onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                       className="text-2xl md:text-4xl font-bold border-none bg-transparent px-0 placeholder:text-muted-foreground/50 focus-visible:ring-0 focus-visible:ring-offset-0"
-                    />
-                  </div>
+              <CardContent className="p-6 space-y-6">
+                <Input placeholder="Enter your blog post title..." value={formData.title} onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))} className="text-2xl md:text-4xl font-bold border-none bg-transparent px-0 placeholder:text-muted-foreground/50 focus-visible:ring-0 focus-visible:ring-offset-0" />
 
-                  {/* Slug */}
-                  <div>
-                    <Label className="text-sm font-medium text-gray-600 flex items-center gap-2">
-                      <Link className="w-4 h-4" />
-                      Slug
-                    </Label>
-                    <Input
-                      value={formData.slug}
-                      onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-                      className="mt-1"
-                      placeholder="blog-post-slug"
-                    />
-                  </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Slug</Label>
+                  <Input value={formData.slug} onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))} className="mt-1" placeholder="blog-post-slug" />
+                </div>
 
-                  {/* Excerpt */}
-                  <div>
-                    <Label className="text-sm font-medium text-gray-600">Excerpt</Label>
-                    <Textarea
-                      value={formData.excerpt}
-                      onChange={(e) => setFormData(prev => ({ ...prev, excerpt: e.target.value }))}
-                      className="mt-1"
-                      rows={3}
-                      placeholder="Write a brief description of your blog post..."
-                    />
-                  </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Excerpt</Label>
+                  <Textarea value={formData.excerpt} onChange={(e) => setFormData(prev => ({ ...prev, excerpt: e.target.value }))} className="mt-1" rows={3} placeholder="Write a brief description of your blog post..." />
+                </div>
 
-                  {/* Content Editor - Notion-like with Editor Selection */}
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <Label className="text-sm font-medium text-gray-600">Content</Label>
-                      <EditorSelector
-                        selectedEditor={selectedEditor}
-                        onEditorChange={setSelectedEditor}
-                        className="w-auto"
-                      />
-                    </div>
-                    <div className="mt-1">
-                      {selectedEditor === 'yoopta' ? (
-                        <YooptaAdvancedEditor
-                          value={yooptaContent}
-                          onChange={setYooptaContent}
-                          placeholder="Type '/' for commands or start writing your blog post..."
-                          className="min-h-[500px] border rounded-lg bg-background/50 p-4"
-                        />
-                      ) : (
-                        <NotionEditor
-                          value={formData.content}
-                          onChange={(md) => setFormData(prev => ({ ...prev, content: md }))}
-                          placeholder="Type '/' for commands or start writing your blog post..."
-                        />
-                      )}
-                    </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Content</Label>
+                  <div className="mt-2">
+                    <YooptaAdvancedEditor
+                      value={yooptaContent}
+                      onChange={setYooptaContent}
+                      placeholder="Type '/' for commands or start writing your blog post..."
+                      className="min-h-[600px] border rounded-lg bg-background/50 p-4"
+                    />
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Sidebar */}
           <div className="space-y-6">
-            {/* Publishing Settings */}
             <Card>
               <CardContent className="p-4">
                 <h3 className="font-semibold mb-4 flex items-center gap-2">
@@ -508,21 +378,14 @@ const BlogEditorEnhanced: React.FC = () => {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Status</span>
-                    <Badge variant={formData.published ? "default" : "secondary"}>
+                    <Badge variant={formData.published ? 'default' : 'secondary'}>
                       {formData.published ? 'Published' : 'Draft'}
                     </Badge>
                   </div>
-                  
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Reading Time</span>
                     <div className="flex items-center gap-1">
-                      <Input
-                        type="number"
-                        value={formData.reading_time}
-                        onChange={(e) => setFormData(prev => ({ ...prev, reading_time: parseInt(e.target.value) || 5 }))}
-                        className="w-16 h-8 text-center"
-                        min="1"
-                      />
+                      <Input type="number" value={formData.reading_time} onChange={(e) => setFormData(prev => ({ ...prev, reading_time: parseInt(e.target.value) || 5 }))} className="w-16 h-8 text-center" min="1" />
                       <Clock className="w-4 h-4 text-gray-400" />
                     </div>
                   </div>
@@ -530,24 +393,16 @@ const BlogEditorEnhanced: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* Categories and Series */}
             <Card>
               <CardContent className="p-4">
                 <h3 className="font-semibold mb-4 flex items-center gap-2">
                   <Tag className="w-4 h-4" />
-                  Categories & Series
+                  Categories &amp; Series
                 </h3>
                 <div className="space-y-4">
-                  {/* Category Selection */}
                   <div>
                     <Label className="text-sm font-medium">Category</Label>
-                    <Select 
-                      value={formData.category_id || "none"} 
-                      onValueChange={(value) => setFormData(prev => ({ 
-                        ...prev, 
-                        category_id: value === "none" ? "" : value 
-                      }))}
-                    >
+                    <Select value={formData.category_id || 'none'} onValueChange={(value) => setFormData(prev => ({ ...prev, category_id: value === 'none' ? '' : value }))}>
                       <SelectTrigger className="mt-1">
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
@@ -562,38 +417,20 @@ const BlogEditorEnhanced: React.FC = () => {
                     </Select>
                   </div>
 
-                  {/* New Category Creation */}
                   <div>
                     <Label className="text-sm font-medium">Create New Category</Label>
                     <div className="flex gap-2 mt-1">
-                      <Input
-                        value={formData.category_name}
-                        onChange={(e) => setFormData(prev => ({ ...prev, category_name: e.target.value }))}
-                        placeholder="Category name"
-                        className="flex-1"
-                      />
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={handleCreateNewCategory}
-                        disabled={!formData.category_name.trim()}
-                      >
+                      <Input value={formData.category_name} onChange={(e) => setFormData(prev => ({ ...prev, category_name: e.target.value }))} placeholder="Category name" className="flex-1" />
+                      <Button size="sm" variant="outline" onClick={handleCreateNewCategory} disabled={!formData.category_name.trim()}>
                         <Plus className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>
 
-                  {/* Series Selection */}
                   <div>
                     <Label className="text-sm font-medium">Series (Optional)</Label>
                     <div className="flex gap-2 mt-1">
-                      <Select 
-                        value={formData.series_id || "none"} 
-                        onValueChange={(value) => setFormData(prev => ({ 
-                          ...prev, 
-                          series_id: value === "none" ? "" : value 
-                        }))}
-                      >
+                      <Select value={formData.series_id || 'none'} onValueChange={(value) => setFormData(prev => ({ ...prev, series_id: value === 'none' ? '' : value }))}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a series" />
                         </SelectTrigger>
@@ -618,45 +455,25 @@ const BlogEditorEnhanced: React.FC = () => {
                           </DialogHeader>
                           <div className="space-y-4">
                             <div>
-                              <Label htmlFor="series-title">Title *</Label>
-                              <Input
-                                id="series-title"
-                                value={newSeries.title}
-                                onChange={(e) => setNewSeries({...newSeries, title: e.target.value})}
-                                required
-                              />
+                              <Label htmlFor="series-title">Title *</nLabel>
+                              <Input id="series-title" value={newSeries.title} onChange={(e) => setNewSeries({ ...newSeries, title: e.target.value })} required />
                             </div>
                             <div>
                               <Label htmlFor="series-description">Description</Label>
-                              <Textarea
-                                id="series-description"
-                                value={newSeries.description}
-                                onChange={(e) => setNewSeries({...newSeries, description: e.target.value})}
-                                rows={3}
-                              />
+                              <Textarea id="series-description" value={newSeries.description} onChange={(e) => setNewSeries({ ...newSeries, description: e.target.value })} rows={3} />
                             </div>
                             <div className="flex gap-2 pt-4">
-                              <Button onClick={createNewSeries} className="flex-1">
-                                Create Series
-                              </Button>
-                              <Button type="button" variant="outline" onClick={() => setShowNewSeriesDialog(false)}>
-                                Cancel
-                              </Button>
+                              <Button onClick={createNewSeries} className="flex-1">Create Series</Button>
+                              <Button type="button" variant="outline" onClick={() => setShowNewSeriesDialog(false)}>Cancel</Button>
                             </div>
                           </div>
                         </DialogContent>
                       </Dialog>
                     </div>
-                    {formData.series_id && formData.series_id !== "none" && (
+                    {formData.series_id && formData.series_id !== 'none' && (
                       <div className="mt-2">
                         <Label className="text-sm">Order in Series</Label>
-                        <Input
-                          type="number"
-                          min="1"
-                          value={formData.series_order}
-                          onChange={(e) => setFormData(prev => ({ ...prev, series_order: parseInt(e.target.value) || 1 }))}
-                          className="mt-1"
-                        />
+                        <Input type="number" min="1" value={formData.series_order} onChange={(e) => setFormData(prev => ({ ...prev, series_order: parseInt(e.target.value) || 1 }))} className="mt-1" />
                       </div>
                     )}
                   </div>
@@ -664,42 +481,23 @@ const BlogEditorEnhanced: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* Tags */}
             <Card>
               <CardContent className="p-4">
                 <h3 className="font-semibold mb-4 flex items-center gap-2">
                   <Hash className="w-4 h-4" />
                   Tags
                 </h3>
-                
-                {/* Tag Input */}
                 <div className="flex gap-2 mb-3">
-                  <Input
-                    value={tagInput}
-                    onChange={(e) => setTagInput(e.target.value)}
-                    onKeyDown={handleKeyPress}
-                    placeholder="Add a tag..."
-                    className="flex-1"
-                  />
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleAddTag}
-                    disabled={!tagInput.trim() || selectedTags.includes(tagInput.trim())}
-                  >
+                  <Input value={tagInput} onChange={(e) => setTagInput(e.target.value)} onKeyDown={handleKeyPress} placeholder="Add a tag..." className="flex-1" />
+                  <Button size="sm" variant="outline" onClick={handleAddTag} disabled={!tagInput.trim() || selectedTags.includes(tagInput.trim())}>
                     <Plus className="w-4 h-4" />
                   </Button>
                 </div>
-
-                {/* Selected Tags */}
                 <div className="flex flex-wrap gap-2">
                   {selectedTags.map((tag, index) => (
                     <Badge key={index} variant="secondary" className="gap-1">
                       {tag}
-                      <button
-                        onClick={() => handleRemoveTag(tag)}
-                        className="ml-1 hover:text-destructive"
-                      >
+                      <button onClick={() => handleRemoveTag(tag)} className="ml-1 hover:text-destructive">
                         <X className="w-3 h-3" />
                       </button>
                     </Badge>
@@ -708,37 +506,15 @@ const BlogEditorEnhanced: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* Media Uploads */}
             <Card>
               <CardContent className="p-4">
                 <h3 className="font-semibold mb-4 flex items-center gap-2">
-                  <Image className="w-4 h-4" />
+                  <ImageIcon className="w-4 h-4" />
                   Media
                 </h3>
-                
                 <div className="space-y-4">
-                  {/* Featured Image Upload with simultaneous file + URL support */}
-                  <FileUpload
-                    label="Featured Image"
-                    uploadType="image"
-                    onUploadComplete={handleImageUpload}
-                    maxFiles={1}
-                    existingFiles={formData.image_url ? [formData.image_url] : []}
-                    simultaneousMode={true}
-                    urlInputPlaceholder="https://example.com/image.jpg"
-                    enableImageEditing={true}
-                  />
-
-                  {/* Video Upload with simultaneous support */}
-                  <FileUpload
-                    label="Video (Optional)"
-                    uploadType="video"
-                    onUploadComplete={handleVideoUpload}
-                    maxFiles={1}
-                    existingFiles={formData.video_url ? [formData.video_url] : []}
-                    simultaneousMode={true}
-                    urlInputPlaceholder="https://youtube.com/watch?v=... or direct video URL"
-                  />
+                  <FileUpload label="Featured Image" uploadType="image" onUploadComplete={handleImageUpload} maxFiles={1} existingFiles={formData.image_url ? [formData.image_url] : []} simultaneousMode={true} urlInputPlaceholder="https://example.com/image.jpg" enableImageEditing={true} />
+                  <FileUpload label="Video (Optional)" uploadType="video" onUploadComplete={handleVideoUpload} maxFiles={1} existingFiles={formData.video_url ? [formData.video_url] : []} simultaneousMode={true} urlInputPlaceholder="https://youtube.com/watch?v=... or direct video URL" />
                 </div>
               </CardContent>
             </Card>
@@ -748,5 +524,33 @@ const BlogEditorEnhanced: React.FC = () => {
     </div>
   );
 };
+
+function createParagraphFromText(text: string): YooptaContentValue {
+  const id = Date.now().toString();
+  return {
+    [id]: {
+      id,
+      type: 'Paragraph',
+      value: [
+        { id: id + '-1', type: 'paragraph', children: [{ text }] }
+      ],
+      meta: { order: 0, depth: 0 }
+    }
+  };
+}
+
+function safeSerializeMarkdown(editor: ReturnType<typeof createYooptaEditor>, value: YooptaContentValue): string {
+  try {
+    return yooptaMarkdown.serialize(editor, value) || '';
+  } catch (e) {
+    console.error('Markdown serialization error:', e);
+    return '';
+  }
+}
+
+function estimateReadingTime(markdown: string): number {
+  const words = markdown.trim().split(/\s+/).length;
+  return Math.max(1, Math.ceil(words / 200));
+}
 
 export default BlogEditorEnhanced;
