@@ -165,6 +165,36 @@ const BlogEditorEnhanced: React.FC = () => {
         const tags = await getBlogPostTags(id);
         setSelectedTags(tags.map(tag => tag.name));
       }
+
+      // Handle Yoopta content - if content is in old format, migrate it
+      if (data.content) {
+        try {
+          const parsedContent = JSON.parse(data.content);
+          if (parsedContent && typeof parsedContent === 'object') {
+            setYooptaContent(parsedContent);
+          } else {
+            // Old markdown content - create basic Yoopta structure
+            setYooptaContent({
+              [Date.now()]: {
+                id: Date.now().toString(),
+                type: 'Paragraph',
+                value: [{ id: Date.now().toString(), type: 'paragraph', children: [{ text: data.content }] }],
+                meta: { order: 0, depth: 0 }
+              }
+            });
+          }
+        } catch (e) {
+          // Plain text content
+          setYooptaContent({
+            [Date.now()]: {
+              id: Date.now().toString(),
+              type: 'Paragraph',
+              value: [{ id: Date.now().toString(), type: 'paragraph', children: [{ text: data.content || '' }] }],
+              meta: { order: 0, depth: 0 }
+            }
+          });
+        }
+      }
     } catch (error: any) {
       toast({
         title: 'Error loading blog post',
