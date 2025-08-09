@@ -241,7 +241,7 @@ const ProjectEditorEnhanced: React.FC = () => {
 
     const projectData = {
       title: formData.title,
-      description: formData.description,
+      description: selectedEditor === 'yoopta' ? JSON.stringify(yooptaContent) : formData.description,
       category_id: finalCategoryId || null,
       image_url: formData.image_url || null,
       demo_url: formData.demo_url || null,
