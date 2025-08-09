@@ -189,7 +189,7 @@ const HashnodeEditor: React.FC<{
         data-placeholder={placeholder}
       />
 
-      <style jsx>{`
+      <style dangerouslySetInnerHTML={{__html: `
         [contenteditable]:empty:before {
           content: attr(data-placeholder);
           color: #9CA3AF;
